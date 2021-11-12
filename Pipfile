@@ -8,6 +8,10 @@ fastapi = "*"
 uvicorn = "*"
 gunicorn = "*"
 python-decouple = "*"
+jinja2 = "*"
+sqlalchemy = "*"
+psycopg = "*"
+alembic = "*"
 
 [dev-packages]
 
