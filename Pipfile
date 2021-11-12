@@ -12,6 +12,7 @@ jinja2 = "*"
 sqlalchemy = "*"
 psycopg = "*"
 alembic = "*"
+psycopg2 = "*"
 
 [dev-packages]
 
