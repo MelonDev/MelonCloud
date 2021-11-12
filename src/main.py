@@ -17,8 +17,12 @@ async def index():
 async def secret_key():
     print(environment.SECRET_KEY)
     print(database_path_list)
+    dbp = {k: v for k, v in database_path_list.items() if v is not None}
+    dbp2 = dict(filter(lambda item: item[1] is not None, database_path_list.items()))
+    print(dbp2)
+    print(dbp)
     print(database_path)
-    return environment.SECRET_KEY
+    return dbp2
 
 
 if __name__ == "__main__":
