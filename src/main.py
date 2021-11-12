@@ -13,17 +13,5 @@ async def index():
     return "Hello FastAPI"
 
 
-@app.get("/secret-key")
-async def secret_key():
-    print("0"+str(environment.SECRET_KEY))
-    print("1"+str(database_path_list))
-    dbp = {k: v for k, v in database_path_list.items() if v is not None}
-    dbp2 = dict(filter(lambda item: item[1] is not None, database_path_list.items()))
-    print("2"+str(dbp2))
-    print("3"+str(dbp))
-    print("4"+str(database_path))
-    return dbp2
-
-
 if __name__ == "__main__":
     uvicorn.run("main:app")
