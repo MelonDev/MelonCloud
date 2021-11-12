@@ -1,2 +1,2 @@
 .env
-src/environment/database_address.py
+src/environment/database_address
