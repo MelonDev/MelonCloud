@@ -29,7 +29,7 @@ app.mount("/static", StaticFiles(directory=st_abs_file_path), name="static")
 
 #app.mount("/static", StaticFiles(directory="static"), name="static")
 
-templates = Jinja2Templates(directory="static/templates")
+templates = Jinja2Templates(directory="./static/templates")
 
 
 # app.include_router(user.router, prefix="/user", tags=["users"])
