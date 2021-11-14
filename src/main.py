@@ -1,12 +1,19 @@
+import os
+
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from sqlalchemy.orm import Session
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.responses import RedirectResponse, HTMLResponse
 
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.environment.share_environment import get_db
+from src.routers import user
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,10 +22,18 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="static/templates")
+
+
+# app.include_router(user.router, prefix="/user", tags=["users"])
+
 
 @app.get("/")
 async def index():
-    return "Hello FastAPI"
+    # return "Hello FastAPI"
+    return RedirectResponse(url="/docs/")
 
 
 @app.get("/database")
@@ -26,6 +41,11 @@ async def database(db: Session = Depends(get_db)):
     a = db.query(MelonDevTwitterDatabase).limit(10).all()
     b = [item.serialize for item in a]
     return b
+
+
+@app.get("/web")
+async def web(request: Request):
+    return templates.TemplateResponse("security/password_generator/layout.html", {"request": request})
 
 
 if __name__ == "__main__":
