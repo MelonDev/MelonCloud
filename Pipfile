@@ -13,6 +13,7 @@ sqlalchemy = "*"
 psycopg = "*"
 alembic = "*"
 psycopg2 = "*"
+app = "*"
 
 [dev-packages]
 
