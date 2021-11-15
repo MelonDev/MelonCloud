@@ -23,8 +23,12 @@ app.add_middleware(
 )
 
 script_dir = os.path.dirname(__file__)
+print(script_dir)
 st_abs_file_path = os.path.join(script_dir, "static/")
+print(st_abs_file_path)
+print(StaticFiles(directory=st_abs_file_path))
 app.mount("/static", StaticFiles(directory=st_abs_file_path), name="static")
+print(app.mount("/static", StaticFiles(directory=st_abs_file_path), name="static"))
 
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
