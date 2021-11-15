@@ -13,6 +13,8 @@ sqlalchemy = "*"
 psycopg = "*"
 alembic = "*"
 psycopg2 = "*"
+length = "*"
+stress = "*"
 
 [dev-packages]
 

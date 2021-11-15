@@ -12,7 +12,7 @@ def include_router(app):
     app.include_router(page.router, prefix="", tags=["webpage"])
     app.include_router(playground.router, prefix="", tags=["playground"])
     app.include_router(user.router, prefix="/user", tags=["users"])
-    app.include_router(pwg_api.router, prefix="/security", tags=["security"])
+    app.include_router(pwg_api.router, prefix="/security", tags=["Random Password Generator"])
 
 
 def configure_static(app):

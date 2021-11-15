@@ -1,13 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from src.tools import random_password_generator
-from src.tools.random_password_generator import RandomPasswordGenerator
+from src.tools.random_password_generator import RandomPasswordGenerator, SimpleRPWGModel, RPWGModel
 
 router = APIRouter()
-
 generator = RandomPasswordGenerator()
 
 
-@router.get("/simple", include_in_schema=True)
-async def simple_password():
-    return generator.simple()
+@router.get("/simple")
+async def simple(model: SimpleRPWGModel = Depends()):
+    if model.step is None or model.length is None:
+        return generator.simple()
+    else:
+        return generator.advance(step=model.step,
+                                 length=model.length)
+
+
+@router.post("/custom")
+async def custom(req: RPWGModel):
+    return generator.custom(req)

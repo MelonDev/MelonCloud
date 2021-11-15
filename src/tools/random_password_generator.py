@@ -1,10 +1,28 @@
 import string
 import random
 
+from pydantic import BaseModel
+from pydantic.fields import Optional
+
 _lower = string.ascii_lowercase
 _upper = string.ascii_uppercase
 _num = string.digits
 _symbols = string.punctuation
+
+
+class RPWGModel(BaseModel):
+    length: int = 6
+    step: int = 3
+    stress: bool = True
+    lower_weight: int = 2
+    upper_weight: int = 1
+    numeric_weight: int = 1
+    symbols_weight: int = 0
+
+
+class SimpleRPWGModel(BaseModel):
+    length: int = 6
+    step: int = 3
 
 
 def _generator(populations, length: int, step: int = None, stress: bool = True) -> str:
@@ -34,4 +52,28 @@ class RandomPasswordGenerator:
             populations = (_lower * lower_weight) + (_upper * upper_weight) + (_num * numeric_weight) + (
                     _symbols * symbols_weight)
 
+        print(step)
         return _generator(populations=populations, length=length, step=step, stress=stress)
+
+    @staticmethod
+    def advance(length: int = 6, step: int = 3, stress: bool = True, lower_weight: int = 2, upper_weight: int = 1,
+                numeric_weight: int = 1, symbols_weight: int = 0) -> str:
+
+        if (lower_weight + upper_weight + numeric_weight + symbols_weight + symbols_weight) <= 0:
+            populations = (_lower * 2) + _upper + _num
+        else:
+            populations = (_lower * lower_weight) + (_upper * upper_weight) + (_num * numeric_weight) + (
+                    _symbols * symbols_weight)
+
+        return _generator(populations=populations, length=length, step=step, stress=stress)
+
+    @staticmethod
+    def custom(request: RPWGModel):
+        return RandomPasswordGenerator.advance(length=request.length,
+                                               step=request.step,
+                                               stress=request.stress,
+                                               lower_weight=request.lower_weight,
+                                               upper_weight=request.upper_weight,
+                                               numeric_weight=request.numeric_weight,
+                                               symbols_weight=request.symbols_weight)
+
