@@ -1,0 +1,51 @@
+{% extends "security/password_generator/base.html" %}
+{% block body %}
+<div class="row">
+    <div class="col-md-6 offset-md-3 ">
+
+
+        <h1 class="title-style">自動パスワードジェネレータ</h1>
+        <div class="input-group mb-3 top-title-buffer">
+
+            <input type="preview" class="form-control" id="password" disabled name="preview" value="{{password}}"
+                   placeholder="Password">
+            <div class="input-group-append">
+
+                <button class="btn btn-outline-secondary button-style" type="button" onclick="copyToClipboard()">コピー</button>
+            </div>
+
+        </div>
+
+        <div class="container top-buffer">
+            <div class="row justify-content-end ">
+
+                <div class="col-5">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <a class="btn btn-primary button-style button-submit" href="/page/password_generator" role="button">再生する</a>
+
+
+                        </div>
+
+                        <div class="input-group-append">
+
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-left">
+                                <a class="dropdown-item button-style" href="/page/password_generator/3">3 セット</a>
+                                <a class="dropdown-item button-style" href="/page/password_generator/4">4 セット</a>
+                                <a class="dropdown-item button-style" href="/page/password_generator/5">5 セット</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

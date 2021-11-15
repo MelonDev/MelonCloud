@@ -59,7 +59,7 @@ async def database(db: Session = Depends(get_db)):
 
 @app.get("/web")
 async def web(request: Request):
-    return templates.TemplateResponse("security/password_generator/layout.html", {"request": request})
+    return templates.TemplateResponse("security/password_generator/home.html", {"request": request})
 
 
 if __name__ == "__main__":

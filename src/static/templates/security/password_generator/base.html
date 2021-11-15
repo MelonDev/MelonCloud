@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
 
+<head>
 
     <style>
+
     .center {
       margin: 0;
       position: absolute;
@@ -59,16 +59,13 @@ font-size: 30px;
 
 
 
-
-
     </style>
 
     <title>Password Generator</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-
     <script type="text/javascript" src="/static/templates/security/password_generator/script.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rampart+One&display=swap" rel="stylesheet">
@@ -78,64 +75,15 @@ font-size: 30px;
 
 
 </head>
+
 <body>
 
 
-<h1>This is a Heading</h1>
-<p>This is a paragraph.</p>
 <div class="container pt-10 center">
-
-<div class="row">
-    <div class="col-md-6 offset-md-3 ">
-
-
-        <h1 class="title-style">自動パスワードジェネレータ</h1>
-        <div class="input-group mb-3 top-title-buffer">
-
-            <input type="preview" class="form-control" id="password" disabled name="preview" value="{{password}}"
-                   placeholder="Password">
-            <div class="input-group-append">
-
-                <button class="btn btn-outline-secondary button-style" type="button" onclick="copyToClipboard()">コピー</button>
-            </div>
-
-        </div>
-
-        <div class="container top-buffer">
-            <div class="row justify-content-end ">
-
-                <div class="col-5">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <a class="btn btn-primary button-style button-submit" href="/page/password_generator" role="button">再生する</a>
-
-
-                        </div>
-
-                        <div class="input-group-append">
-
-                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="sr-only">Toggle Dropdown</span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-left">
-                                <a class="dropdown-item button-style" href="/page/password_generator/3">3 セット</a>
-                                <a class="dropdown-item button-style" href="/page/password_generator/4">4 セット</a>
-                                <a class="dropdown-item button-style" href="/page/password_generator/5">5 セット</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-</div>
+    {% block body %}
+    {% endblock %}
 </div>
 
-{% block body %}
-{% endblock %}
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
@@ -154,4 +102,5 @@ font-size: 30px;
 </script>
 
 </body>
+
 </html>
