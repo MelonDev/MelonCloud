@@ -50,6 +50,7 @@ async def index():
 async def database(db: Session = Depends(get_db)):
     a = db.query(MelonDevTwitterDatabase).limit(10).all()
     b = [item.serialize for item in a]
+    print("DATABASE")
     return b
 
 
