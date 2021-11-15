@@ -76,4 +76,3 @@ class RandomPasswordGenerator:
                                                upper_weight=request.upper_weight,
                                                numeric_weight=request.numeric_weight,
                                                symbols_weight=request.symbols_weight)
-
