@@ -7,7 +7,8 @@ from src.environment.database import get_db
 
 router = APIRouter()
 
-@router.get("/",include_in_schema=False)
+
+@router.get("/", include_in_schema=False)
 async def index():
     # return "Hello FastAPI"
     return RedirectResponse(url="/docs/")
@@ -19,4 +20,5 @@ async def database(db: Session = Depends(get_db)):
     b = [item.serialize for item in a]
     print("DATABASE")
     return b
+
 
