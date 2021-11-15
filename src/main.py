@@ -16,11 +16,9 @@ from src.routers import user
 
 app = FastAPI()
 
-#BASE_DIR = pathlib.Path(__file__).parent
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(Path(BASE_DIR, 'static/templates')))
-
-#templates = Jinja2Templates(directory=BASE_DIR / "./static/templates")
+app.mount("/static", StaticFiles(directory=str(Path(BASE_DIR, 'static/templates'))), name="static")
 
 
 
