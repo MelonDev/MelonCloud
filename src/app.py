@@ -1,16 +1,8 @@
-import os
 from pathlib import Path
-
 import uvicorn
-from fastapi import FastAPI, Depends, Request
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from starlette.responses import RedirectResponse, HTMLResponse
-
-from src.database.melondev_twitter_database import MelonDevTwitterDatabase
-from src.environment.database import get_db
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
 
@@ -35,15 +27,14 @@ def configure_cors(app):
     )
 
 
-def application():
+def init_app():
     app = FastAPI()
     include_router(app)
     configure_static(app)
     return app
 
 
-app = application()
-
+app = init_app()
 
 if __name__ == "__main__":
     uvicorn.run("app:app")
