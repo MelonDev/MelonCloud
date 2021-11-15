@@ -10,19 +10,15 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse, HTMLResponse
 
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
-from src.environment import share_environment
 from src.environment.database import get_db
-from src.environment.share_environment import templates
+from src.environment.share_environment import SRC_DIR
 from src.routers import user, web_page
 
 app = FastAPI()
 
-BASE_DIR = Path(__file__).resolve().parent
-print("AA"+str(BASE_DIR))
 # templates = Jinja2Templates(directory=str(Path(BASE_DIR, 'static/templates')))
 # app.mount("/static", StaticFiles(directory=str(Path(BASE_DIR, 'static'))), name="static")
-share_environment.templates = Jinja2Templates(directory=str(Path(BASE_DIR, 'static/templates')))
-app.mount("/static", StaticFiles(directory=str(Path(BASE_DIR, 'static'))), name="static")
+app.mount("/static", StaticFiles(directory=str(Path(SRC_DIR, 'static'))), name="static")
 
 app.add_middleware(
     CORSMiddleware,
