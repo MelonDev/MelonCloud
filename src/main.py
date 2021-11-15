@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 
 import uvicorn
 from fastapi import FastAPI, Depends, Request
@@ -14,6 +16,14 @@ from src.routers import user
 
 app = FastAPI()
 
+#BASE_DIR = pathlib.Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(Path(BASE_DIR, 'static/templates')))
+
+#templates = Jinja2Templates(directory=BASE_DIR / "./static/templates")
+
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,18 +32,14 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-script_dir = os.path.dirname(__file__)
-
-print("script_dir: "+str(script_dir))
-st_abs_file_path = os.path.join(script_dir, "static/")
-print("st_abs_file_path: "+str(st_abs_file_path))
-print("StaticFiles: "+str(StaticFiles(directory=st_abs_file_path).directory))
-
-app.mount("/static", StaticFiles(directory=st_abs_file_path), name="static")
+#script_dir = os.path.dirname(__file__)
+#st_abs_file_path = os.path.join(script_dir, "static/")
+#app.mount("/static", StaticFiles(directory=st_abs_file_path), name="static")
 
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
-templates = Jinja2Templates(directory="./static/templates")
+#templates = Jinja2Templates(directory="./static/templates")
+
 
 
 # app.include_router(user.router, prefix="/user", tags=["users"])
