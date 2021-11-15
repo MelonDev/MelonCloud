@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import ARRAY
 
-from src.environment.share_environment import Base
+from src.environment.database import Base
 
 
 def dump_datetime(value):

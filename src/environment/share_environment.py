@@ -1,17 +1,11 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from pathlib import Path
 
-from src.environment.database_path import database_path
+from fastapi.templating import Jinja2Templates
 
-engine = create_engine(database_path['meloncloud'])
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+BASE_DIR = Path(__file__).resolve().parent
+print("BB"+str(BASE_DIR))
 
+templates = Jinja2Templates("")
 
-def get_db():
-    db = SessionLocal()
-    yield db
-    try:
-        yield db
-    finally:
-        db.close()
+def get_template(BASE_DIR):
+    return Jinja2Templates(directory=str(Path(BASE_DIR, 'static/templates')))
