@@ -28,7 +28,6 @@ print("script_dir: "+str(script_dir))
 st_abs_file_path = os.path.join(script_dir, "static/")
 print("st_abs_file_path: "+str(st_abs_file_path))
 print("StaticFiles: "+str(StaticFiles(directory=st_abs_file_path).directory))
-print("static: "+str(StaticFiles(directory="static").directory))
 
 app.mount("/static", StaticFiles(directory=st_abs_file_path), name="static")
 
