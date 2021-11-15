@@ -18,7 +18,11 @@ app = FastAPI()
 
 # templates = Jinja2Templates(directory=str(Path(BASE_DIR, 'static/templates')))
 # app.mount("/static", StaticFiles(directory=str(Path(BASE_DIR, 'static'))), name="static")
-app.mount("/static", StaticFiles(directory=str(Path(SRC_DIR, 'static'))), name="static")
+BASE_DIR = str(Path(__file__).resolve().parent)
+
+app.mount("/static", StaticFiles(directory=str(Path(BASE_DIR, 'static'))), name="static")
+print("BASE_DIR: "+str(Path(BASE_DIR, 'static')))
+print("SRC_DIR: "+str(Path(SRC_DIR, 'static')))
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(web_page.router, prefix="/page", tags=["WebPage"])
+app.include_router(web_page.router, tags=["WebPage"])
 
 app.include_router(user.router, prefix="/user", tags=["users"])
 
