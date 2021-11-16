@@ -12,3 +12,8 @@ async def pwg(request: Request, step: int = None):
     password = generator.simple(step=step) if step is not None else generator.simple()
     return templates.TemplateResponse("security/password_generator/home.html",
                                       {"request": request, "password": password})
+
+@router.get("/test", include_in_schema=True)
+async def test(request: Request):
+    return templates.TemplateResponse("example/test-bootstrap.html",
+                                      {"request": request})
