@@ -10,7 +10,6 @@ Base = declarative_base()
 
 def get_db():
     db = SessionLocal()
-    yield db
     try:
         yield db
     finally:

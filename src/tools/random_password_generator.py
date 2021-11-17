@@ -10,7 +10,7 @@ _num = string.digits
 _symbols = string.punctuation
 
 
-class RPWGModel(BaseModel):
+class RandomPasswordModel(BaseModel):
     length: int = 6
     step: int = 3
     stress: bool = True
@@ -20,7 +20,7 @@ class RPWGModel(BaseModel):
     symbols_weight: int = 0
 
 
-class SimpleRPWGModel(BaseModel):
+class SimpleRandomPasswordModel(BaseModel):
     length: int = 6
     step: int = 3
 
@@ -68,7 +68,7 @@ class RandomPasswordGenerator:
         return _generator(populations=populations, length=length, step=step, stress=stress)
 
     @staticmethod
-    def custom(request: RPWGModel):
+    def custom(request: RandomPasswordModel):
         return RandomPasswordGenerator.advance(length=request.length,
                                                step=request.step,
                                                stress=request.stress,
