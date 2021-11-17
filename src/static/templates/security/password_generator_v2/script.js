@@ -17,3 +17,4 @@ function copyToClipboard() {
   document.body.removeChild(dummy);
   alert("Copied the text: " + copyText.value);
 }
+
