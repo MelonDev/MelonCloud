@@ -26,26 +26,58 @@
     .top-buffer { margin-top:70px; }
     .top-title-buffer { margin-top:70px; }
 
-    .title-style { font-family: 'Rampart One', cursive; }
+    .title-style { font-family: 'Itim', cursive;     font-size:56px;
+    color: #555555;
+
+}
     .button-style {
-    font-family: 'Kiwi Maru', serif;
+font-family: 'Itim', cursive;
+        border-radius: 12px;
+border: 1px solid #afafaf;
     }
     .preview-style {
-    font-family: 'Staatliches', cursive;
+font-family: 'Itim', cursive;
+
     }
     .preview-style-2 {
-    font-family: 'Inconsolata', monospace;
+font-family: 'Itim', cursive;
 font-size: 30px;
     }
 
     .button-submit {
+    border-radius: 14px;
     width: 150px !important;
+    border: 0px solid #afafaf;
+    font-size:18px;
+
     }
 
     input[type="preview"]
 {
-    font-family: 'Inconsolata', monospace;
+font-family: 'Courier Prime', monospace;
     font-size:18px;
+        border-radius: 12px;
+
+}
+
+input[type="number"]
+{
+font-family: 'Courier Prime', monospace;
+    font-size:18px;
+    color: #5b5b5b;
+
+}
+
+.card-body-text {
+font-family: 'Itim', cursive;
+font-size: 18px;
+color: #5b5b5b;
+}
+
+.card-title-text {
+font-family: 'Itim', cursive;
+color: #525252;
+font-size: 24px;
 }
 
 

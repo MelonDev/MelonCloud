@@ -40,7 +40,7 @@ class RandomPasswordGenerator:
         num = string.digits
 
         populations = lower + lower1 + upper + num
-        return _generator(populations=populations, length=length, step=step)
+        return _generator(populations=populations, length=length if length is not None else 6, step=step if step is not None else 3)
 
     @staticmethod
     def advance(length: int = 6, step: int = 3, stress: bool = True, lower_weight: int = 2, upper_weight: int = 1,

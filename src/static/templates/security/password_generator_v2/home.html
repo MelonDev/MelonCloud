@@ -5,15 +5,15 @@
 
     <div class="row justify-content-center ">
 
-        <div class="col-12 col-sm-11 col-md-9 col-lg-7">
-            <h1 class="title-style">自動パスワードジェネレータ</h1>
+        <div class="col-12 col-sm-11 col-md-9 col-lg-8 col-xl-7">
+            <h1 class="title-style text-center">รหัสผ่านความปลอดภัยแบบสุ่ม</h1>
 
             <div class="input-group mb-3 top-title-buffer">
-                <input type="preview" class="form-control" id="password" disabled name="preview" value="{{password}}"
+                <input type="preview" class="form-control text-middle" id="password" disabled name="preview" value="{{password}}"
                        placeholder="Password">
-                <button class="btn btn-outline-secondary button-style p-2" type="button" onclick="copyToClipboard()">コピー
+                <button class="btn btn-outline-secondary button-style p-2" type="button" onclick="copyToClipboard()">คัดลอก
                 </button>
-                <button class="btn btn-outline-secondary dropdown-toggle collapsed p-2" type="button"
+                <button class="btn btn-outline-secondary button-style dropdown-toggle collapsed p-2" type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                 </button>
@@ -24,42 +24,57 @@
             <div class="row justify-content-end g-4">
 
 
-                <div class="col-12 col-sm-12 col-md-12 col-lg-10">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-10">
                     <div class="accordion accordion-flush" id="accordionExample">
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingOne">
 
                             </h2>
-                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+                            <div id="collapseOne" class="accordion-collapse collapse {{action}}" aria-labelledby="headingOne"
                                  data-bs-parent="#accordionExample">
                                 <div class="accordion-body">
-                                    <div class="row justify-content-between gap-2">
-                                        <h5 class="p-0">This is the first item's accordion body.</h5>
-                                        <form class="row justify-content-between col-12 col-xl-6 p-1">
-                                            <label class="form-label col-12">No.1</label>
 
-                                            <input class="col-9 col-xl-8" type="range" name="amountRange" min="0"
-                                                   max="20"
-                                                   value="0"
-                                                   oninput="this.form.amountInput.value=this.value"/>
-                                            <input class="col-2 col-xl-3 float-end text-end p-0" type="number"
-                                                   name="amountInput"
-                                                   min="0" max="20" value="0"
-                                                   oninput="this.form.amountRange.value=this.value" disabled/>
-                                        </form>
+                                    <div class="card col-12">
+                                        <h5 class="card-header card-title-text">ปรับแต่ง</h5>
 
-                                        <form class="row justify-content-between col-12 col-xl-6 p-1">
-                                            <label class="form-label col-12">No.2</label>
+                                        <div class="card-body">
 
-                                            <input class="col-9 col-xl-8" type="range" name="amountRange" min="0"
-                                                   max="20"
-                                                   value="0"
-                                                   oninput="this.form.amountInput.value=this.value"/>
-                                            <input class="col-2 col-xl-3 float-end text-end p-0" type="number"
-                                                   name="amountInput"
-                                                   min="0" max="20" value="0"
-                                                   oninput="this.form.amountRange.value=this.value" disabled/>
-                                        </form>
+                                            <div class="row p-0">
+
+                                                <form class="col-xl-6">
+                                                    <label class="form-label col-12 card-body-text">จำนวนอักษร</label>
+
+                                                    <input class="col-9 col-xl-8 align-middle" type="range"
+                                                           name="amountRange"
+                                                           min=5
+                                                           max="8"
+                                                           value="{{length}}"
+                                                           oninput="this.form.amountInput.value=this.value"/>
+                                                    <input class="col-2 col-xl-3 float-end text-end p-0 align-middle"
+                                                           type="number"
+                                                           id="input-length"
+                                                           name="amountInput"
+                                                           min="5" max="8" value="{{length}}"
+                                                           oninput="this.form.amountRange.value=this.value" disabled/>
+                                                </form>
+                                                <form class="col-xl-6">
+                                                    <label class="form-label col-12 card-body-text">จำนวนชุด</label>
+
+                                                    <input class="col-9 col-xl-8 align-middle" type="range"
+                                                           name="amountRange"
+                                                           min="3"
+                                                           max="10"
+                                                           value="{{step}}"
+                                                           id="input-step"
+                                                           oninput="this.form.amountInput.value=this.value"/>
+                                                    <input class="col-2 col-xl-3 float-end text-end p-0 align-middle"
+                                                           type="number"
+                                                           name="amountInput"
+                                                           min="3" max="10" value="{{step}}"
+                                                           oninput="this.form.amountRange.value=this.value" disabled/>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -67,13 +82,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-0 col-lg-1"></div>
-                <div class="col-6 col-sm-6 col-md-5 col-lg-5 col-xl-4 ">
-                    <a class="btn btn-primary float-end col-12 p-2 button-style button-submit" href="/pwg_v2"
-                       role="button">再生する</a>
+                <div class="col-0 col-lg-1 mb-3"></div>
+                <div class="col-6 col-sm-6 col-md-5 col-lg-5 col-xl-4">
+                    <button class="btn btn-primary float-end col-12 p-2 button-style button-submit" onclick="callAPI()"
+                       >สร้างใหม่</button>
 
 
                 </div>
+                <div class="col-0 col-xl-1"></div>
 
             </div>
         </div>

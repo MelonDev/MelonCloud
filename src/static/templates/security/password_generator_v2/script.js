@@ -18,3 +18,12 @@ function copyToClipboard() {
   alert("Copied the text: " + copyText.value);
 }
 
+function callAPI(){
+	var step  = document.getElementById("input-step").value;
+	var length = document.getElementById("input-length").value;
+	var collapse = document.getElementById("collapseOne").className;
+	var isShow = collapse.includes("show");
+	var action = isShow ? "&action=show" : "";
+
+	window.location.href = "/pwg_v2?step=" + step + "&length=" + length + action;
+}
