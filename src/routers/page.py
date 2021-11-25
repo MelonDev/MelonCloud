@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 
 from src.environment.share_environment import templates
-from src.tools.random_password_generator import RandomPasswordGenerator, SimpleRandomPasswordModel
+from src.tools.generators.random_password_generator import RandomPasswordGenerator
 
 router = APIRouter()
 
