@@ -2,7 +2,6 @@ import string
 import random
 
 from pydantic import BaseModel
-from pydantic.fields import Optional
 
 _lower = string.ascii_lowercase
 _upper = string.ascii_uppercase

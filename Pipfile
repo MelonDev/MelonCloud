@@ -15,6 +15,7 @@ alembic = "*"
 psycopg2 = "*"
 length = "*"
 stress = "*"
+pytz = "*"
 
 [dev-packages]
 
