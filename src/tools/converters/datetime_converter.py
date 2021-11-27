@@ -7,6 +7,10 @@ def current_datetime_with_timezone():
     return append_timezone(dt.datetime.now())
 
 
+def current_datetime_with_uniform():
+    return current_datetime_with_timezone().strftime("%a %b %d %H:%M:%S %z %Y")
+
+
 def convert_to_utc(target):
     target.replace(tzinfo=pytz.UTC)
     return target

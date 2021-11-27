@@ -16,6 +16,12 @@ psycopg2 = "*"
 length = "*"
 stress = "*"
 pytz = "*"
+data = "*"
+pycrypto = "*"
+passlib = "*"
+bcrypt = "*"
+tweepy = "*"
+httpx = "*"
 
 [dev-packages]
 

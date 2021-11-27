@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from src.tools.generators.random_password_generator import RandomPasswordGenerator, SimpleRandomPasswordModel, RandomPasswordModel
+from src.models.random_password_model import SimpleRandomPasswordModel, RandomPasswordModel
+from src.tools.generators.random_password_generator import RandomPasswordGenerator
 
 router = APIRouter()
 generator = RandomPasswordGenerator()

@@ -3,25 +3,12 @@ import random
 
 from pydantic import BaseModel
 
+from src.models.random_password_model import RandomPasswordModel
+
 _lower = string.ascii_lowercase
 _upper = string.ascii_uppercase
 _num = string.digits
 _symbols = string.punctuation
-
-
-class RandomPasswordModel(BaseModel):
-    length: int = 6
-    step: int = 3
-    stress: bool = True
-    lower_weight: int = 2
-    upper_weight: int = 1
-    numeric_weight: int = 1
-    symbols_weight: int = 0
-
-
-class SimpleRandomPasswordModel(BaseModel):
-    length: int = 6
-    step: int = 3
 
 
 def _generator(populations, length: int, step: int = None, stress: bool = True) -> str:
@@ -39,7 +26,8 @@ class RandomPasswordGenerator:
         num = string.digits
 
         populations = lower + lower1 + upper + num
-        return _generator(populations=populations, length=length if length is not None else 6, step=step if step is not None else 3)
+        return _generator(populations=populations, length=length if length is not None else 6,
+                          step=step if step is not None else 3)
 
     @staticmethod
     def advance(length: int = 6, step: int = 3, stress: bool = True, lower_weight: int = 2, upper_weight: int = 1,
