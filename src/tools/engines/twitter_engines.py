@@ -92,7 +92,7 @@ def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     return model
 
 
-def get_tweet_model(id) -> ResponseTweetModel:
+async def get_tweet_model(id) -> ResponseTweetModel:
     data = get_status(id)
     tweet = initialize_tweet_model(data)
 

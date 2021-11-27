@@ -29,7 +29,7 @@ async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
     try:
         tweet_id = get_tweet_id_from_link(req.url)
         if tweet_id is not None:
-            package = get_tweet_model(tweet_id)
+            package = await get_tweet_model(tweet_id)
             if str(req.tag)[:3] == 'FF ' and str(package.tweet.message)[:3] != 'RT ':
                 package.tweet.event = str(req.tag)
                 if str(req.tag) == 'ME LIKE':
