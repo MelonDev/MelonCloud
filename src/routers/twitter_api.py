@@ -50,13 +50,13 @@ async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
                         item.memories = True
                         db.commit()
                 else:
-                    package.event = str(req.tag)
+                    package.tweet.event = str(req.tag)
                     if str(req.tag) == 'ME LIKE':
-                        package.memories = True
+                        package.tweet.memories = True
                         await send_url_to_onedrive(package.media_urls)
                     db.add(package.tweet)
                     db.commit()
-            return await verify_return(data=ResponseModel(package.tweet))
+            return await verify_return(data=ResponseModel(package.tweet.serialize))
         else:
             return await verify_return(code=404)
     except Exception as e:

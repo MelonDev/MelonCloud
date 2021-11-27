@@ -1,3 +1,5 @@
+import datetime
+
 import tweepy
 
 from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
@@ -83,7 +85,7 @@ def get_user_id_json(address):
 def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     created_at = convert_string_to_datetime(str(data['created_at']))
 
-    model = MelonDevTwitterDatabase(id=data['id_str'], createdAt=created_at, addedAt=current_datetime_with_timezone(),
+    model = MelonDevTwitterDatabase(id=data['id_str'], createdAt=created_at, addedAt=datetime.datetime.now(),
                                     account=data['user']['id_str'])
     model.message = data['full_text']
     model.lang = data['lang']
