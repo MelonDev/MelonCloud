@@ -11,10 +11,10 @@ from src.routers import twitter_api as twitter_api
 
 def include_router(app):
     app.include_router(page.router, prefix="", tags=["webpage"])
-    app.include_router(playground.router, prefix="", tags=["playground"])
-    app.include_router(user.router, prefix="/user", tags=["users"])
-    app.include_router(pwg_api.router, prefix="/security", tags=["Random Password Generator"])
-    app.include_router(twitter_api.router, prefix="/twitter", tags=["Twitter"])
+    app.include_router(playground.router, prefix="/api", tags=["playground"])
+    app.include_router(user.router, prefix="/api/user", tags=["users"])
+    app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
+    app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
 
 
 def configure_static(app):
