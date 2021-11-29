@@ -30,18 +30,14 @@ async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
         tweet_id = get_tweet_id_from_link(req.url)
         if tweet_id is not None:
             package = await get_tweet_model(tweet_id)
-            if str(req.tag)[:3] == 'FF ' and str(package.tweet.message)[:3] != 'RT ':
+            if str(req.tag)[:8] == 'HASHTAG ' and is_retweet(package.tweet.message):
                 package.tweet.event = str(req.tag)
                 if str(req.tag) == 'ME LIKE':
                     package.tweet.memories = True
-                if str(package.tweet.lang) == 'ja' or str(package.tweet.lang) == 'zh':
+                if is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
                     db.add(package.tweet)
                     db.commit()
-                elif db.query(MelonDevTwitterDatabase).filter(
-                        MelonDevTwitterDatabase.account.contains(str(package.tweet.account))).count():
-                    db.add(package.tweet)
-                    db.commit()
-            elif str(package.tweet.message)[:3] != 'RT ':
+            elif is_retweet(package.tweet.message):
                 item = db.query(MelonDevTwitterDatabase).filter(
                     MelonDevTwitterDatabase.id == str(tweet_id)).first()
                 if item is not None:
@@ -62,3 +58,16 @@ async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
     except Exception as e:
         print(e)
         return await verify_return(data=None)
+
+
+def is_retweet(value) -> bool:
+    return str(value)[:3] != 'RT '
+
+
+def is_circle_language(value) -> bool:
+    return str(value) == 'ja' or str(value) == 'zh'
+
+
+def has_in_my_history(db, account) -> bool:
+    return db.query(
+        MelonDevTwitterDatabase).filter(MelonDevTwitterDatabase.account.contains(str(account))).count() > 0
