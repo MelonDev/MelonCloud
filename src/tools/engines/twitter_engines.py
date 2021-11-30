@@ -41,10 +41,18 @@ def get_user_profile(id):
         return None
 
 
-def like(id):
+async def like(id):
     try:
         access().create_favorite(id)
-        return get_tweet_model(id)
+        return await get_tweet_model(id)
+    except tweepy.errors.TweepyException:
+        return None
+
+
+async def like_tweet(id):
+    try:
+        access().create_favorite(id)
+        return True
     except tweepy.errors.TweepyException:
         return None
 
@@ -92,6 +100,20 @@ def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     model.deleted = False
 
     return model
+
+
+async def get_raw_tweet(id):
+    return get_status(id)
+
+
+async def hasFavorited(id) -> bool:
+    tweet = await get_raw_tweet(id)
+    return bool(tweet['favorited']) if "favorited" in tweet else False
+
+
+async def hasRetweeted(id) -> bool:
+    tweet = await get_raw_tweet(id)
+    return bool(tweet['retweeted']) if "retweeted" in tweet else False
 
 
 async def get_tweet_model(id) -> ResponseTweetModel:

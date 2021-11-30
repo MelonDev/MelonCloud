@@ -30,6 +30,8 @@ class ResponseTweetModel:
 class TwitterAnalyzeModel(TwitterValidatorModel):
     tag: str
     url: str
+    like: bool = None
+    secret_like: bool = None
 
 
 class TwitterQueryModel(BaseModel):
@@ -48,3 +50,5 @@ class TwitterQueryModel(BaseModel):
     asc: bool = None
 
 
+class TwitterUnlikeModel(TwitterValidatorModel):
+    id: str
