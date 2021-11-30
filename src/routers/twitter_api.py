@@ -46,47 +46,46 @@ async def raw_tweet(url: str, db: Session = Depends(get_db)):
 
 @router.post("/analyze")
 async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
-    # try:
-    tweet_id = get_tweet_id_from_link(req.url)
-    if tweet_id is not None:
-        package = await get_tweet_model(tweet_id)
-        if str(req.tag)[:8] == 'HASHTAG ' and is_not_retweet(package.tweet.message):
-            package.tweet.event = str(req.tag)
-            if str(req.tag) == 'ME LIKE':
-                package.tweet.memories = True
-            if is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
-                db.add(package.tweet)
-                db.commit()
-        elif is_not_retweet(package.tweet.message):
-            item = db.query(MelonDevTwitterDatabase).filter(
-                MelonDevTwitterDatabase.id == str(tweet_id)).first()
-            favorited = await hasFavorited(tweet_id)
-            if bool(req.like) and not favorited:
-                await like_tweet(tweet_id)
-            if item is not None:
-                if str(req.tag) == 'ME LIKE':
-                    await send_url_to_onedrive(package.media_urls)
-                    item.memories = True
-                    if bool(req.like) or bool(req.secret_like):
-                        item.event = str(req.tag)
-                        item.addedAt = dt.datetime.now()
-                    db.commit()
-            else:
-
+    try:
+        tweet_id = get_tweet_id_from_link(req.url)
+        if tweet_id is not None:
+            package = await get_tweet_model(tweet_id)
+            if str(req.tag)[:8] == 'HASHTAG ' and is_not_retweet(package.tweet.message):
                 package.tweet.event = str(req.tag)
                 if str(req.tag) == 'ME LIKE':
                     package.tweet.memories = True
-                    await send_url_to_onedrive(package.media_urls)
-                db.add(package.tweet)
-                db.commit()
-        return await verify_return(data=ResponseModel(package.tweet.serialize))
-    else:
-        return await verify_return(code=404)
+                if is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
+                    db.add(package.tweet)
+                    db.commit()
+            elif is_not_retweet(package.tweet.message):
+                item = db.query(MelonDevTwitterDatabase).filter(
+                    MelonDevTwitterDatabase.id == str(tweet_id)).first()
+                favorited = await hasFavorited(tweet_id)
+                if bool(req.like) and not favorited:
+                    await like_tweet(tweet_id)
+                if item is not None:
+                    if str(req.tag) == 'ME LIKE':
+                        await send_url_to_onedrive(package.media_urls)
+                        item.memories = True
+                        if bool(req.like) or bool(req.secret_like):
+                            item.event = str(req.tag)
+                            item.addedAt = dt.datetime.now()
+                        db.commit()
+                else:
 
+                    package.tweet.event = str(req.tag)
+                    if str(req.tag) == 'ME LIKE':
+                        package.tweet.memories = True
+                        await send_url_to_onedrive(package.media_urls)
+                    db.add(package.tweet)
+                    db.commit()
+            return await verify_return(data=ResponseModel(package.tweet.serialize))
+        else:
+            return await verify_return(code=404)
 
-'''except Exception as e:
-    print(e)
-    return await verify_return(data=None)'''
+    except Exception as e:
+        print(e)
+        return await verify_return(data=None)
 
 
 @router.put("/unlike")
