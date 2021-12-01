@@ -37,10 +37,9 @@ async def tweets(params: TwitterQueryModel = Depends(), db: Session = Depends(ge
     return await verify_return(data=ResponseModel([i.serialize for i in results]))
 
 @router.get("/benchmark")
-async def benchmark(params: TwitterQueryModel = Depends(), db: Session = Depends(get_db)):
+async def benchmark( db: Session = Depends(get_db)):
     database = db.query(func.unnest(MelonDevTwitterDatabase.photo))
     results = database.all()
-
     return await verify_return(data=ResponseModel(list(map(lambda x: tweet_photo_url_endpoint(x), results))))
 
 
