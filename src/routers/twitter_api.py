@@ -32,23 +32,24 @@ async def number_of_tweets(db: Session = Depends(get_db)):
     return await verify_return(data=ResponseModel(count))
 
 
+@router.get("/{file_type}")
+async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
+    database = database_media_type_categorize(db=db, file_type=params.file_type)
+    results = apply_database_filters(params=params, db=database).all()
+    if params.file_type is FileTypeEnum.photos:
+        return await verify_return(
+            data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x, params.media_type), results))))
+    elif params.file_type is FileTypeEnum.videos:
+        return await verify_return(data=ResponseModel(list(map(lambda x: tweet_video_endpoint(x), results))))
+    else:
+        bad_request_exception()
+
+
 @router.get("/tweets")
 async def get_all_tweets(params: RequestQueryModel = Depends(), db: Session = Depends(get_db)):
     database = db.query(MelonDevTwitterDatabase)
     results = apply_database_filters(params=params, db=database).all()
     return await verify_return(data=ResponseModel([i.serialize for i in results]))
-
-
-@router.get("/{file_type}")
-async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
-    database = database_media_type_categorize(db=db,file_type=params.file_type)
-    results = apply_database_filters(params=params, db=database).all()
-    if params.file_type is FileTypeEnum.photos:
-        return await verify_return(data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x,params.media_type), results))))
-    elif params.file_type is FileTypeEnum.videos:
-        return await verify_return(data=ResponseModel(list(map(lambda x: tweet_video_endpoint(x), results))))
-    else:
-        bad_request_exception()
 
 
 @router.get("/tweets/{tweet_id}", status_code=code.HTTP_200_OK)
@@ -65,7 +66,28 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         return await verify_return(data=ResponseModel(tweet.serialize))
 
 
-@router.post("/analyze", status_code=code.HTTP_201_CREATED)
+@router.get("/peoples", status_code=code.HTTP_200_OK, deprecated=True)
+async def get_all_people(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    return ""
+
+
+@router.get("/peoples/{account_id}", status_code=code.HTTP_200_OK, deprecated=True)
+async def get_account(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    return ""
+
+
+@router.get("/peoples/{account_id}/address", status_code=code.HTTP_200_OK, deprecated=True)
+async def get_account_address(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    return ""
+
+
+@router.get("/peoples/{account_name}/id", status_code=code.HTTP_200_OK, deprecated=True)
+async def get_account_address(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    return ""
+
+
+@router.post("/analyze", summary="วิเคราะห์ทวีต",
+             status_code=code.HTTP_201_CREATED)
 async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db)):
     try:
         tweet_id = get_tweet_id_from_link(req.url)
@@ -120,6 +142,11 @@ async def unlike_tweet(req: RequestIdentityModel, db: Session = Depends(get_db))
         db.add(tweet)
         db.commit()
     return await verify_return(data=ResponseModel(tweet.serialize))
+
+
+@router.get("/export", status_code=code.HTTP_200_OK, deprecated=True)
+async def export_twitter_data(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    return ""
 
 
 def is_not_retweet(value) -> bool:

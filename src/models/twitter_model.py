@@ -60,8 +60,8 @@ class TweetMediaResponseModel(TweetMediaURLResponseModel):
 class RequestAnalyzeModel(TwitterValidatorModel):
     tag: str
     url: str
-    like: bool = None
-    secret_like: bool = None
+    like: bool = False
+    secret_like: bool = False
 
 
 class RequestQueryModel(BaseModel):
