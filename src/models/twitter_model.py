@@ -1,3 +1,4 @@
+import timestamp as timestamp
 from fastapi import HTTPException, status
 from fastapi.params import Query
 
@@ -27,6 +28,27 @@ class ResponseTweetModel:
         self.media_urls = media_urls
 
 
+class TweetPhotoURLResponseModel:
+    id: str
+    url: str
+
+    def __init__(self, id, url):
+        self.id = id
+        self.url = url
+
+
+class TweetPhotoResponseModel(TweetPhotoURLResponseModel):
+    tweet_id: str
+    account_id: str
+    timestamp: str
+
+    def __init__(self, id, url, tweet_id, account_id, timestamp):
+        super().__init__(id, url)
+        self.tweet_id = tweet_id
+        self.account_id = account_id
+        self.timestamp = timestamp
+
+
 class TwitterAnalyzeModel(TwitterValidatorModel):
     tag: str
     url: str
@@ -48,6 +70,7 @@ class TwitterQueryModel(BaseModel):
     page: int = None
     unlimited: bool = None
     asc: bool = None
+    deleted: bool = None
 
 
 class TwitterUnlikeModel(TwitterValidatorModel):

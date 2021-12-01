@@ -22,6 +22,10 @@ passlib = "*"
 bcrypt = "*"
 tweepy = "*"
 httpx = "*"
+timing-asgi = "*"
+bcolors = "*"
+white = "*"
+timestamp = "*"
 
 [dev-packages]
 

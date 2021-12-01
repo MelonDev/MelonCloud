@@ -4,11 +4,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
+from timing_asgi import TimingMiddleware, TimingClient
+from timing_asgi.integrations import StarletteScopeToName
 
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
 from src.routers.security import password_generator_api as pwg_api
 from src.routers import twitter_api as twitter_api
+from src.tools.log import Colors, log
+
+
+class PrintTimings(TimingClient):
+    def timing(self, metric_name, timing, tags):
+        if 'time:wall' in tags:
+            time = "{:.5f}".format(timing)
+            log.m("DURATION: " + time, color=Colors.yellow)
 
 
 def include_router(app):
@@ -41,6 +51,12 @@ def init_app():
 
 
 app = init_app()
+
+app.add_middleware(
+    TimingMiddleware,
+    client=PrintTimings(),
+    metric_namer=StarletteScopeToName(prefix="meloncloud", starlette_app=app)
+)
 
 
 @app.get("/", include_in_schema=False)

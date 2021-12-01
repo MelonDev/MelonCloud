@@ -24,7 +24,9 @@ class TestModel(TwitterValidatorModel):
 
 @router.post("/tests")
 async def test(req: TestModel):
-
+    numbers = [1, 2, 3, 4]
+    result = map(lambda x: x + x, numbers)
+    print(list(result))
     return "HEllo"
 
 

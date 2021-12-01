@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status as code
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, func
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
 from sqlalchemy.orm.session import Session as DBSession
@@ -12,6 +12,7 @@ from src.models.twitter_model import TwitterAnalyzeModel, TwitterQueryModel, Twi
 from src.tools.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_user_id, like, like_tweet, \
     get_raw_tweet, hasFavorited
 from src.tools.onedrive_adapter import send_url_to_onedrive
+from src.tools.photos_endpoint import tweet_photo_url_endpoint, tweet_photo_endpoint
 from src.tools.verify_hub import verify_return
 
 router = APIRouter()
@@ -36,11 +37,18 @@ async def tweets(params: TwitterQueryModel = Depends(), db: Session = Depends(ge
     return await verify_return(data=ResponseModel([i.serialize for i in results]))
 
 
+@router.get("/photos")
+async def photos(params: TwitterQueryModel = Depends(), db: Session = Depends(get_db)):
+    database = db.query(func.unnest(MelonDevTwitterDatabase.photo), MelonDevTwitterDatabase.id,
+                        MelonDevTwitterDatabase.account, MelonDevTwitterDatabase.createdAt)
+    results = apply_database_filters(params=params, db=database).all()
+    return await verify_return(data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x), results))))
+
+
 @router.post("/raw_tweet")
 async def raw_tweet(url: str, db: Session = Depends(get_db)):
     tweet_id = get_tweet_id_from_link(url)
     package = await get_raw_tweet(tweet_id)
-
     return package
 
 
@@ -135,6 +143,10 @@ def apply_database_filters(params: TwitterQueryModel, db):
     if params.end_date is not None:
         de = dt.datetime.strptime(params.end_date + " 23:59:59", '%Y-%m-%d %H:%M:%S')
         database = database.filter(MelonDevTwitterDatabase.addedAt <= de)
+
+    if params.deleted is not None:
+        database = database.filter(MelonDevTwitterDatabase.deleted.is_(params.deleted))
+
 
     if bool(params.asc):
         database = database.order_by(asc(MelonDevTwitterDatabase.addedAt))
