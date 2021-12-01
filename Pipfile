@@ -26,6 +26,7 @@ timing-asgi = "*"
 bcolors = "*"
 white = "*"
 timestamp = "*"
+thumbnail = "*"
 
 [dev-packages]
 

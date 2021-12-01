@@ -6,54 +6,67 @@ from sqlalchemy.orm.session import Session as DBSession
 import datetime as dt
 
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
+from src.enums.type_enum import FileTypeEnum
 from src.environment.database import get_db
 from src.models.response_model import ResponseModel
-from src.models.twitter_model import TwitterAnalyzeModel, TwitterQueryModel, TwitterUnlikeModel
+from src.models.twitter_model import RequestAnalyzeModel, RequestQueryModel, RequestMediaQueryModel, \
+    RequestIdentityModel, RequestTweetModel
 from src.tools.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_user_id, like, like_tweet, \
-    get_raw_tweet, hasFavorited
+    request_raw_tweet, hasFavorited
 from src.tools.onedrive_adapter import send_url_to_onedrive
-from src.tools.photos_endpoint import tweet_photo_url_endpoint, tweet_photo_endpoint
+from src.tools.photos_endpoint import tweet_photo_endpoint, tweet_video_endpoint
 from src.tools.verify_hub import verify_return
 
 router = APIRouter()
 
 
 @router.get("/")
-async def status(db: Session = Depends(get_db)):
+async def status_of_tweet_database(db: Session = Depends(get_db)):
     return await verify_return(
-        data="I have " + str(db.query(MelonDevTwitterDatabase).count()) + " tweets on my database")
+        data=ResponseModel("I have " + str(db.query(MelonDevTwitterDatabase).count()) + " tweets on my database"))
 
 
 @router.get("/count")
-async def counting(db: Session = Depends(get_db)):
+async def number_of_tweets(db: Session = Depends(get_db)):
     count = db.query(MelonDevTwitterDatabase).count()
-    return ResponseModel(count)
+    return await verify_return(data=ResponseModel(count))
 
 
 @router.get("/tweets")
-async def tweets(params: TwitterQueryModel = Depends(), db: Session = Depends(get_db)):
+async def get_all_tweets(params: RequestQueryModel = Depends(), db: Session = Depends(get_db)):
     database = db.query(MelonDevTwitterDatabase)
     results = apply_database_filters(params=params, db=database).all()
     return await verify_return(data=ResponseModel([i.serialize for i in results]))
 
 
-@router.get("/photos")
-async def photos(params: TwitterQueryModel = Depends(), db: Session = Depends(get_db)):
-    database = db.query(func.unnest(MelonDevTwitterDatabase.photo), MelonDevTwitterDatabase.id,
-                        MelonDevTwitterDatabase.account, MelonDevTwitterDatabase.createdAt)
+@router.get("/{file_type}")
+async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
+    database = database_media_type_categorize(db=db,file_type=params.file_type)
     results = apply_database_filters(params=params, db=database).all()
-    return await verify_return(data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x), results))))
+    if params.file_type is FileTypeEnum.photos:
+        return await verify_return(data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x,params.media_type), results))))
+    elif params.file_type is FileTypeEnum.videos:
+        return await verify_return(data=ResponseModel(list(map(lambda x: tweet_video_endpoint(x), results))))
+    else:
+        bad_request_exception()
 
 
-@router.post("/raw_tweet")
-async def raw_tweet(url: str, db: Session = Depends(get_db)):
-    tweet_id = get_tweet_id_from_link(url)
-    package = await get_raw_tweet(tweet_id)
-    return package
+@router.get("/tweets/{tweet_id}", status_code=code.HTTP_200_OK)
+async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    if bool(req.raw):
+        package = await request_raw_tweet(req.tweet_id)
+        return await verify_return(data=ResponseModel(package))
+    else:
+        tweet = db.query(MelonDevTwitterDatabase).get(req.tweet_id)
+
+        if tweet is None:
+            not_found_exception()
+
+        return await verify_return(data=ResponseModel(tweet.serialize))
 
 
-@router.post("/analyze")
-async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
+@router.post("/analyze", status_code=code.HTTP_201_CREATED)
+async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db)):
     try:
         tweet_id = get_tweet_id_from_link(req.url)
         if tweet_id is not None:
@@ -89,15 +102,17 @@ async def analyzing(req: TwitterAnalyzeModel, db: Session = Depends(get_db)):
                     db.commit()
             return await verify_return(data=ResponseModel(package.tweet.serialize))
         else:
+            bad_request_exception(message="Couldn't find any applicable data")
             return await verify_return(code=404)
 
     except Exception as e:
         print(e)
+        bad_request_exception(message="Found an error: " + str(e))
         return await verify_return(data=None)
 
 
 @router.put("/unlike")
-async def unlike(req: TwitterUnlikeModel, db: Session = Depends(get_db)):
+async def unlike_tweet(req: RequestIdentityModel, db: Session = Depends(get_db)):
     tweet = db.query(MelonDevTwitterDatabase).filter(
         MelonDevTwitterDatabase.id == str(req.id)).first()
     if tweet is not None:
@@ -120,7 +135,19 @@ def has_in_my_history(db, account) -> bool:
         MelonDevTwitterDatabase).filter(MelonDevTwitterDatabase.account.contains(str(account))).count() > 0
 
 
-def apply_database_filters(params: TwitterQueryModel, db):
+def database_media_type_categorize(db, file_type: FileTypeEnum):
+    if file_type is FileTypeEnum.photos:
+        return db.query(func.unnest(MelonDevTwitterDatabase.photo), MelonDevTwitterDatabase.id,
+                        MelonDevTwitterDatabase.account, MelonDevTwitterDatabase.createdAt)
+    elif file_type is FileTypeEnum.videos:
+        return db.query(func.unnest(MelonDevTwitterDatabase.video), MelonDevTwitterDatabase.id,
+                        MelonDevTwitterDatabase.account, MelonDevTwitterDatabase.createdAt,
+                        MelonDevTwitterDatabase.thumbnail)
+    else:
+        bad_request_exception()
+
+
+def apply_database_filters(params: RequestQueryModel, db):
     database = db if type(db) is DBQuery else db.query(MelonDevTwitterDatabase)
 
     if params.hashtag is not None:
@@ -147,13 +174,12 @@ def apply_database_filters(params: TwitterQueryModel, db):
     if params.deleted is not None:
         database = database.filter(MelonDevTwitterDatabase.deleted.is_(params.deleted))
 
-
-    if bool(params.asc):
+    if params.sorting == "asc":
         database = database.order_by(asc(MelonDevTwitterDatabase.addedAt))
     else:
         database = database.order_by(desc(MelonDevTwitterDatabase.addedAt))
 
-    if not bool(params.unlimited):
+    if not bool(params.infinite):
         page = params.page if params.page is not None else 0
         limit = params.limit if params.limit is not None else 20
         database = database.limit(limit).offset(int(page * limit))
@@ -161,7 +187,13 @@ def apply_database_filters(params: TwitterQueryModel, db):
     return database
 
 
-def bad_request(message=None):
+def bad_request_exception(message=None):
     raise HTTPException(
         status_code=code.HTTP_400_BAD_REQUEST,
         detail=message if message is not None else "BAD REQUEST")
+
+
+def not_found_exception(message=None):
+    raise HTTPException(
+        status_code=code.HTTP_404_NOT_FOUND,
+        detail=message if message is not None else "NOT FOUND")

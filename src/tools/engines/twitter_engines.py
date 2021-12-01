@@ -1,10 +1,11 @@
 import datetime
 
 import tweepy
+from fastapi import HTTPException, status as code
 
 from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
-from src.models.twitter_model import ResponseTweetModel
+from src.models.twitter_model import TweetResponseModel
 from src.tools.converters.datetime_converter import convert_string_to_datetime, current_datetime_with_timezone
 
 
@@ -102,22 +103,28 @@ def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     return model
 
 
-async def get_raw_tweet(id):
+async def request_raw_tweet(id):
     return get_status(id)
 
 
 async def hasFavorited(id) -> bool:
-    tweet = await get_raw_tweet(id)
+    tweet = await request_raw_tweet(id)
     return bool(tweet['favorited']) if "favorited" in tweet else False
 
 
 async def hasRetweeted(id) -> bool:
-    tweet = await get_raw_tweet(id)
+    tweet = await request_raw_tweet(id)
     return bool(tweet['retweeted']) if "retweeted" in tweet else False
 
 
-async def get_tweet_model(id) -> ResponseTweetModel:
+async def get_tweet_model(id) -> TweetResponseModel:
     data = get_status(id)
+
+    if data is None:
+        raise HTTPException(
+            status_code=code.HTTP_404_NOT_FOUND,
+            detail="The requested tweet was not found")
+
     tweet = initialize_tweet_model(data)
 
     video_list = []
@@ -203,4 +210,4 @@ async def get_tweet_model(id) -> ResponseTweetModel:
     else:
         tweet.urls = None
 
-    return ResponseTweetModel(tweet=tweet, media_urls=media_url_list)
+    return TweetResponseModel(tweet=tweet, media_urls=media_url_list)
