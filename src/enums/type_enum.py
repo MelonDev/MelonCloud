@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class MediaTypeEnum(str, Enum):
+class ImageQualityEnum(str, Enum):
     thumb = 'thumb'
     small = 'small'
     medium = 'medium'

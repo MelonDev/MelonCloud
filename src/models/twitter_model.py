@@ -9,7 +9,7 @@ from pydantic.types import SecretStr
 
 from environment import TWITTER_SECRET_PASSWORD
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
-from src.enums.type_enum import MediaTypeEnum, FileTypeEnum
+from src.enums.type_enum import FileTypeEnum, ImageQualityEnum
 from src.enums.sorting_enum import SortingEnum
 
 
@@ -82,7 +82,7 @@ class RequestQueryModel(BaseModel):
 
 
 class RequestMediaQueryModel(RequestQueryModel):
-    media_type: MediaTypeEnum = None
+    quality: ImageQualityEnum = None
     file_type: FileTypeEnum = None
 
 
@@ -92,4 +92,10 @@ class RequestIdentityModel(TwitterValidatorModel):
 
 class RequestTweetModel(BaseModel):
     tweet_id: str
+    raw: bool = None
+
+
+class RequestPlayModel:
+    tweet_id: str = None
+    name: str
     raw: bool = None

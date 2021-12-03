@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status as code
+from fastapi import APIRouter, Depends, HTTPException, status as code, Request
 from sqlalchemy import desc, asc, func
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
@@ -10,7 +10,7 @@ from src.enums.type_enum import FileTypeEnum
 from src.environment.database import get_db
 from src.models.response_model import ResponseModel
 from src.models.twitter_model import RequestAnalyzeModel, RequestQueryModel, RequestMediaQueryModel, \
-    RequestIdentityModel, RequestTweetModel
+    RequestIdentityModel, RequestTweetModel, RequestPlayModel
 from src.tools.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_user_id, like, like_tweet, \
     request_raw_tweet, hasFavorited
 from src.tools.onedrive_adapter import send_url_to_onedrive
@@ -32,13 +32,13 @@ async def number_of_tweets(db: Session = Depends(get_db)):
     return await verify_return(data=ResponseModel(count))
 
 
-@router.get("/{file_type}")
+@router.get("/media/{file_type}")
 async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
     database = database_media_type_categorize(db=db, file_type=params.file_type)
     results = apply_database_filters(params=params, db=database).all()
     if params.file_type is FileTypeEnum.photos:
         return await verify_return(
-            data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x, params.media_type), results))))
+            data=ResponseModel(list(map(lambda x: tweet_photo_endpoint(x, params.quality), results))))
     elif params.file_type is FileTypeEnum.videos:
         return await verify_return(data=ResponseModel(list(map(lambda x: tweet_video_endpoint(x), results))))
     else:
