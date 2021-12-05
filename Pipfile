@@ -29,6 +29,7 @@ timestamp = "*"
 thumbnail = "*"
 results = "*"
 reverse = "*"
+account = "*"
 
 [dev-packages]
 

@@ -2,6 +2,9 @@ from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import ARRAY
 
 from src.environment.database import Base
+from src.tools.converters.datetime_converter import convert_datetime_to_string, \
+    convert_datetime_to_string_for_backup_mode
+from src.tools.converters.list_converter import list_to_set
 
 
 def dump_datetime(value):
@@ -37,28 +40,7 @@ class MelonDevTwitterDatabase(Base):
         self.addedAt = addedAt
         self.account = account
 
-    @property
-    def serialize(self):
-        return {
-            'id': self.id,
-            'message': self.message,
-            'account': self.account,
-            'hashtag': self.hashtag,
-            'mention': self.mention,
-            'urls': self.urls,
-            'type': self.type,
-            'media': {
-                'photo': self.photo,
-                'video': self.video,
-                'thumbnail': self.thumbnail
-            },
-            'lang': self.lang,
-            'event': self.event,
-            'memories': self.memories,
-            'deleted': self.deleted
-        }
 
-    '''
     @property
     def serialize(self):
         return {
@@ -86,8 +68,8 @@ class MelonDevTwitterDatabase(Base):
     def export(self):
         return {
             'id': self.id,
-            'createdAt': convert_datetime_to_string_for_export(self.createdAt),
-            'addedAt': convert_datetime_to_string_for_export(self.addedAt),
+            'createdAt': convert_datetime_to_string_for_backup_mode(self.createdAt),
+            'addedAt': convert_datetime_to_string_for_backup_mode(self.addedAt),
             'message': self.message,
             'account': self.account,
             'hashtag': list_to_set(self.hashtag),
@@ -102,4 +84,4 @@ class MelonDevTwitterDatabase(Base):
             'memories': self.memories,
             'deleted': self.deleted
         }
-        '''
+

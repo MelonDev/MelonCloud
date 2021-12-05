@@ -1,7 +1,10 @@
+from typing import Optional
+
 import timestamp as timestamp
 from fastapi import HTTPException, status
 from fastapi.params import Query
-
+from pydantic.json import pydantic_encoder
+import json
 from pydantic import BaseModel, validator, Field
 from enum import Enum, IntEnum
 
@@ -9,6 +12,7 @@ from pydantic.types import SecretStr
 
 from environment import TWITTER_SECRET_PASSWORD
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
+from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.type_enum import FileTypeEnum, ImageQualityEnum
 from src.enums.sorting_enum import SortingEnum
 
@@ -160,7 +164,31 @@ class RequestTweetModel(BaseModel):
     raw: bool = None
 
 
+class RequestProfileModel(BaseModel):
+    account: str
+    query: ProfileQueryEnum = None
+    event: str = None
+    hashtag: str = None
+    start_date: str = None
+    end_date: str = None
+    me_like: bool = None
+    sorting: SortingEnum = None
+    limit: int = None
+    page: int = None
+    infinite: bool = None
+    deleted: bool = None
+
+
 class RequestPlayModel:
     tweet_id: str = None
     name: str
     raw: bool = None
+
+
+class TweetProfileResponseModel():
+    profile: RequestProfileModel
+    tweet: list
+
+    def __init__(self, profile: RequestProfileModel, tweet: list = None):
+        self.profile = profile
+        self.tweet = tweet

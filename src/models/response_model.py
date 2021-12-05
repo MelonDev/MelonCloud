@@ -3,7 +3,6 @@ from typing import Any
 
 from src.tools.converters.datetime_converter import current_datetime_with_timezone
 
-
 class ResponseModel:
     timestamp: datetime
     data: Any

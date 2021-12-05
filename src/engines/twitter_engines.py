@@ -5,6 +5,7 @@ from fastapi import HTTPException, status as code
 
 from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
+from src.enums.profile_enum import ProfileTypeEnum
 from src.models.twitter_model import TweetResponseModel
 from src.tools.converters.datetime_converter import convert_string_to_datetime, current_datetime_with_timezone
 
@@ -43,11 +44,18 @@ def get_status(id):
         return None
 
 
-def get_user_profile(id):
+def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.user_id):
+    print(account)
     try:
-        data = access().get_user(id)
-        return data._json
-    except tweepy.errors.TweepyException:
+        if type is ProfileTypeEnum.user_id:
+            data = access().get_user(user_id=account)
+            return data._json
+        if type is ProfileTypeEnum.screen_name:
+            data = access().get_user(screen_name=account)
+            return data._json
+        return None
+    except tweepy.errors.TweepyException as e:
+        print("Error: " + str(e))
         return None
 
 
@@ -128,17 +136,13 @@ def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     return model
 
 
-async def request_raw_tweet(id):
-    return get_status(id)
-
-
 async def hasFavorited(id) -> bool:
-    tweet = await request_raw_tweet(id)
+    tweet = await get_status(id)
     return bool(tweet['favorited']) if "favorited" in tweet else False
 
 
 async def hasRetweeted(id) -> bool:
-    tweet = await request_raw_tweet(id)
+    tweet = await get_status(id)
     return bool(tweet['retweeted']) if "retweeted" in tweet else False
 
 
