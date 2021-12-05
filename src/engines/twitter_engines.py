@@ -16,7 +16,16 @@ def authentication():
 
 
 def access():
-    return tweepy.API(authentication(), wait_on_rate_limit=True)
+    return tweepy.API(auth=authentication(), wait_on_rate_limit=True)
+
+
+def test_client_mode():
+    a = tweepy.Client(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_token=ACCESS_TOKEN,
+                      access_token_secret=ACCESS_TOKEN_SECRET, wait_on_rate_limit=True)
+    print(vars(a))
+    a.get_user(id='2274369025')
+
+    print(a)
 
 
 def get_tweet_id_from_link(url):
@@ -38,6 +47,22 @@ def get_user_profile(id):
     try:
         data = access().get_user(id)
         return data._json
+    except tweepy.errors.TweepyException:
+        return None
+
+
+def get_lookup_user(ids: list):
+    try:
+        data = access().lookup_users(user_id=ids)
+        return list(map(lambda x: x._json, data))
+    except tweepy.errors.TweepyException:
+        return None
+
+
+def get_dict_lookup_user(ids: list):
+    try:
+        data = access().lookup_users(user_id=ids)
+        return dict(map(lambda x: (x._json['id_str'], x._json), data))
     except tweepy.errors.TweepyException:
         return None
 

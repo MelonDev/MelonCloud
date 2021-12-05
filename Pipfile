@@ -27,6 +27,8 @@ bcolors = "*"
 white = "*"
 timestamp = "*"
 thumbnail = "*"
+results = "*"
+reverse = "*"
 
 [dev-packages]
 

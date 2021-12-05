@@ -57,6 +57,59 @@ class TweetMediaResponseModel(TweetMediaURLResponseModel):
         self.timestamp = timestamp
 
 
+class TweetPeopleModel:
+    profile_banner: str
+    profile_image: str
+    profile_text_color: str
+    profile_sidebar_fill_color: str
+    profile_sidebar_border_color: str
+    profile_link_color: str
+    id: str
+    name: str
+    screen_name: str
+    location: str
+    description: str
+    protected: bool
+    followers_count: int
+    friends_count: int
+    favourites_count: int
+    statuses_count: int
+
+    def __init__(self, id, name, screen_name, protected: bool):
+        self.id = id
+        self.name = name
+        self.screen_name = screen_name
+        self.protected = protected
+
+    def set_description(self, location, description):
+        self.location = location
+        self.description = description
+
+    def set_counters(self, followers_count: int, friends_count: int, favourites_count: int, statuses_count: int):
+        self.followers_count = followers_count
+        self.friends_count = friends_count
+        self.favourites_count = favourites_count
+        self.statuses_count = statuses_count
+
+    def set_profile(self, profile_banner, profile_image, profile_text_color, profile_sidebar_fill_color,
+                    profile_sidebar_border_color, profile_link_color):
+        self.profile_banner = profile_banner
+        self.profile_image = profile_image
+        self.profile_text_color = profile_text_color
+        self.profile_sidebar_fill_color = profile_sidebar_fill_color
+        self.profile_sidebar_border_color = profile_sidebar_border_color
+        self.profile_link_color = profile_link_color
+
+
+class TweetPeopleResponseModel:
+    profile: TweetPeopleModel
+    count: int
+
+    def __init__(self, profile: TweetPeopleModel, count: int):
+        self.profile = profile
+        self.count = count
+
+
 class RequestAnalyzeModel(TwitterValidatorModel):
     tag: str
     url: str
@@ -64,7 +117,7 @@ class RequestAnalyzeModel(TwitterValidatorModel):
     secret_like: bool = False
 
 
-class RequestQueryModel(BaseModel):
+class RequestTweetQueryModel(BaseModel):
     event: str = None
     hashtag: str = None
     account_id: str = None
@@ -81,9 +134,21 @@ class RequestQueryModel(BaseModel):
     deleted: bool = None
 
 
-class RequestMediaQueryModel(RequestQueryModel):
+class RequestMediaQueryModel(RequestTweetQueryModel):
     quality: ImageQualityEnum = None
     file_type: FileTypeEnum = None
+
+
+class RequestPeopleQueryModel(BaseModel):
+    event: str = None
+    hashtag: str = None
+    start_date: str = None
+    end_date: str = None
+    me_like: bool = None
+    limit: int = None
+    page: int = None
+    infinite: bool = None
+    sorting: SortingEnum = None
 
 
 class RequestIdentityModel(TwitterValidatorModel):

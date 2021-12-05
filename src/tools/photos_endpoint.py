@@ -1,7 +1,8 @@
 from sqlalchemy.engine import Row
 
 from src.enums.type_enum import ImageQualityEnum
-from src.models.twitter_model import TweetMediaResponseModel, TweetMediaURLResponseModel
+from src.models.twitter_model import TweetMediaResponseModel, TweetMediaURLResponseModel, TweetPeopleResponseModel, \
+    TweetPeopleModel
 
 
 def _photo_key(value) -> str:
@@ -30,3 +31,9 @@ def tweet_photo_endpoint(row: Row, media_type: ImageQualityEnum) -> TweetMediaRe
 def tweet_video_endpoint(row: Row) -> TweetMediaResponseModel:
     return TweetMediaResponseModel(id=row[1], url=row[0], tweet_id=row[1],
                                    account_id=row[2], timestamp=row[3], thumbnail=row[4])
+
+
+def people_endpoint(profile: TweetPeopleModel, count: int):
+    if profile is None or count is None:
+        return None
+    return TweetPeopleResponseModel(profile=profile, count=count)
