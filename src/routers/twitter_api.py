@@ -80,17 +80,8 @@ async def get_all_peoples(params: RequestPeopleQueryModel = Depends(), db: Sessi
     page = 0 if bool(params.infinite) else int(params.page if params.page is not None else 0) * limit
     data_list = data_sorted[page:page + limit]
 
-    peoples = get_lookup_user(list(map(lambda x: str(x[0]), data_list)))
-    print(peoples)
-    print(len(peoples))
-    # mock = ['130528023', '841629564090503169', '556550179023', '2543319608']
-    # peoples = get_lookup_user(mock)
-
-    raw_list = list(
-        map(lambda x: people_endpoint(get_profile_endpoint(next(filter(lambda y: x[0] in y['id_str'], peoples), None)),
-                                      x[1]), data_list))
-
-    results = list(filter(partial(is_not, None), raw_list))
+    peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), data_list)))
+    results = list(map(lambda x: people_endpoint(get_profile_endpoint(peoples.get(x[0], None)), x[1]), data_list))
 
     return await verify_return(
         data=ResponseModel(results))

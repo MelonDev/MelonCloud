@@ -2,7 +2,6 @@ from src.models.twitter_model import TweetPeopleModel, TweetPeopleResponseModel
 
 
 def get_profile_endpoint(data):
-    print(data)
     if data is None:
         return None
 
