@@ -45,7 +45,6 @@ def get_status(id):
 
 
 def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.user_id):
-    print(account)
     try:
         if type is ProfileTypeEnum.user_id:
             data = access().get_user(user_id=account)

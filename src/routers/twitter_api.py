@@ -116,7 +116,8 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
             response["profile"] = profile
 
             database = None
-            if req.query is ProfileQueryEnum.tweet:
+
+            if req.query is ProfileQueryEnum.tweet or req.query is None:
                 database = db.query(MelonDevTwitterDatabase).filter(
                     MelonDevTwitterDatabase.account.contains(profile.id))
             if req.query is ProfileQueryEnum.mention:
@@ -131,21 +132,12 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
             limit_database = apply_limit_to_database(params=req, database=database)
 
             tweets = limit_database.all()
-            response["tweets"] = [i.serialize for i in tweets]
+            if req.query is not None:
+                response["tweets"] = [i.serialize for i in tweets]
 
             return await verify_return(data=ResponseModel(data=response))
 
         return await verify_return(data=ResponseModel(response))
-
-
-@router.get("/peoples/{account_id}/address", status_code=code.HTTP_200_OK, deprecated=True)
-async def get_people_address(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
-    return ""
-
-
-@router.get("/peoples/{account_name}/id", status_code=code.HTTP_200_OK, deprecated=True)
-async def get_people_id(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
-    return ""
 
 
 @router.post("/analyze", summary="วิเคราะห์ทวีต",
