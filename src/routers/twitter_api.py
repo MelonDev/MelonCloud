@@ -81,7 +81,9 @@ async def get_all_peoples(params: RequestPeopleQueryModel = Depends(), db: Sessi
     data_list = data_sorted[page:page + limit]
 
     peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), data_list)))
-    results = list(map(lambda x: people_endpoint(get_profile_endpoint(peoples.get(x[0], None)), x[1]), data_list))
+    results = list(filter(partial(is_not, None),
+                          map(lambda x: people_endpoint(get_profile_endpoint(peoples.get(x[0], None)), x[1]),
+                              data_list)))
 
     return await verify_return(
         data=ResponseModel(results))
