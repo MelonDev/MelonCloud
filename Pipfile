@@ -29,7 +29,7 @@ timestamp = "*"
 thumbnail = "*"
 results = "*"
 reverse = "*"
-account = "*"
+pygithub = "*"
 
 [dev-packages]
 
