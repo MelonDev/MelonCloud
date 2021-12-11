@@ -3,7 +3,8 @@ import datetime
 import tweepy
 from fastapi import HTTPException, status as code
 
-from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
+from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY_V2, \
+    CONSUMER_SECRET_V2, ACCESS_TOKEN_V2, ACCESS_TOKEN_SECRET_V2, BEARER_TOKEN_V2
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.enums.profile_enum import ProfileTypeEnum
 from src.models.twitter_model import TweetResponseModel
@@ -21,12 +22,11 @@ def access():
 
 
 def test_client_mode():
-    a = tweepy.Client(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_token=ACCESS_TOKEN,
-                      access_token_secret=ACCESS_TOKEN_SECRET, wait_on_rate_limit=True)
-    print(vars(a))
-    a.get_user(id='2274369025')
+    a = tweepy.Client(consumer_key=CONSUMER_KEY_V2, consumer_secret=CONSUMER_SECRET_V2, access_token=ACCESS_TOKEN_V2,
+                      access_token_secret=ACCESS_TOKEN_SECRET_V2,bearer_token=BEARER_TOKEN_V2, wait_on_rate_limit=True)
+    data = a.get_user(id='2274369025')
 
-    print(a)
+    print(data)
 
 
 def get_tweet_id_from_link(url):

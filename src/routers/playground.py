@@ -6,6 +6,7 @@ from starlette.responses import RedirectResponse
 
 from environment import TWITTER_SECRET_PASSWORD
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
+from src.engines.twitter_engines import test_client_mode
 from src.environment.database import get_db
 from src.models.twitter_model import TwitterValidatorModel
 
@@ -24,10 +25,8 @@ class TestModel(TwitterValidatorModel):
 
 @router.get("/tests")
 async def test():
-    # url.rsplit('/', 1)[-1] #GET LAST PATH
-    # numbers = [1, 2, 3, 4]
-    # result = map(lambda x: x + x, numbers)
-    # print(list(result))
+    a = test_client_mode()
+    print(a)
 
     return "HEllo"
 
