@@ -1,14 +1,17 @@
 from pathlib import Path
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 from timing_asgi import TimingMiddleware, TimingClient
 from timing_asgi.integrations import StarletteScopeToName
+from fastapi_jwt_auth.exceptions import AuthJWTException
+from fastapi.responses import JSONResponse
 
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
+from src.routers.poc.jwt import jwt_poc
 from src.routers.security import password_generator_api as pwg_api
 from src.routers import twitter_api as twitter_api
 from src.tools.log import Colors, log
@@ -25,6 +28,7 @@ def include_router(app):
     app.include_router(page.router, prefix="", tags=["webpage"])
     app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
     app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
+    app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
     app.include_router(playground.router, prefix="/api/playground", tags=["playground"])
     app.include_router(user.router, prefix="/api/user", tags=["users"])
 
@@ -57,6 +61,14 @@ app.add_middleware(
     client=PrintTimings(),
     metric_namer=StarletteScopeToName(prefix="meloncloud", starlette_app=app)
 )
+
+
+@app.exception_handler(AuthJWTException)
+def authjwt_exception_handler(request: Request, exc: AuthJWTException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message}
+    )
 
 
 @app.get("/", include_in_schema=False)

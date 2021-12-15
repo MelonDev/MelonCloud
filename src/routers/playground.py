@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from github import Github
 from pydantic import BaseModel, validator
 
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
-from environment import TWITTER_SECRET_PASSWORD
+from environment import TWITTER_SECRET_PASSWORD, GITHUB_ACCESS_TOKEN
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.engines.twitter_engines import test_client_mode
 from src.environment.database import get_db
@@ -29,6 +30,14 @@ async def test():
     print(a)
 
     return "HEllo"
+
+@router.get("/g_tests")
+async def g_test():
+    g = Github(GITHUB_ACCESS_TOKEN)
+    user = g.get_user()
+    login = user.login
+    repos = user.get_repos()
+    return "G_TEST"
 
 
 @router.get("/database", include_in_schema=False)
