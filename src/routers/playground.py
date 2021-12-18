@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from github import Github
 from pydantic import BaseModel, validator
 
 from sqlalchemy.orm import Session
@@ -30,14 +29,6 @@ async def test():
     print(a)
 
     return "HEllo"
-
-@router.get("/g_tests")
-async def g_test():
-    g = Github(GITHUB_ACCESS_TOKEN)
-    user = g.get_user()
-    login = user.login
-    repos = user.get_repos()
-    return "G_TEST"
 
 
 @router.get("/database", include_in_schema=False)

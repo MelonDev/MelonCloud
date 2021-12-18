@@ -29,7 +29,7 @@ timestamp = "*"
 thumbnail = "*"
 results = "*"
 reverse = "*"
-pygithub = "*"
+fastapi-jwt-auth = "*"
 
 [dev-packages]
 
