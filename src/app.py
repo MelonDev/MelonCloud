@@ -7,7 +7,7 @@ from fastapi_jwt_auth.exceptions import AuthJWTException
 from starlette.responses import RedirectResponse
 from timing_asgi import TimingMiddleware, TimingClient
 from timing_asgi.integrations import StarletteScopeToName
-#from fastapi_jwt_auth.exceptions import AuthJWTException
+# from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
 
 from src.environment.share_environment import SRC_DIR
@@ -57,14 +57,11 @@ def init_app():
 
 app = init_app()
 
-
 app.add_middleware(
     TimingMiddleware,
     client=PrintTimings(),
     metric_namer=StarletteScopeToName(prefix="meloncloud", starlette_app=app)
 )
-
-
 
 
 @app.exception_handler(AuthJWTException)
@@ -75,10 +72,10 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
     )
 
 
-
 @app.get("/", include_in_schema=False)
 async def index():
     return RedirectResponse(url="/docs/")
+
 
 @app.get("/connect", include_in_schema=False)
 async def connect():
