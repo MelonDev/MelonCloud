@@ -26,11 +26,11 @@ class PrintTimings(TimingClient):
 
 def include_router(app):
     app.include_router(page.router, prefix="", tags=["webpage"])
-    app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
-    app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
-    app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
-    app.include_router(playground.router, prefix="/api/playground", tags=["playground"])
-    app.include_router(user.router, prefix="/api/user", tags=["users"])
+    #app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
+    #app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
+    #app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
+    #app.include_router(playground.router, prefix="/api/playground", tags=["playground"])
+    #app.include_router(user.router, prefix="/api/user", tags=["users"])
 
 
 def configure_static(app):
@@ -76,6 +76,10 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 @app.get("/", include_in_schema=False)
 async def index():
     return RedirectResponse(url="/docs/")
+
+@app.get("/connect", include_in_schema=False)
+async def connect():
+    return "Connected!"
 
 
 if __name__ == "__main__":
