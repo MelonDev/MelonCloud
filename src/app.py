@@ -79,7 +79,7 @@ async def index():
 
 @app.get("/connect", include_in_schema=False)
 async def connect():
-    return "Connected!"
+    return "Sandbox Connected!"
 
 
 if __name__ == "__main__":
