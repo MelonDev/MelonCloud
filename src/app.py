@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 from timing_asgi import TimingMiddleware, TimingClient
 from timing_asgi.integrations import StarletteScopeToName
-from fastapi_jwt_auth.exceptions import AuthJWTException
+#from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
 
 from src.environment.share_environment import SRC_DIR
