@@ -14,3 +14,4 @@ ACCESS_TOKEN_SECRET_V2 = config('ACCESS_TOKEN_SECRET_V2', default=None)
 BEARER_TOKEN_V2 = config('BEARER_TOKEN_V2', default=None)
 GITHUB_ACCESS_TOKEN = config('GITHUB_ACCESS_TOKEN', default=None)
 OPENSSL_SECRET_KEY = config('OPENSSL_SECRET_KEY', default=None)
+
