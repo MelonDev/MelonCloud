@@ -29,7 +29,7 @@ def get_config():
 
 @router.post('/login')
 def login(user: User, Authorize: AuthJWT = Depends()):
-    if user.username != "Chaiwiwat" or user.password != "hello":
+    if user.username != "chaiwiwat" or user.password != "hello":
         raise HTTPException(status_code=401, detail="Bad username or password")
 
     # Create the tokens and passing to set_access_cookies or set_refresh_cookies
