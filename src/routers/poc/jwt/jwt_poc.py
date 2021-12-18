@@ -18,14 +18,13 @@ class Settings(BaseModel):
     authjwt_secret_key: str = OPENSSL_SECRET_KEY
     # Configure application to store and get JWT from cookies
     authjwt_token_location: set = {"cookies"}
-    # Disable CSRF Protection for this example. default is True
+    # Disable CSRF Protection for this example default is True
     authjwt_cookie_csrf_protect: bool = False
 
 
 @AuthJWT.load_config
 def get_config():
     return Settings()
-
 
 
 @router.post('/login')
