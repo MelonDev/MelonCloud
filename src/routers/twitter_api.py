@@ -181,6 +181,7 @@ async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db
             bad_request_exception(message="Couldn't find any applicable data")
             return await verify_return(code=404)
 
+
     except Exception as e:
         print(e)
         bad_request_exception(message="Found an error: " + str(e))
@@ -354,4 +355,3 @@ def get_count_of_database(database) -> int:
     if database is None:
         bad_request_exception()
     return int(database.count())
-

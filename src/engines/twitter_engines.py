@@ -136,7 +136,7 @@ def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
 
 
 async def hasFavorited(id) -> bool:
-    tweet = await get_status(id)
+    tweet = get_status(id)
     return bool(tweet['favorited']) if "favorited" in tweet else False
 
 
