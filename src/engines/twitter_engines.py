@@ -8,7 +8,7 @@ from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKE
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.enums.profile_enum import ProfileTypeEnum
 from src.models.twitter_model import TweetResponseModel
-from src.tools.converters.datetime_converter import convert_string_to_datetime, current_datetime_with_timezone
+from src.tools.converters.datetime_converter import convert_string_to_datetime
 
 
 def authentication():
@@ -23,7 +23,7 @@ def access():
 
 def test_client_mode():
     a = tweepy.Client(consumer_key=CONSUMER_KEY_V2, consumer_secret=CONSUMER_SECRET_V2, access_token=ACCESS_TOKEN_V2,
-                      access_token_secret=ACCESS_TOKEN_SECRET_V2,bearer_token=BEARER_TOKEN_V2, wait_on_rate_limit=True)
+                      access_token_secret=ACCESS_TOKEN_SECRET_V2, bearer_token=BEARER_TOKEN_V2, wait_on_rate_limit=True)
     data = a.get_user(id='2274369025')
 
     print(data)
@@ -123,12 +123,33 @@ def get_user_id_json(address):
         return None
 
 
+def search_tweets(keyword: str, since_id: str = None):
+    try:
+        if keyword is not None:
+            q = str(keyword) + " AND -filter:retweets"
+            value = access().search_tweets(q=q, result_type="recent", count=1000,
+                                           since_id=since_id if since_id is not None else "0")
+            return value
+        else:
+            return None
+    except tweepy.errors.TweepyException:
+        return None
+
+
+def get_favorites(since_id: str = None):
+    try:
+        value = access().get_favorites(count=1000, since_id=since_id if since_id is not None else "0")
+        return value
+    except tweepy.errors.TweepyException:
+        return None
+
+
 def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     created_at = convert_string_to_datetime(str(data['created_at']))
 
     model = MelonDevTwitterDatabase(id=data['id_str'], createdAt=created_at, addedAt=datetime.datetime.now(),
                                     account=data['user']['id_str'])
-    model.message = data['full_text']
+    model.message = data['full_text'] if "full_text" in data else data['text']
     model.lang = data['lang']
     model.deleted = False
 
@@ -145,8 +166,8 @@ async def hasRetweeted(id) -> bool:
     return bool(tweet['retweeted']) if "retweeted" in tweet else False
 
 
-async def get_tweet_model(id) -> TweetResponseModel:
-    data = get_status(id)
+async def get_tweet_model(id, data: dict = None) -> TweetResponseModel:
+    data = data if data is not None else get_status(id)
 
     if data is None:
         raise HTTPException(

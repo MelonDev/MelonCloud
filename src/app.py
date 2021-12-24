@@ -82,5 +82,11 @@ async def connect():
     return "Connected!"
 
 
+@app.get("/create_database", include_in_schema=False)
+async def create_database():
+    #TwitterObserverDatabase.__table__.create(engine)
+    return "Database Created!"
+
+
 if __name__ == "__main__":
     uvicorn.run("app:app")

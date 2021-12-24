@@ -1,14 +1,5 @@
-from typing import Optional
-
-import timestamp as timestamp
 from fastapi import HTTPException, status
-from fastapi.params import Query
-from pydantic.json import pydantic_encoder
-import json
-from pydantic import BaseModel, validator, Field
-from enum import Enum, IntEnum
-
-from pydantic.types import SecretStr
+from pydantic import BaseModel, validator
 
 from environment import TWITTER_SECRET_PASSWORD
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
@@ -119,6 +110,11 @@ class RequestAnalyzeModel(TwitterValidatorModel):
     url: str
     like: bool = False
     secret_like: bool = False
+
+
+class RequestDirectAnalyzeModel(RequestAnalyzeModel):
+    data: dict
+    tweet_id: str
 
 
 class RequestTweetQueryModel(BaseModel):
