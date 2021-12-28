@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import pandas
 from fastapi import APIRouter, Depends, HTTPException, status as code, Response, WebSocket
@@ -289,28 +290,6 @@ async def checking_completeness(req: AccessTwitterValidatorModel, db: Session = 
         '''
 
 
-@router.websocket("/websocket_export")
-async def websocket_export_twitter_data(websocket: WebSocket, req: TwitterValidatorModel = Depends(),
-                                        db: Session = Depends(get_db)):
-    data = export_database(db=db, session=MelonDevTwitterDatabase)
-    df = pandas.DataFrame(data)
-    stream = io.StringIO()
-
-    name = MelonDevTwitterDatabase.__tablename__
-    date = dt.datetime.now().strftime('%Y_%m_%d')
-
-    filename = str(name) + "_" + str(date)
-
-    df.to_csv(stream, encoding='utf-8', header=True, index=False)
-
-    response = StreamingResponse(iter([stream.getvalue()]),
-                                 media_type="text/csv"
-                                 )
-    response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
-
-    return response
-
-
 @router.get("/export", status_code=code.HTTP_200_OK)
 async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Session = Depends(get_db)):
     data = export_database(db=db, session=MelonDevTwitterDatabase)
@@ -327,24 +306,6 @@ async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Sessio
     response = StreamingResponse(iter([stream.getvalue()]),
                                  media_type="text/csv"
                                  )
-    response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
-
-    return response
-
-
-@router.get("/direct_export", status_code=code.HTTP_200_OK)
-async def direct_export_twitter_data(req: TwitterValidatorModel = Depends(), db: Session = Depends(get_db)):
-    data = export_database(db=db, session=MelonDevTwitterDatabase)
-    df = pandas.DataFrame(data)
-
-    name = MelonDevTwitterDatabase.__tablename__
-    date = dt.datetime.now().strftime('%Y_%m_%d')
-
-    filename = str(name) + "_" + str(date)
-
-    response = Response(df.to_csv(encoding='utf-8', header=True, index=False),
-                        media_type="text/csv"
-                        )
     response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
 
     return response
