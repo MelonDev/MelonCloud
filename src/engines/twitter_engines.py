@@ -166,7 +166,7 @@ async def hasRetweeted(id) -> bool:
     return bool(tweet['retweeted']) if "retweeted" in tweet else False
 
 
-async def get_tweet_model(id, data: dict = None) -> TweetResponseModel:
+async def get_tweet_model(id, data: dict = None, para_tweet=None) -> TweetResponseModel:
     data = data if data is not None else get_status(id)
 
     if data is None:
@@ -174,7 +174,7 @@ async def get_tweet_model(id, data: dict = None) -> TweetResponseModel:
             status_code=code.HTTP_404_NOT_FOUND,
             detail="The requested tweet was not found")
 
-    tweet = initialize_tweet_model(data)
+    tweet = initialize_tweet_model(data) if para_tweet is None else para_tweet
 
     video_list = []
     photo_list = []
@@ -218,45 +218,47 @@ async def get_tweet_model(id, data: dict = None) -> TweetResponseModel:
                     "type": "photo"
                 })
 
-    type = "text"
+    if para_tweet is None:
 
-    if len(video_list) > 0:
-        tweet.video = video_list
-        type = "video"
-    else:
-        tweet.video = None
+        type = "text"
 
-    if len(photo_list) > 0:
-        tweet.photo = photo_list
-        type = "photo"
-    else:
-        tweet.photo = None
+        if len(video_list) > 0:
+            tweet.video = video_list
+            type = "video"
+        else:
+            tweet.video = None
 
-    tweet.type = type
+        if len(photo_list) > 0:
+            tweet.photo = photo_list
+            type = "photo"
+        else:
+            tweet.photo = None
 
-    entities = data['entities']
-    hashtag = entities['hashtags']
-    if len(hashtag) > 0:
-        for value in hashtag:
-            hashtag_list.append(value['text'])
-        tweet.hashtag = hashtag_list
-    else:
-        tweet.hashtag = None
+        tweet.type = type
 
-    user_mentions = entities['user_mentions']
-    if len(user_mentions) > 0:
-        for value in user_mentions:
-            user_mentions_list.append(value['id_str'])
-        tweet.mention = user_mentions_list
-    else:
-        tweet.mention = None
+        entities = data['entities']
+        hashtag = entities['hashtags']
+        if len(hashtag) > 0:
+            for value in hashtag:
+                hashtag_list.append(value['text'])
+            tweet.hashtag = hashtag_list
+        else:
+            tweet.hashtag = None
 
-    entities_url = entities['urls']
-    if len(entities_url) > 0:
-        for value in entities_url:
-            urls_list.append(value['expanded_url'])
-        tweet.urls = urls_list
-    else:
-        tweet.urls = None
+        user_mentions = entities['user_mentions']
+        if len(user_mentions) > 0:
+            for value in user_mentions:
+                user_mentions_list.append(value['id_str'])
+            tweet.mention = user_mentions_list
+        else:
+            tweet.mention = None
+
+        entities_url = entities['urls']
+        if len(entities_url) > 0:
+            for value in entities_url:
+                urls_list.append(value['expanded_url'])
+            tweet.urls = urls_list
+        else:
+            tweet.urls = None
 
     return TweetResponseModel(tweet=tweet, media_urls=media_url_list)

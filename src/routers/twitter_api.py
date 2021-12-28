@@ -20,7 +20,7 @@ from src.models.access_model import AccessTwitterValidatorModel
 from src.models.response_model import ResponseModel
 from src.models.twitter_model import RequestAnalyzeModel, RequestTweetQueryModel, RequestMediaQueryModel, \
     RequestIdentityModel, RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, TweetProfileResponseModel, \
-    RequestDirectAnalyzeModel
+    RequestDirectAnalyzeModel, TwitterValidatorModel
 from src.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_user_id, like_tweet, \
     hasFavorited, get_user_profile, get_lookup_user, get_dict_lookup_user, get_status, search_tweets, get_favorites
 from src.tools.onedrive_adapter import send_url_to_onedrive
@@ -165,20 +165,22 @@ async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db
 
 async def manual_analyze(model: RequestDirectAnalyzeModel, db: Session):
     if model.tweet_id is not None:
-        package = await get_tweet_model(model.tweet_id, data=model.data)
-        await process_tweet(req=model, package=package, tweet_id=model.tweet_id, db=db)
+        tweet = db.query(MelonDevTwitterDatabase).get(model.tweet_id)
+        package = await get_tweet_model(model.tweet_id, data=model.data,para_tweet= tweet)
+        await process_tweet(req=model, package=package, tweet_id=model.tweet_id, db=db,enable_commit=False)
         return package
     return None
 
 
-async def process_tweet(req, package, tweet_id, db: Session):
+async def process_tweet(req, package, tweet_id, db: Session,enable_commit=True):
     if str(req.tag)[:8] == 'HASHTAG ' and is_not_retweet(package.tweet.message):
         package.tweet.event = str(req.tag)
         if str(req.tag) == 'ME LIKE':
             package.tweet.memories = True
         if is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
             db.add(package.tweet)
-            db.commit()
+            if enable_commit :
+                db.commit()
     elif is_not_retweet(package.tweet.message):
         item = db.query(MelonDevTwitterDatabase).filter(
             MelonDevTwitterDatabase.id == str(tweet_id)).first()
@@ -192,14 +194,16 @@ async def process_tweet(req, package, tweet_id, db: Session):
                 if bool(req.like) or bool(req.secret_like):
                     item.event = str(req.tag)
                     item.addedAt = dt.datetime.now()
-                db.commit()
+                if enable_commit :
+                    db.commit()
         else:
             package.tweet.event = str(req.tag)
             if str(req.tag) == 'ME LIKE':
                 package.tweet.memories = True
                 await send_url_to_onedrive(package.media_urls)
             db.add(package.tweet)
-            db.commit()
+            if enable_commit:
+                db.commit()
 
 
 @router.put("/unlike")
@@ -215,64 +219,74 @@ async def unlike_tweet(req: RequestIdentityModel, db: Session = Depends(get_db))
 
 @router.patch("/checking-completeness", include_in_schema=True)
 async def checking_completeness(req: AccessTwitterValidatorModel, db: Session = Depends(get_db)):
-    try:
-        database = db.query(TwitterObserverDatabase)
-        database = database.filter(TwitterObserverDatabase.paused.is_(False))
-        results = database.all()
+    # try:
+    database = db.query(TwitterObserverDatabase)
+    database = database.filter(TwitterObserverDatabase.paused.is_(False))
+    results = database.all()
 
-        for i in results:
-            last_id = None
-            count = 0
+    for i in results:
+        last_id = None
+        count = 0
 
-            if i.objective == "SEARCH":
-                data = search_tweets(keyword=i.value, since_id=i.lastTweetId)
-                value = list(map(lambda x: x._json, data))
-                count = len(value)
+        print(i.value)
 
-                for j in value:
-                    tweet_id: str = j['id_str']
+        if i.objective == "SEARCH":
+            data = search_tweets(keyword=i.value, since_id=i.lastTweetId)
+            value = list(map(lambda x: x._json, data))
+            count = len(value)
 
-                    if last_id is None:
-                        last_id = tweet_id
-                    tag = "HASHTAG " + str(i.value)
-                    model = RequestDirectAnalyzeModel(token=TWITTER_SECRET_PASSWORD, like=False, secret_like=False,
-                                                      url=tweet_id, tweet_id=tweet_id, data=j,
-                                                      tag=tag)
-                    await manual_analyze(model=model, db=db)
+            for j in value:
+                tweet_id: str = j['id_str']
 
-            if i.objective == "ME_LIKE":
-                data = get_favorites(since_id=i.lastTweetId)
-                value = list(map(lambda x: x._json, data))
-                count = len(value)
+                print(tweet_id)
 
-                for j in value:
-                    tweet_id: str = j['id_str']
+                if last_id is None:
+                    last_id = tweet_id
+                tag = "HASHTAG " + str(i.value)
+                model = RequestDirectAnalyzeModel(token=TWITTER_SECRET_PASSWORD, like=False, secret_like=False,
+                                                  url=tweet_id, tweet_id=tweet_id, data=j,
+                                                  tag=tag)
+                await manual_analyze(model=model, db=db)
 
-                    if last_id is None:
-                        last_id = tweet_id
-                    tag = "ME LIKE"
-                    model = RequestDirectAnalyzeModel(token=TWITTER_SECRET_PASSWORD, like=False, secret_like=False,
-                                                      url=tweet_id, tweet_id=tweet_id, data=j,
-                                                      tag=tag)
-                    await manual_analyze(model=model, db=db)
+        if i.objective == "ME LIKE":
+            data = get_favorites(since_id=i.lastTweetId)
+            value = list(map(lambda x: x._json, data))
+            count = len(value)
 
-            if last_id is not None:
-                timestamp = dt.datetime.now()
-                i.lastTweetId = last_id
-                i.updatedAt = timestamp
-                i.count += count
-                db.add(i)
+            for j in value:
+                tweet_id: str = j['id_str']
 
-        db.commit()
-        return "REFRESHED"
-    except:
-        raise HTTPException(
-            status_code=code.HTTP_400_BAD_REQUEST,
-            detail="UNAUTHORIZED")
+                print(tweet_id)
 
 
-@router.get("/export", status_code=code.HTTP_200_OK, deprecated=True)
-async def export_twitter_data(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+                if last_id is None:
+                    last_id = tweet_id
+                tag = "ME LIKE"
+                model = RequestDirectAnalyzeModel(token=TWITTER_SECRET_PASSWORD, like=False, secret_like=False,
+                                                  url=tweet_id, tweet_id=tweet_id, data=j,
+                                                  tag=tag)
+                await manual_analyze(model=model, db=db)
+
+        if last_id is not None:
+            timestamp = dt.datetime.now()
+            i.lastTweetId = last_id
+            i.updatedAt = timestamp
+            i.count += count
+            db.add(i)
+
+    db.commit()
+    return "REFRESHED"
+
+
+'''except:
+    raise HTTPException(
+        status_code=code.HTTP_400_BAD_REQUEST,
+        detail="UNAUTHORIZED")
+        '''
+
+
+@router.patch("/export", status_code=code.HTTP_200_OK)
+async def export_twitter_data(req: TwitterValidatorModel, db: Session = Depends(get_db)):
     return ""
 
 

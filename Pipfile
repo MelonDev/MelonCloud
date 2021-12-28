@@ -30,6 +30,8 @@ thumbnail = "*"
 results = "*"
 reverse = "*"
 fastapi-jwt-auth = "*"
+numpy = "*"
+pandas = "*"
 
 [dev-packages]
 
