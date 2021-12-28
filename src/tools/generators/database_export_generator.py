@@ -12,7 +12,6 @@ def export_database(db, session):
     filename = name + "_" + date
 
     db_session = filter_all_record_database(db, session)
-    print(db_session)
 
     return export(db_session)
     '''try:
