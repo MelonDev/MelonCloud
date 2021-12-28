@@ -12,6 +12,7 @@ def export_database(db, session):
     filename = name + "_" + date
 
     db_session = filter_all_record_database(db, session)
+    print(db_session)
 
     return export(db_session)
     '''try:
@@ -58,7 +59,13 @@ def export_current_year_database(db):
 
 
 def filter_test_record_database(db, session):
-    return db.query(session).filter(MelonDevTwitterDatabase.account.contains(str("102640199"))).all()
+    return db.query(session).filter(MelonDevTwitterDatabase.account.contains("752306033746284544")).all()
+    # return db.query(session).filter(MelonDevTwitterDatabase.account.contains(str("102640199"))).all()
+
+
+def remove_carriage_return(data):
+    return [{k.strip(): (v.strip().replace("\r", " ") if type(v) is str else v) if v is not None else None for k, v in
+             i.items()} for i in data]
 
 
 def filter_all_record_database(db, session):
@@ -69,9 +76,7 @@ def export(raw):
     try:
         headers = list(raw[0].export.keys())
         data = [dict((k, v) for k, v in i.export.items()) for i in raw]
-        return data
-        # return send_csv(data, (filename if filename is not None else ("export" + "_" + str(uuid.uuid4()))) + ".csv",
-        #                headers)
+        return remove_carriage_return(data)
     except AttributeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

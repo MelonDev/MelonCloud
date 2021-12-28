@@ -1,5 +1,5 @@
 import pandas
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from sqlalchemy.orm import Session
 
@@ -58,19 +58,31 @@ async def get_csv():
 
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
 
-    #return response
+    # return response
     return "HELLO"
+
 
 @router.get("/test_export")
 async def test_export(db: Session = Depends(get_db)):
     data = export_database(db=db, session=MelonDevTwitterDatabase)
+
+    print(type("\r"))
+
+    for i in data:
+        print(i)
     print(type(data))
     print(type(data[0]))
-    df = pandas.DataFrame(data)
+
+    lst = [{k.strip(): (v.strip().replace("\r", " ") if type(v) is str else v) if v is not None else None for k, v in i.items()} for i in data]
+    for i in lst:
+        print(i)
+
+    df = pandas.DataFrame(lst)
     print(df)
     stream = io.StringIO()
 
-    df.to_csv(stream, encoding='utf-8', header=True, index=False)
+    df.to_csv(stream, encoding='utf-8', header=True, index=False, sep=",", line_terminator='\n', quotechar='"',
+              decimal=".")
 
     response = StreamingResponse(iter([stream.getvalue()]),
                                  media_type="text/csv"
@@ -78,9 +90,18 @@ async def test_export(db: Session = Depends(get_db)):
 
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
 
+    t = iter([stream.getvalue()])
+
+    for i in t:
+        print("******************************")
+        print(type(i))
+        print(i)
+
+    print(type(t))
+
     return response
 
-    return "HELLO"
+    # return "HELLO"
 
 
 @router.get("/get_csvs")

@@ -10,6 +10,8 @@ from timing_asgi.integrations import StarletteScopeToName
 # from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
 
+from src.database.melondev_twitter_database import MelonDevTwitterDatabase
+from src.environment.database import engine
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
 from src.routers.poc.jwt import jwt_poc
@@ -84,7 +86,7 @@ async def connect():
 
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    #TwitterObserverDatabase.__table__.create(engine)
+    MelonDevTwitterDatabase.__table__.create(engine)
     return "Database Created!"
 
 
