@@ -1,6 +1,6 @@
 from pathlib import Path
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth.exceptions import AuthJWTException
@@ -88,6 +88,7 @@ async def connect():
 async def create_database():
     MelonDevTwitterDatabase.__table__.create(engine)
     return "Database Created!"
+
 
 
 if __name__ == "__main__":
