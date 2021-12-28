@@ -291,7 +291,7 @@ async def checking_completeness(req: AccessTwitterValidatorModel, db: Session = 
         '''
 
 
-@router.patch("/export", status_code=code.HTTP_200_OK)
+@router.get("/export", status_code=code.HTTP_200_OK)
 async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Session = Depends(get_db)):
     data = export_database(db=db, session=MelonDevTwitterDatabase)
     df = pandas.DataFrame(data)
