@@ -1,7 +1,7 @@
 import math
 
 import pandas
-from fastapi import APIRouter, Depends, HTTPException, status as code
+from fastapi import APIRouter, Depends, HTTPException, status as code,Response
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
@@ -303,6 +303,24 @@ async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Sessio
     df.to_csv(stream, encoding='utf-8', header=True, index=False)
 
     response = StreamingResponse(iter([stream.getvalue()]),
+                                 media_type="text/csv"
+                                 )
+    response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
+
+    return response
+
+@router.get("/direct_export", status_code=code.HTTP_200_OK)
+async def direct_export_twitter_data(req: TwitterValidatorModel = Depends(), db: Session = Depends(get_db)):
+    data = export_database(db=db, session=MelonDevTwitterDatabase)
+    df = pandas.DataFrame(data)
+
+    name = MelonDevTwitterDatabase.__tablename__
+    date = dt.datetime.now().strftime('%Y_%m_%d')
+
+    filename = str(name) + "_" + str(date)
+
+
+    response = Response(df.to_csv(encoding='utf-8', header=True, index=False),
                                  media_type="text/csv"
                                  )
     response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
