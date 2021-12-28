@@ -16,7 +16,6 @@ from src.database.twitter_observer_database import TwitterObserverDatabase
 from fastapi.responses import StreamingResponse
 import io
 
-
 from src.enums.profile_enum import ProfileQueryEnum, ProfileTypeEnum
 from src.enums.sorting_enum import SortingEnum
 from src.enums.type_enum import FileTypeEnum
@@ -172,20 +171,20 @@ async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db
 async def manual_analyze(model: RequestDirectAnalyzeModel, db: Session):
     if model.tweet_id is not None:
         tweet = db.query(MelonDevTwitterDatabase).get(model.tweet_id)
-        package = await get_tweet_model(model.tweet_id, data=model.data,para_tweet= tweet)
-        await process_tweet(req=model, package=package, tweet_id=model.tweet_id, db=db,enable_commit=False)
+        package = await get_tweet_model(model.tweet_id, data=model.data, para_tweet=tweet)
+        await process_tweet(req=model, package=package, tweet_id=model.tweet_id, db=db, enable_commit=False)
         return package
     return None
 
 
-async def process_tweet(req, package, tweet_id, db: Session,enable_commit=True):
+async def process_tweet(req, package, tweet_id, db: Session, enable_commit=True):
     if str(req.tag)[:8] == 'HASHTAG ' and is_not_retweet(package.tweet.message):
         package.tweet.event = str(req.tag)
         if str(req.tag) == 'ME LIKE':
             package.tweet.memories = True
         if is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
             db.add(package.tweet)
-            if enable_commit :
+            if enable_commit:
                 db.commit()
     elif is_not_retweet(package.tweet.message):
         item = db.query(MelonDevTwitterDatabase).filter(
@@ -200,7 +199,7 @@ async def process_tweet(req, package, tweet_id, db: Session,enable_commit=True):
                 if bool(req.like) or bool(req.secret_like):
                     item.event = str(req.tag)
                     item.addedAt = dt.datetime.now()
-                if enable_commit :
+                if enable_commit:
                     db.commit()
         else:
             package.tweet.event = str(req.tag)
@@ -263,7 +262,6 @@ async def checking_completeness(req: AccessTwitterValidatorModel, db: Session = 
                 tweet_id: str = j['id_str']
 
                 print(tweet_id)
-
 
                 if last_id is None:
                     last_id = tweet_id
