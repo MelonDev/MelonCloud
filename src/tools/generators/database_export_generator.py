@@ -5,13 +5,13 @@ from fastapi import HTTPException, status
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 
 
-def export_database(db,session):
+def export_database(db, session):
     name = session.__tablename__
     date = datetime.datetime.now().strftime('%Y_%m_%d')
 
     filename = name + "_" + date
 
-    db_session = filter_all_record_database(db,session)
+    db_session = filter_all_record_database(db, session)
 
     return export(db_session)
     '''try:
@@ -57,8 +57,12 @@ def export_current_year_database(db):
             detail=str(exception))
 
 
-def filter_all_record_database(db,session):
+def filter_test_record_database(db, session):
     return db.query(session).filter(MelonDevTwitterDatabase.account.contains(str("102640199"))).all()
+
+
+def filter_all_record_database(db, session):
+    return db.query(session).all()
 
 
 def export(raw):

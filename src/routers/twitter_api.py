@@ -1,5 +1,6 @@
 import math
 
+import pandas
 from fastapi import APIRouter, Depends, HTTPException, status as code
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
@@ -12,6 +13,10 @@ from urllib.parse import urlparse
 from environment import TWITTER_SECRET_PASSWORD
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.database.twitter_observer_database import TwitterObserverDatabase
+from fastapi.responses import StreamingResponse
+import io
+
+
 from src.enums.profile_enum import ProfileQueryEnum, ProfileTypeEnum
 from src.enums.sorting_enum import SortingEnum
 from src.enums.type_enum import FileTypeEnum
@@ -23,6 +28,7 @@ from src.models.twitter_model import RequestAnalyzeModel, RequestTweetQueryModel
     RequestDirectAnalyzeModel, TwitterValidatorModel
 from src.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_user_id, like_tweet, \
     hasFavorited, get_user_profile, get_lookup_user, get_dict_lookup_user, get_status, search_tweets, get_favorites
+from src.tools.generators.database_export_generator import export_database
 from src.tools.onedrive_adapter import send_url_to_onedrive
 from src.tools.photos_endpoint import tweet_photo_endpoint, tweet_video_endpoint, people_endpoint
 from src.tools.tweet_profile_endpoint import get_profile_endpoint, get_profile_model_endpoint
@@ -287,7 +293,23 @@ async def checking_completeness(req: AccessTwitterValidatorModel, db: Session = 
 
 @router.patch("/export", status_code=code.HTTP_200_OK)
 async def export_twitter_data(req: TwitterValidatorModel, db: Session = Depends(get_db)):
-    return ""
+    data = export_database(db=db, session=MelonDevTwitterDatabase)
+    df = pandas.DataFrame(data)
+    stream = io.StringIO()
+
+    name = MelonDevTwitterDatabase.__tablename__
+    date = dt.datetime.now().strftime('%Y_%m_%d')
+
+    filename = str(name) + "_" + str(date)
+
+    df.to_csv(stream, encoding='utf-8', header=True, index=False)
+
+    response = StreamingResponse(iter([stream.getvalue()]),
+                                 media_type="text/csv"
+                                 )
+    response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
+
+    return response
 
 
 def is_not_retweet(value) -> bool:
