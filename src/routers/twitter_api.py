@@ -200,6 +200,7 @@ async def process_tweet(req, package, tweet_id, db: Session, enable_commit=True)
                 if bool(req.like) or bool(req.secret_like):
                     item.event = str(req.tag)
                     item.addedAt = dt.datetime.now()
+                db.add(item)
                 if enable_commit:
                     db.commit()
         else:
