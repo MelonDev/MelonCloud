@@ -154,7 +154,15 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
 @router.post("/analyze", summary="วิเคราะห์ทวีต",
              status_code=code.HTTP_201_CREATED)
 async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db)):
-    try:
+    tweet_id = get_tweet_id_from_link(req.url)
+    if tweet_id is not None:
+        package = await get_tweet_model(tweet_id)
+        await process_tweet(req=req, package=package, tweet_id=tweet_id, db=db)
+        return await verify_return(data=ResponseModel(package.tweet.serialize))
+    else:
+        bad_request_exception(message="Couldn't find any applicable data")
+        return await verify_return(code=404)
+    '''try:
         tweet_id = get_tweet_id_from_link(req.url)
         if tweet_id is not None:
             package = await get_tweet_model(tweet_id)
@@ -166,7 +174,7 @@ async def analyzing_tweet(req: RequestAnalyzeModel, db: Session = Depends(get_db
     except Exception as e:
         print(e)
         bad_request_exception(message="Found an error: " + str(e))
-        return await verify_return(data=None)
+        return await verify_return(data=None)'''
 
 
 async def manual_analyze(model: RequestDirectAnalyzeModel, db: Session):
@@ -188,8 +196,9 @@ async def process_tweet(req, package, tweet_id, db: Session, enable_commit=True)
             if enable_commit:
                 db.commit()
     elif is_not_retweet(package.tweet.message):
-        item = db.query(MelonDevTwitterDatabase).filter(
-            MelonDevTwitterDatabase.id == str(tweet_id)).first()
+        #item = db.query(MelonDevTwitterDatabase).filter(
+        #    MelonDevTwitterDatabase.id.contains(str(tweet_id))).first()
+        item = db.query(MelonDevTwitterDatabase).get(str(tweet_id))
         favorited = await hasFavorited(tweet_id)
         if bool(req.like) and not favorited:
             await like_tweet(tweet_id)

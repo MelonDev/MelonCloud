@@ -29,8 +29,13 @@ def test_client_mode():
     print(data)
 
 
-def get_tweet_id_from_link(url):
+def get_tweet_id_from_link(raw_url):
     try:
+        url = raw_url
+        if '?' in url:
+            url = url.split('?')[0]
+        if '#' in url:
+            url = url.split('#')[0]
         return url.split('/')[-1]
     except:
         return None
