@@ -84,6 +84,11 @@ async def connect():
     return "Connected!"
 
 
+@app.get("/wakeup", include_in_schema=False)
+async def wakeup():
+    return "I'm Waked!"
+
+
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
     MelonDevTwitterDatabase.__table__.create(engine)
