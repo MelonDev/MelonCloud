@@ -181,14 +181,15 @@ async def manual_analyze(model: RequestDirectAnalyzeModel, db: Session):
 async def process_tweet(req, package, tweet_id, db: Session, enable_commit=True):
     if str(req.tag)[:8] == 'HASHTAG ' and is_not_retweet(package.tweet.message):
         package.tweet.event = str(req.tag)
-        if is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
+        if req.only_media and package.media_urls > 0:
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
-        elif req.only_media and package.media_urls > 0:
+        elif is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account):
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
+
     elif is_not_retweet(package.tweet.message):
         item = db.query(MelonDevTwitterDatabase).get(str(tweet_id))
         favorited = await hasFavorited(tweet_id)
