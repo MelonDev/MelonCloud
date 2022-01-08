@@ -185,7 +185,7 @@ async def process_tweet(req, package, tweet_id, db: Session, enable_commit=True)
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
-        elif req.only_media and package.tweet.media > 0:
+        elif req.only_media and package.media_urls > 0:
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
