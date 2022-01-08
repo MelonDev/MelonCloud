@@ -110,6 +110,7 @@ class RequestAnalyzeModel(TwitterValidatorModel):
     url: str
     like: bool = False
     secret_like: bool = False
+    only_media: bool = False
 
 
 class RequestDirectAnalyzeModel(RequestAnalyzeModel):
