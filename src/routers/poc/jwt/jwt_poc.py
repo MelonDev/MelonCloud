@@ -1,10 +1,13 @@
-from fastapi import APIRouter
+from typing import List
+
+from fastapi import APIRouter, Form
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from pydantic import BaseModel
 from environment import OPENSSL_SECRET_KEY
+from src.tools.as_form import as_form
 
 router = APIRouter()
 
@@ -13,6 +16,10 @@ class User(BaseModel):
     username: str
     password: str
 
+@as_form
+class UserLoginFrom(BaseModel):
+    username: str
+    password: str
 
 class Settings(BaseModel):
     authjwt_secret_key: str = OPENSSL_SECRET_KEY
@@ -27,8 +34,26 @@ def get_config():
     return Settings()
 
 
+
+class Test1(BaseModel):
+    a: str
+    b: int
+
+
+@as_form
+class Test(BaseModel):
+    param: str
+    test: List[Test1]
+    test1: Test1
+    b: int = 1
+    a: str = '2342'
+
+@router.post('/test', response_model=Test)
+async def test(request: Request, form: Test = Depends(Test.as_form)):
+    return form
+
 @router.post('/login')
-def login(user: User, Authorize: AuthJWT = Depends()):
+def login(user: UserLoginFrom = Depends(UserLoginFrom.as_form), Authorize: AuthJWT = Depends()):
     if user.username != "chaiwiwat" or user.password != "hello":
         raise HTTPException(status_code=401, detail="Bad username or password")
 
