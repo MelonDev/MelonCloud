@@ -16,10 +16,12 @@ class User(BaseModel):
     username: str
     password: str
 
+
 @as_form
 class UserLoginFrom(BaseModel):
     username: str
     password: str
+
 
 class Settings(BaseModel):
     authjwt_secret_key: str = OPENSSL_SECRET_KEY
@@ -32,7 +34,6 @@ class Settings(BaseModel):
 @AuthJWT.load_config
 def get_config():
     return Settings()
-
 
 
 class Test1(BaseModel):
@@ -48,9 +49,11 @@ class Test(BaseModel):
     b: int = 1
     a: str = '2342'
 
-@router.post('/test', response_model=Test)
-async def test(request: Request, form: Test = Depends(Test.as_form)):
+
+@router.post('/test_form', response_model=Test)
+async def test_form(request: Request, form: Test = Depends(Test.as_form)):
     return form
+
 
 @router.post('/login')
 def login(user: UserLoginFrom = Depends(UserLoginFrom.as_form), Authorize: AuthJWT = Depends()):
