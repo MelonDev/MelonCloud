@@ -17,6 +17,7 @@ from src.routers import user, page, playground
 from src.routers.poc.jwt import jwt_poc
 from src.routers.poc.oauth import oauth_poc
 from src.routers.security import password_generator_api as pwg_api
+from src.tools.configure_app import configure_timing, configure_cors
 
 
 def include_router(app):
@@ -36,13 +37,15 @@ def configure_static(app):
 def configure_sub_application(app):
     flask_app = Flask(__name__)
     #app.mount("/v1", WSGIMiddleware(flask_app))
-    app.mount("/api/v2/twitter",twitter_app)
+    #app.mount("/api/v2/twitter",twitter_app)
 
 
 def init_app():
     app = FastAPI()
     include_router(app)
     configure_static(app)
+    configure_timing(app)
+    configure_cors(app)
     configure_sub_application(app)
     return app
 
