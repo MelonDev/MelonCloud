@@ -5,10 +5,12 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from flask import Flask, escape, request
-from starlette.responses import RedirectResponse
+from fastapi.middleware.wsgi import WSGIMiddleware
+from fastapi.responses import RedirectResponse
 # from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
 
+from src.apps.v1.flask_app import app as flask_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.environment.database import engine
@@ -22,7 +24,7 @@ from src.tools.configure_app import configure_timing, configure_cors
 
 def include_router(app):
     app.include_router(page.router, prefix="", tags=["webpage"])
-    #twitter_app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
+    # twitter_app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
     app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
     app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
     app.include_router(oauth_poc.router, prefix="/api/poc/oauth", tags=["OAuth2"])
@@ -33,24 +35,28 @@ def include_router(app):
 def configure_static(app):
     app.mount("/static", StaticFiles(directory=str(Path(SRC_DIR, 'static'))), name="static")
 
-
 def configure_sub_application(app):
-    flask_app = Flask(__name__)
-    #app.mount("/v1", WSGIMiddleware(flask_app))
-    #app.mount("/api/v2/twitter",twitter_app)
+    app.mount("/api/v1", WSGIMiddleware(flask_app))
+    app.mount("/api/v2/twitter", twitter_app)
 
 
 def init_app():
     app = FastAPI()
-    include_router(app)
-    configure_static(app)
-    configure_timing(app)
-    configure_cors(app)
+
+    subapp = FastAPI()
+    include_router(subapp)
+    configure_static(subapp)
+    configure_timing(subapp)
+    configure_cors(subapp)
+
     configure_sub_application(app)
+    app.mount("/api/v2.0-alpha", subapp)
+
     return app
 
 
 app = init_app()
+
 
 @app.exception_handler(AuthJWTException)
 def authjwt_exception_handler(request: Request, exc: AuthJWTException):
@@ -62,7 +68,11 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 
 @app.get("/", include_in_schema=False)
 async def index():
-    return RedirectResponse(url="/docs/")
+    return RedirectResponse(url="api/v2.0-alpha/docs/")
+
+@app.get("/api/v2", include_in_schema=False)
+async def index_v2():
+    return RedirectResponse(url="v2.0-alpha/docs/")
 
 
 @app.get("/connect", include_in_schema=False)
