@@ -1,7 +1,7 @@
 import math
 from typing import Optional
 
-import pandas
+#import pandas
 from fastapi import APIRouter, Depends, HTTPException, status as code, Response, WebSocket
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
@@ -292,7 +292,7 @@ async def checking_completeness(req: AccessTwitterValidatorModel, db: Session = 
         detail="UNAUTHORIZED")
         '''
 
-
+'''
 @router.get("/export", status_code=code.HTTP_200_OK)
 async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Session = Depends(get_db)):
     data = export_database(db=db, session=MelonDevTwitterDatabase)
@@ -312,6 +312,7 @@ async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Sessio
     response.headers["Content-Disposition"] = "attachment; filename = {file_name}.csv".format(file_name=filename)
 
     return response
+'''
 
 
 def is_not_retweet(value) -> bool:

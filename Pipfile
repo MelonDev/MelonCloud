@@ -29,10 +29,10 @@ thumbnail = "*"
 results = "*"
 reverse = "*"
 fastapi-jwt-auth = "*"
-numpy = "*"
-pandas = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 python-multipart = "*"
+flask = "*"
+oauth = "*"
 
 [dev-packages]
 

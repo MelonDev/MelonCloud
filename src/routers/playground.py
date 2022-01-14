@@ -1,5 +1,5 @@
-import pandas
-from fastapi import APIRouter, Depends, Response
+#import pandas
+from fastapi import APIRouter, Depends, Response, UploadFile, File, Form
 
 from sqlalchemy.orm import Session
 
@@ -28,6 +28,7 @@ async def test():
     return "HEllo"
 
 
+'''
 @router.get("/get_csv")
 async def get_csv():
     d = [{'points': 50, 'time': '5:00', 'year': 2010},
@@ -37,12 +38,7 @@ async def get_csv():
 
     d1 = []
     d1.append({'points': 50, 'time': '5:00', 'year': 2010})
-
-    ''' df = pandas.DataFrame(data=list({
-        "brand": "Ford",
-        "model": "Mustang",
-        "year": 1964
-    }))'''
+    
     df = pandas.DataFrame(d1)
 
     print(df)
@@ -102,6 +98,7 @@ async def test_export(db: Session = Depends(get_db)):
     return response
 
     # return "HELLO"
+'''
 
 
 @router.get("/get_csvs")
@@ -128,3 +125,4 @@ async def database(db: Session = Depends(get_db)):
     b = [item.serialize for item in a]
     print("DATABASE")
     return b
+
