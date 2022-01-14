@@ -33,6 +33,7 @@ uvicorn = {extras = ["standard"], version = "*"}
 python-multipart = "*"
 flask = "*"
 oauth = "*"
+python-jose = "*"
 
 [dev-packages]
 
