@@ -1,0 +1,62 @@
+{% extends "home/base.html" %}
+{% block body %}
+
+<div class="container-fluid">
+
+    <div class="row justify-content-center top-title-buffer">
+
+        <div class="col-12 col-xl-11 col-xxl-10">
+            <div class="d-flex align-content-around flex-wrap justify-content-center">
+                <div class="p-2">
+                    <div class="card card-page">
+                        <img src="./static/templates/home/img/towfiqu-barbhuiya-FnA5pAzqhMM-unsplash.jpg"
+                             class="card-img-top card-img-top-page" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title card-title-page">รหัสผ่านความปลอดภัยแบบสุ่ม</h4>
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk
+                                of the card's content</p>
+                            <button class="btn btn-primary card-button-submit-page" onclick="openPage('pwg_v2')">เปิด</button>
+                            <button class="btn btn-outline-secondary card-outline-button-submit-page" onclick="openPage('api/v2/security/pwg_v2/docs')">
+                                คู่มือ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="card card-page">
+                        <img src="./static/templates/home/img/jeremy-bezanger-Jm1YUfYjpHI-unsplash.jpg"
+                             class="card-img-top card-img-top-page" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title card-title-page">ทวิตเตอร์</h4>
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk
+                                of the card's content</p>
+                            <button class="btn btn-secondary card-button-submit-page disabled" onclick="openPage('pwg_v2')">เปิด</button>
+                            <button class="btn btn-outline-secondary card-outline-button-submit-page" onclick="openPage('api/v2/twitter/docs')">
+                                คู่มือ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="card card-page">
+                        <img src="./static/templates/home/img/pankaj-patel-_SgRNwAVNKw-unsplash.jpg"
+                             class="card-img-top card-img-top-page" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title card-title-page">พื้นที่ทดสอบ</h4>
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk
+                                of the card's content</p>
+                            <button class="btn btn-secondary card-button-submit-page disabled" onclick="openPage('pwg_v2')">เปิด</button>
+                            <button class="btn btn-outline-secondary card-outline-button-submit-page" onclick="openPage('api/v2.0-alpha/docs')">
+                                คู่มือ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

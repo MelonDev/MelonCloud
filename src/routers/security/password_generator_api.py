@@ -6,6 +6,13 @@ from src.tools.generators.random_password_generator import RandomPasswordGenerat
 router = APIRouter()
 generator = RandomPasswordGenerator()
 
+@router.get("/", include_in_schema=False)
+async def main(model: SimpleRandomPasswordModel = Depends()):
+    if model.step is None or model.length is None:
+        return generator.simple()
+    else:
+        return generator.advance(step=model.step,
+                                 length=model.length)
 
 @router.get("/simple")
 async def simple(model: SimpleRandomPasswordModel = Depends()):

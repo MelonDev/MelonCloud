@@ -12,6 +12,8 @@ from fastapi.responses import JSONResponse
 
 from src.apps.v1.flask_app import app as flask_app
 from src.apps.v2.twitter_app import app as twitter_app
+from src.apps.v2.pwg_app import app as pwg_app_v2
+
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.environment.database import engine
 from src.environment.share_environment import SRC_DIR
@@ -28,7 +30,7 @@ def include_router_page(app):
 
 def include_router(app):
     # twitter_app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
-    app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
+    #app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
     app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
     app.include_router(oauth_poc.router, prefix="/api/poc/oauth", tags=["OAuth2"])
     app.include_router(playground.router, prefix="/api/playground", tags=["playground"])
@@ -42,6 +44,7 @@ def configure_static(app):
 def configure_sub_application(app):
     app.mount("/api/v1", WSGIMiddleware(flask_app))
     app.mount("/api/v2/twitter", twitter_app)
+    app.mount("/api/v2/security/pwg_v2", pwg_app_v2)
 
 
 def init_app():
@@ -73,7 +76,7 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 
 @app.get("/", include_in_schema=False)
 async def index():
-    return RedirectResponse(url="api/v2.0-alpha/docs/")
+    return RedirectResponse(url="home")
 
 
 @app.get("/api/v2", include_in_schema=False)

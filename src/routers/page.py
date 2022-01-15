@@ -29,3 +29,9 @@ async def pwg_v2(request: Request, step: int = None, length: int = None, action:
                                        "step": str(step if step is not None else 3),
                                        "action": action if action is not None else "hide",
                                        })
+
+
+@router.get("/home", include_in_schema=False)
+async def home(request: Request):
+    return templates.TemplateResponse("home/home.html",
+                                      {"request": request})
