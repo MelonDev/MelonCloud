@@ -22,8 +22,11 @@ from src.routers.security import password_generator_api as pwg_api
 from src.tools.configure_app import configure_timing, configure_cors
 
 
-def include_router(app):
+def include_router_page(app):
     app.include_router(page.router, prefix="", tags=["webpage"])
+
+
+def include_router(app):
     # twitter_app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
     app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
     app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
@@ -35,6 +38,7 @@ def include_router(app):
 def configure_static(app):
     app.mount("/static", StaticFiles(directory=str(Path(SRC_DIR, 'static'))), name="static")
 
+
 def configure_sub_application(app):
     app.mount("/api/v1", WSGIMiddleware(flask_app))
     app.mount("/api/v2/twitter", twitter_app)
@@ -42,14 +46,15 @@ def configure_sub_application(app):
 
 def init_app():
     app = FastAPI()
+    include_router_page(app)
+    configure_sub_application(app)
+    configure_static(app)
 
     subapp = FastAPI()
     include_router(subapp)
-    configure_static(subapp)
     configure_timing(subapp)
     configure_cors(subapp)
 
-    configure_sub_application(app)
     app.mount("/api/v2.0-alpha", subapp)
 
     return app
@@ -69,6 +74,7 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 @app.get("/", include_in_schema=False)
 async def index():
     return RedirectResponse(url="api/v2.0-alpha/docs/")
+
 
 @app.get("/api/v2", include_in_schema=False)
 async def index_v2():
