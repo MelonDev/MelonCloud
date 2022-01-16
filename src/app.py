@@ -48,7 +48,7 @@ def configure_sub_application(app):
 
 
 def init_app():
-    app = FastAPI()
+    app = FastAPI(docs_url=None, redoc_url=None)
     include_router_page(app)
     configure_sub_application(app)
     configure_static(app)
