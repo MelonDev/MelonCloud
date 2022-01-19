@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Column, String, DateTime, Boolean, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 
 from src.environment.database import Base
@@ -17,20 +17,20 @@ class MelonDevTwitterDatabase(Base):
     __tablename__ = "MelonDev_Twitter_Database"
     __bind_key__ = 'pasaad'
 
-    id = Column(String, primary_key=True, unique=True, nullable=False)
+    id = Column(Text, primary_key=True, unique=True, nullable=False)
     createdAt = Column(DateTime(timezone=True), nullable=False)
     addedAt = Column(DateTime(timezone=True), nullable=False)
-    message = Column(String)
-    account = Column(String, nullable=False)
-    hashtag = Column(ARRAY(String))
-    mention = Column(ARRAY(String))
-    photo = Column(ARRAY(String))
-    type = Column(String)
-    thumbnail = Column(String)
-    video = Column(ARRAY(String))
-    lang = Column(String)
-    urls = Column(ARRAY(String))
-    event = Column(String)
+    message = Column(Text)
+    account = Column(Text, nullable=False)
+    hashtag = Column(ARRAY(Text))
+    mention = Column(ARRAY(Text))
+    photo = Column(ARRAY(Text))
+    type = Column(Text)
+    thumbnail = Column(Text)
+    video = Column(ARRAY(Text))
+    lang = Column(Text)
+    urls = Column(ARRAY(Text))
+    event = Column(Text)
     deleted = Column(Boolean, default=False)
     memories = Column(Boolean, default=False)
 

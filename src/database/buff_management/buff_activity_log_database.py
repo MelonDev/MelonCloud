@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 
 from src.environment.database import Base
-from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -18,9 +18,9 @@ class BuffActivityLogDatabase(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False)
 
     buff_id = Column(UUID(as_uuid=True),ForeignKey("Buff_Database.id"), nullable=False)
-    name = Column(String, nullable=False)
-    value = Column(String, nullable=False)
-    secondary_value = Column(String, nullable=True)
+    name = Column(Text, nullable=False)
+    value = Column(Text, nullable=False)
+    secondary_value = Column(Text, nullable=True)
     bool_value = Column(Boolean, nullable=True)
     datetime_value = Column(DateTime(timezone=True), nullable=True)
     refer_id = Column(UUID(as_uuid=True), nullable=True)

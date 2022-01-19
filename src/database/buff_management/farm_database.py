@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 
 from src.environment.database import Base
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Column, String, DateTime, Boolean,Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -14,11 +14,14 @@ class FarmDatabase(Base):
     __bind_key__ = 'pasaad'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
-    email = Column(String, nullable=True)
-    name = Column(String, nullable=False)
-    password = Column(String, nullable=True)
-    address = Column(String, nullable=True)
-    auth_token = Column(String, nullable=True)
+    email = Column(Text, nullable=False, unique=True)
+    name = Column(Text, nullable=False)
+    first_name = Column(Text, nullable=False)
+    last_name = Column(Text, nullable=False)
+
+    password = Column(Text, nullable=True)
+    address = Column(Text, nullable=True)
+    auth_token = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False)
