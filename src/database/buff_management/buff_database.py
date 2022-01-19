@@ -20,10 +20,10 @@ class BuffDatabase(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False)
     delete = Column(Boolean, default=False)
 
-    birth_date = Column(DateTime(timezone=True), nullable=True)
+    birth_date = Column(DateTime(timezone=True), nullable=False)
     father_id = Column(UUID(as_uuid=True), nullable=True)
     mother_id = Column(UUID(as_uuid=True), nullable=True)
-    farm_id = Column(UUID(as_uuid=True), ForeignKey("Farm_Database.id"), nullable=True)
+    farm_id = Column(UUID(as_uuid=True), ForeignKey("Farm_Database.id"), nullable=False)
     gender = Column(Text, nullable=False)
     source = Column(Text, nullable=True)
     image_url = Column(Text, nullable=True)
@@ -31,10 +31,26 @@ class BuffDatabase(Base):
     farm = relationship("FarmDatabase", back_populates="buffs")
     activity = relationship("BuffActivityLogDatabase", back_populates="buff")
 
-    def __init__(self, name, gender):
+    def __init__(self, name, gender,birth_date,farm_id):
         self.name = name
         self.gender = gender
+        self.birth_date = birth_date
+        self.farm_id = farm_id
         self.id = str(uuid.uuid4())
-        self.createdAt = current_datetime_with_timezone()
-        self.updated_at = current_datetime_with_timezone()
+        dt = current_datetime_with_timezone()
+        self.created_at = dt
+        self.updated_at = dt
         self.delete = False
+
+    @property
+    def serialize(self):
+        return {
+            "name": self.name,
+            "gender": self.gender,
+            "birth_date": self.birth_date,
+            "father_id":self.father_id,
+            "mother_id":self.mother_id,
+            "source":self.source,
+            "image_url":self.image_url,
+        }
+

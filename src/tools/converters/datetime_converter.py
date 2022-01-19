@@ -34,3 +34,6 @@ def convert_string_to_datetime(target, timezone: str = 'Asia/Bangkok'):
 
 def convert_short_string_to_datetime(target, timezone: str = 'Asia/Bangkok'):
     return datetime.strptime(target, '%d-%m-%Y').astimezone(pytz.timezone(timezone))
+
+def convert_short_string_form_to_datetime(target, timezone: str = 'Asia/Bangkok'):
+    return datetime.strptime(target, '%Y-%m-%d').astimezone(pytz.timezone(timezone))

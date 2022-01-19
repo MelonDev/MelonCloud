@@ -13,4 +13,4 @@ app = FastAPI(
 configure_cors(app)
 configure_timing(app)
 
-app.include_router(buff_api.router, tags=["Buff Management"])
+app.include_router(buff_api.router)

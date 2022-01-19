@@ -35,6 +35,9 @@ flask = "*"
 oauth = "*"
 python-jose = "*"
 app = "*"
+loginform = "*"
+farm = "*"
+gender = "*"
 
 [dev-packages]
 

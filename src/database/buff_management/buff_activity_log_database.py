@@ -41,3 +41,23 @@ class BuffActivityLogDatabase(Base):
 
         self.delete = False
         self.status = True
+
+    @property
+    def serialize(self):
+        return {
+
+        }
+
+    @property
+    def sub_serialize(self):
+        return {
+            "name": self.name,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "value": self.value,
+            "secondary_value": self.secondary_value,
+            "bool_value": self.bool_value,
+            "datetime_value": self.datetime_value,
+            "refer_id": self.refer_id,
+            "status": self.status,
+        }
