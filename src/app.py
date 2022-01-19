@@ -12,7 +12,12 @@ from fastapi.responses import JSONResponse
 
 from src.apps.v1.flask_app import app as flask_app
 from src.apps.v2.twitter_app import app as twitter_app
+from src.apps.v2.buff_app import app as buff_app
 from src.apps.v2.pwg_app import app as pwg_app_v2
+from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
+from src.database.buff_management.buff_database import BuffDatabase
+from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
+from src.database.buff_management.farm_database import FarmDatabase
 
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.environment.database import engine
@@ -45,6 +50,8 @@ def configure_sub_application(app):
     app.mount("/api/v1", WSGIMiddleware(flask_app))
     app.mount("/api/v2/twitter", twitter_app)
     app.mount("/api/v2/security/pwg_v2", pwg_app_v2)
+    app.mount("/api/v2/buff", buff_app)
+
 
 
 def init_app():
@@ -96,7 +103,12 @@ async def wakeup():
 
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    MelonDevTwitterDatabase.__table__.create(engine)
+    #MelonDevTwitterDatabase.__table__.create(engine)
+    #FarmDatabase.__table__.create(engine)
+    #BuffDatabase.__table__.create(engine)
+    #BuffActivityLogDatabase.__table__.create(engine)
+    #BuffNotifyDatabase.__table__.create(engine)
+
     return "Database Created!"
 
 
