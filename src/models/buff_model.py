@@ -30,10 +30,12 @@ class BuffLoginForm(BaseModel):
     email: str
     password: str
 
+
 @as_form
 class BuffChangePasswordForm(BaseModel):
     old_password: str
     new_password: str
+
 
 @as_form
 class BuffChangeFarmInfoForm(BaseModel):
@@ -42,6 +44,7 @@ class BuffChangeFarmInfoForm(BaseModel):
     last_name: str = None
     address: str = None
 
+
 @as_form
 class AddBuffForm(BaseModel):
     name: str
@@ -49,7 +52,17 @@ class AddBuffForm(BaseModel):
     birth_date: datetime.date = None
     father_id: UUID = None
     mother_id: UUID = None
-    source :str = None
+    source: str = None
+
+
+@as_form
+class EditBuffForm(BaseModel):
+    name: str = None
+    gender: str = None
+    birth_date: datetime.date = None
+    father_id: UUID = None
+    mother_id: UUID = None
+    source: str = None
 
 
 class BuffTokenModel:

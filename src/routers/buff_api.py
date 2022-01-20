@@ -11,7 +11,7 @@ from src.database.buff_management.farm_database import FarmDatabase
 from src.environment.database import get_db
 
 from src.models.buff_model import BuffSettings, RegisterFarmForm, BuffAuthenticatedResponseModel, BuffLoginForm, \
-    BuffChangePasswordForm, BuffChangeFarmInfoForm, AddBuffForm
+    BuffChangePasswordForm, BuffChangeFarmInfoForm, EditBuffForm, AddBuffForm
 from src.models.response_model import ResponseModel
 from src.tools.converters.datetime_converter import convert_short_string_to_datetime, \
     convert_short_string_form_to_datetime
@@ -42,9 +42,9 @@ async def main():
     return "Buff management is connected"
 
 
-@router.get('/info',include_in_schema=True,tags=['Farm'])
+@router.get('/info', include_in_schema=True, tags=['Farm'])
 async def info(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
-    Authorize.jwt_required()
+    await check_authorize(Authorize)
     id = Authorize.get_jwt_subject()
     farm = get_farm_from_id(db, id)
     result = farm.serialize
@@ -52,7 +52,7 @@ async def info(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
     return await verify_return(data=ResponseModel(data=result))
 
 
-@router.post("/register", include_in_schema=True,tags=['Authentication'])
+@router.post("/register", include_in_schema=True, tags=['Authentication'])
 async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), Authorize: AuthJWT = Depends(),
                    db: Session = Depends(get_db)):
     if isDuplicate(db, form.email):
@@ -75,7 +75,7 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), A
                                        farm_name=form.farm_name)))
 
 
-@router.post("/login", include_in_schema=True,tags=['Authentication'])
+@router.post("/login", include_in_schema=True, tags=['Authentication'])
 async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), Authorize: AuthJWT = Depends(),
                 db: Session = Depends(get_db)):
     farm = get_farm_from_email(db, email=form.email)
@@ -96,11 +96,11 @@ async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), Authorize:
                                        farm_name=farm.name)))
 
 
-@router.patch('/change-info',include_in_schema=True,tags=['Farm'])
+@router.patch('/change-info', include_in_schema=True, tags=['Farm'])
 async def change_info(form: BuffChangeFarmInfoForm = Depends(BuffChangeFarmInfoForm.as_form),
                       Authorize: AuthJWT = Depends(),
                       db: Session = Depends(get_db)):
-    Authorize.jwt_required()
+    await check_authorize(Authorize)
     id = Authorize.get_jwt_subject()
 
     farm = get_farm_from_id(db, id)
@@ -116,11 +116,11 @@ async def change_info(form: BuffChangeFarmInfoForm = Depends(BuffChangeFarmInfoF
     return await verify_return(data=ResponseModel(data={"msg": "Change successfully"}))
 
 
-@router.patch('/change-password',include_in_schema=True,tags=['Farm'])
+@router.patch('/change-password', include_in_schema=True, tags=['Farm'])
 async def change_password(form: BuffChangePasswordForm = Depends(BuffChangePasswordForm.as_form),
                           Authorize: AuthJWT = Depends(),
                           db: Session = Depends(get_db)):
-    Authorize.jwt_required()
+    await check_authorize(Authorize)
     id = Authorize.get_jwt_subject()
 
     farm = get_farm_from_id(db, id)
@@ -138,7 +138,7 @@ async def change_password(form: BuffChangePasswordForm = Depends(BuffChangePassw
     return await verify_return(data=ResponseModel(data={"msg": "Change password successfully"}))
 
 
-@router.post('/refresh',include_in_schema=True,tags=['Authentication'])
+@router.post('/refresh', include_in_schema=True, tags=['Authentication'])
 async def refresh(Authorize: AuthJWT = Depends()):
     try:
         Authorize.jwt_refresh_token_required()
@@ -157,7 +157,7 @@ async def refresh(Authorize: AuthJWT = Depends()):
         return await verify_return(data=None)
 
 
-@router.delete('/logout',include_in_schema=True,tags=['Authentication'])
+@router.delete('/logout', include_in_schema=True, tags=['Authentication'])
 async def logout(Authorize: AuthJWT = Depends()):
     try:
         Authorize.jwt_required()
@@ -171,10 +171,11 @@ async def logout(Authorize: AuthJWT = Depends()):
         bad_request_exception(message="Found an error: " + str(e))
         return await verify_return(data=None)
 
-@router.get('/buffs',include_in_schema=True,tags=['Buff'])
+
+@router.get('/buffs', include_in_schema=True, tags=['Buff'])
 async def get_buffs(Authorize: AuthJWT = Depends(),
-                          db: Session = Depends(get_db)):
-    Authorize.jwt_required()
+                    db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
     id = Authorize.get_jwt_subject()
 
     if id is None:
@@ -184,34 +185,74 @@ async def get_buffs(Authorize: AuthJWT = Depends(),
 
     return await verify_return(data=ResponseModel(data=data_results))
 
-@router.get('/buffs/{id}',include_in_schema=True,tags=['Buff'])
-async def get_buffs(id:str,Authorize: AuthJWT = Depends(),
-                          db: Session = Depends(get_db)):
-    Authorize.jwt_required()
 
-    if id is None:
-        bad_request_exception()
-    buff = db.query(BuffDatabase).get(id)
+@router.get('/buffs/{id}', include_in_schema=True, tags=['Buff'])
+async def detail_buff(id: str, Authorize: AuthJWT = Depends(),
+                      db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
 
-    result = buff.serialize
-    result['farm'] = buff.farm.serialize
-    result['activity'] = [i.sub_serialize for i in buff.activity]
+    buff = await get_buff(db, id, farm_id)
 
-    return await verify_return(data=ResponseModel(data=result))
+    return await verify_return(data=get_buff_response(buff))
 
 
-@router.post('/buffs/add',include_in_schema=True,tags=['Buff'])
+@router.patch('/buffs/{id}', include_in_schema=True, tags=['Buff'])
+async def edit_buff(id: str, form: EditBuffForm = Depends(EditBuffForm.as_form), Authorize: AuthJWT = Depends(),
+                    db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    buff = await get_buff(db, id, farm_id)
+
+    if form.name:
+        buff.name = form.name
+    if form.gender:
+        buff.gender = form.gender
+    if form.birth_date:
+        buff.birth_date = form.birth_date
+    if form.source:
+        buff.source = form.source
+    if form.father_id:
+        buff.father_id = form.father_id
+    if form.mother_id:
+        buff.mother_id = form.mother_id
+    db.add(buff)
+    db.commit()
+
+    return await verify_return(data=get_buff_response(buff))
+
+
+@router.patch('/buffs/{id}/restore', include_in_schema=True, tags=['Buff'])
+async def restore_buff(id: str, Authorize: AuthJWT = Depends(),
+                       db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    buff = await get_buff(db, id, farm_id)
+
+    if not buff.delete:
+        not_modified_exception()
+
+    buff.delete = False
+    db.add(buff)
+    db.commit()
+
+    return await verify_return(data=ResponseModel(data={"msg": "Restore successfully"}))
+
+
+@router.post('/buffs', include_in_schema=True, tags=['Buff'])
 async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
-                          Authorize: AuthJWT = Depends(),
-                          db: Session = Depends(get_db)):
-    Authorize.jwt_required()
+                   Authorize: AuthJWT = Depends(),
+                   db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
     id = Authorize.get_jwt_subject()
 
     if id is None:
         bad_request_exception()
 
     birth_date = convert_short_string_form_to_datetime(form.birth_date.strftime('%Y-%m-%d'))
-    buff = BuffDatabase(name=form.name,gender=form.gender,birth_date=birth_date,farm_id=id)
+    buff = BuffDatabase(name=form.name, gender=form.gender, birth_date=birth_date, farm_id=id)
     if form.father_id:
         buff.father_id = form.father_id
     if form.mother_id:
@@ -228,6 +269,51 @@ async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
     data_results = [i.serialize for i in buffs]
 
     return await verify_return(data=ResponseModel(data=data_results))
+
+
+@router.delete('/buffs/{id}', include_in_schema=True, tags=['Buff'])
+async def remove_buff(id: str, Authorize: AuthJWT = Depends(),
+                      db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    buff = await get_buff(db, id, farm_id)
+
+    if buff.delete:
+        not_modified_exception()
+
+    buff.delete = True
+    db.add(buff)
+    db.commit()
+
+    return await verify_return(data=ResponseModel(data={"msg": "Delete successfully"}))
+
+
+def get_buff_response(buff):
+    result = buff.serialize
+    result['farm'] = buff.farm.serialize
+    result['activity'] = [i.sub_serialize for i in buff.activity]
+
+    return ResponseModel(data=result)
+
+
+async def get_buff(db, id, farm_id):
+    buff = db.query(BuffDatabase).get(id)
+    if buff.farm_id != uuid.UUID(farm_id):
+        not_found_exception()
+    return buff
+
+
+async def check_authorize(Authorize: AuthJWT):
+    try:
+        Authorize.jwt_required()
+    except fastapi_jwt_auth.exceptions.MissingTokenError:
+        unauthorized_exception(message="UNAUTHORIZED")
+        return await verify_return(data=None)
+    except Exception as e:
+        print(e)
+        bad_request_exception(message="Found an error: " + str(e))
+        return await verify_return(data=None)
 
 
 def isDuplicate(db, email: str) -> bool:
@@ -332,6 +418,12 @@ def unauthorized_exception(message=None):
     raise HTTPException(
         status_code=code.HTTP_401_UNAUTHORIZED,
         detail=message if message is not None else "UNAUTHORIZED")
+
+
+def not_modified_exception(message=None):
+    raise HTTPException(
+        status_code=code.HTTP_304_NOT_MODIFIED,
+        detail=message if message is not None else "NOT_MODIFIED")
 
 
 def duplicate_on_database_exception(message=None):
