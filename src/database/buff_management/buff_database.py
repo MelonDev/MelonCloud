@@ -45,6 +45,7 @@ class BuffDatabase(Base):
     @property
     def serialize(self):
         return {
+            "id": self.id,
             "name": self.name,
             "gender": self.gender,
             "birth_date": self.birth_date,
