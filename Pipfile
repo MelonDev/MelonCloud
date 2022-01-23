@@ -35,6 +35,9 @@ flask = "*"
 oauth = "*"
 python-jose = "*"
 app = "*"
+google-cloud-storage = "*"
+firebase = "*"
+firebase-admin = "*"
 
 [dev-packages]
 

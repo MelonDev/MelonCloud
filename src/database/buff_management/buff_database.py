@@ -31,7 +31,7 @@ class BuffDatabase(Base):
     farm = relationship("FarmDatabase", back_populates="buffs")
     activity = relationship("BuffActivityLogDatabase", back_populates="buff")
 
-    def __init__(self, name, gender,birth_date,farm_id):
+    def __init__(self, name, gender, birth_date, farm_id):
         self.name = name
         self.gender = gender
         self.birth_date = birth_date
@@ -49,9 +49,8 @@ class BuffDatabase(Base):
             "name": self.name,
             "gender": self.gender,
             "birth_date": self.birth_date,
-            "father_id":self.father_id,
-            "mother_id":self.mother_id,
-            "source":self.source,
-            "image_url":self.image_url,
+            "father_id": self.father_id,
+            "mother_id": self.mother_id,
+            "source": self.source,
+            "image_url": self.image_url,
         }
-
