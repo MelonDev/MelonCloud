@@ -31,7 +31,7 @@ class BuffActivityLogDatabase(Base):
     notify = relationship("BuffNotifyDatabase", back_populates="activity")
 
     def __init__(self, buff_id, name, value):
-        self.id = str(uuid.uuid4())
+        self.id = uuid.uuid4()
         self.createdAt = current_datetime_with_timezone()
         self.updated_at = current_datetime_with_timezone()
 

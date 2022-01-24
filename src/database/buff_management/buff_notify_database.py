@@ -25,7 +25,7 @@ class BuffNotifyDatabase(Base):
     activity = relationship("BuffActivityLogDatabase", back_populates="notify")
 
     def __init__(self, activity_id, datetime, value, category):
-        self.id = str(uuid.uuid4())
+        self.id = uuid.uuid4()
         self.activity_id = activity_id
         self.datetime = datetime
         self.value = value

@@ -1,11 +1,18 @@
-#import pandas
+# import pandas
+import json
+
+import firebase_admin
+from firebase_admin import credentials, storage
+
 from fastapi import APIRouter, Depends, Response, UploadFile, File, Form
+from passlib.utils import unicode
 
 from sqlalchemy.orm import Session
 
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.engines.twitter_engines import test_client_mode
 from src.environment.database import get_db
+from src.environment.firebase_enviroment import create_credentials_file, firebase_storage_url
 from src.models.twitter_model import TwitterValidatorModel
 
 from fastapi.responses import StreamingResponse
@@ -126,3 +133,22 @@ async def database(db: Session = Depends(get_db)):
     print("DATABASE")
     return b
 
+
+@router.post("/firebase", include_in_schema=True)
+async def firebase(file: UploadFile = File(...)):
+    data = create_credentials_file()
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(data)
+        firebase_admin.initialize_app(cred, {'storageBucket': firebase_storage_url()})
+    bucket = storage.bucket()
+    blob = bucket.blob("test/"+file.filename)
+    print(file.content_type)
+
+    blob.upload_from_file(file.file,content_type=file.content_type)
+
+    # Opt : if you want to make public access from the URL
+    blob.make_public()
+
+    print("your file url", blob.public_url)
+
+    return {"your file url": blob.public_url}
