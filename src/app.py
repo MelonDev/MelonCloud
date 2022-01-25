@@ -14,6 +14,7 @@ from src.apps.v1.flask_app import app as flask_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.buff_app import app as buff_app
 from src.apps.v2.pwg_app import app as pwg_app_v2
+from src.apps.v2.meloncloud_book_app import app as meloncloud_book_app
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
@@ -53,6 +54,7 @@ def configure_sub_application(app):
     app.mount("/api/v2/twitter", twitter_app)
     app.mount("/api/v2/security/pwg_v2", pwg_app_v2)
     app.mount("/api/v2/buff", buff_app)
+    app.mount("/api/v2/meloncloud-book", meloncloud_book_app)
 
 
 def init_app():
