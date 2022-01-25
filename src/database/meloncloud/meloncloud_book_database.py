@@ -25,7 +25,7 @@ class MelonCloudBookDatabase(Base):
     pages = relationship("MelonCloudBookPageDatabase", back_populates="book")
 
     def __init__(self, name: str, category: str, language: str = None, artist: str = None, group: str = None,
-                 cover_id: str = None,
+                 cover_url: str = None,
                  tags: list = None):
         self.id = uuid.uuid4()
         self.created_at = current_datetime_with_timezone()
@@ -34,5 +34,5 @@ class MelonCloudBookDatabase(Base):
         self.language = language
         self.artist = artist
         self.group = group
-        self.cover_id = cover_id
+        self.cover_url = cover_url
         self.tags = tags if tags is not None else []
