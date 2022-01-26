@@ -10,7 +10,7 @@ from typing import Optional
 from src.environment.database import get_db
 from src.environment.share_environment import templates
 from src.models.meloncloud_book_model import RequestBookQueryModel
-from src.routers.meloncloud_book_api import request_is_authorized, authorizing, books
+from src.routers.meloncloud_book_api import request_is_authorized, authorizing, books, load_book
 from src.tools.generators.random_password_generator import RandomPasswordGenerator
 
 router = APIRouter()
@@ -65,7 +65,6 @@ async def book(request: Request,params: RequestBookQueryModel = Depends(), Autho
     form = await request.form()
     form = jsonable_encoder(form)
     access_token = request.cookies['access_token_cookie'] if "access_token_cookie" in request.cookies else None
-
     authorized = False
     response = templates.TemplateResponse("meloncloud_book/login.html",
                                           {"request": request})
@@ -81,10 +80,11 @@ async def book(request: Request,params: RequestBookQueryModel = Depends(), Autho
         authorized = await request_is_authorized(Authorize)
 
     if authorized:
+        print("P1")
+        res = await load_book(params=params,db=db,Authorize=Authorize)
+        print("P2")
 
-        res = await books(params=params,db=db,Authorize=Authorize)
         data = jsonable_encoder(res)
-        print(data)
         response = templates.TemplateResponse("meloncloud_book/home.html",
                                               {"request": request, "data": data['data']})
     else:

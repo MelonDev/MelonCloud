@@ -78,6 +78,7 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
         data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))
 
 
+
 @router.get("/upload", include_in_schema=False)
 async def upload(db: Session = Depends(get_db)):
     data = mock_data
@@ -214,3 +215,35 @@ async def authorizing(password: str, Authorize: AuthJWT):
 
     Authorize.set_access_cookies(access_token)
     return access_token
+
+
+async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
+                db: Session = Depends(get_db)):
+    database = db.query(MelonCloudBookDatabase)
+
+    total_page = None
+    current_count = None
+
+    if params.id is not None:
+        book = database.get(params.id)
+        if book is not None:
+            result = book.serialize
+            result['pages'] = [i.serialize for i in book.pages]
+        else:
+            result = None
+            not_found_exception()
+
+    else:
+        compute_database = apply_database_for_book_filters(params=params, db=database)
+        limit_database = apply_limit_to_database(params=params, database=compute_database)
+        results = limit_database.all()
+        result = [i.serialize for i in results]
+
+        total_count = compute_database.count()
+        current_count = limit_database.count()
+        total_page = math.ceil(total_count / current_count)
+
+    return await verify_return(
+        data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))
+
+
