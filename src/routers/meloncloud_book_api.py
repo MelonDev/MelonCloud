@@ -1,25 +1,55 @@
 import math
 import uuid
+from datetime import timedelta
 
-from fastapi import APIRouter, Depends, status as code, HTTPException
+import fastapi_jwt_auth.exceptions
+
+from fastapi import APIRouter, Depends, status as code, HTTPException, Request,Response
+from fastapi.security import OAuth2PasswordBearer
+from fastapi_jwt_auth import AuthJWT
+from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
 from sqlalchemy.sql.expression import func, select
 
+from environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
 from src.environment.database import get_db
 from src.environment.mock_meloncloud_book import data as mock_data
-from src.models.meloncloud_book_model import RequestBookQueryModel
+from src.models.meloncloud_book_model import RequestBookQueryModel, MelonCloudBookSettings, MelonCloudBookTokenModel, \
+    MelonCloudBookLoginForm
 from src.models.response_model import ResponseModel, ResponsePageModel
 from src.tools.verify_hub import verify_return
+from fastapi.encoders import jsonable_encoder
+
+
+
+@AuthJWT.load_config
+def get_config():
+    return MelonCloudBookSettings()
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
 
 router = APIRouter()
 
 
 @router.get("/", include_in_schema=True)
-async def books(params: RequestBookQueryModel = Depends(), db: Session = Depends(get_db)):
+async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
+                db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+
     database = db.query(MelonCloudBookDatabase)
 
     total_page = None
@@ -72,6 +102,30 @@ async def upload(db: Session = Depends(get_db)):
     return "UPLOAD??"
 
 
+@router.post("/login", include_in_schema=True, tags=['Authentication'])
+async def login(form: MelonCloudBookLoginForm = Depends(MelonCloudBookLoginForm.as_form),
+                Authorize: AuthJWT = Depends()):
+    access_token = await authorizing(form.password, Authorize)
+
+    return await verify_return(data=ResponseModel(
+        MelonCloudBookTokenModel(access_token=access_token)))
+
+
+@router.delete('/logout', include_in_schema=True, tags=['Authentication'])
+async def logout(Authorize: AuthJWT = Depends()):
+    try:
+        Authorize.jwt_required()
+        Authorize.unset_jwt_cookies()
+        return await verify_return(data={"msg": "Successfully logout"})
+    except fastapi_jwt_auth.exceptions.MissingTokenError:
+        bad_request_exception(message="Missing Token")
+        return await verify_return(data=None)
+    except Exception as e:
+        print(e)
+        bad_request_exception(message="Found an error: " + str(e))
+        return await verify_return(data=None)
+
+
 def apply_database_for_book_filters(params: RequestBookQueryModel, db):
     database = db if type(db) is DBQuery else db.query(MelonCloudBookDatabase)
 
@@ -93,7 +147,6 @@ def apply_database_for_book_filters(params: RequestBookQueryModel, db):
         if params.random and params.infinite:
             database = database.order_by(func.random())
 
-
     return database
 
 
@@ -110,7 +163,54 @@ def bad_request_exception(message=None):
         status_code=code.HTTP_400_BAD_REQUEST,
         detail=message if message is not None else "BAD REQUEST")
 
+
 def not_found_exception(message=None):
     raise HTTPException(
         status_code=code.HTTP_404_NOT_FOUND,
         detail=message if message is not None else "NOT FOUND")
+
+
+def unauthorized_exception(message=None):
+    raise HTTPException(
+        status_code=code.HTTP_401_UNAUTHORIZED,
+        detail=message if message is not None else "UNAUTHORIZED")
+
+
+async def check_authorize(Authorize: AuthJWT):
+    try:
+        Authorize.jwt_required()
+    except fastapi_jwt_auth.exceptions.MissingTokenError:
+        unauthorized_exception(message="UNAUTHORIZED")
+        return await verify_return(data=None)
+    except Exception as e:
+        print(e)
+        bad_request_exception(message="Found an error: " + str(e))
+        return await verify_return(data=None)
+
+
+async def request_is_authorized(Authorize: AuthJWT):
+    try:
+        Authorize.jwt_required()
+        return True
+    except fastapi_jwt_auth.exceptions.MissingTokenError:
+        print("MissingTokenError")
+        return False
+    except Exception as e:
+        print(e)
+        return False
+
+
+async def authorizing(password: str, Authorize: AuthJWT):
+    if MELONCLOUD_BOOK_VERIFY_KEY is None:
+        return None
+
+    if not verify_password(plain_password=password, hashed_password=MELONCLOUD_BOOK_VERIFY_KEY):
+        return None
+
+    expires = timedelta(minutes=(60 * 6))
+
+    access_token = Authorize.create_access_token(subject=str(SECRET_KEY), expires_time=expires)
+
+
+    Authorize.set_access_cookies(access_token)
+    return access_token

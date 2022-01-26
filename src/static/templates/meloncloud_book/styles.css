@@ -1,0 +1,88 @@
+
+
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+
+    .content_center {
+      top: 50%;
+      position: absolute;
+      left: 30%;
+      right: 30%;
+
+      max-width: 740px;
+      background: red;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+
+
+    }
+
+    .top-buffer { margin-top:70px; }
+    .top-title-buffer { margin-top:70px; }
+    .login_body {
+    height: 100%;
+    width: 200px;
+}
+.form-login {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+.form-button-submit {
+    border-radius: 10px;
+    width: 150px !important;
+    border: 0px solid #afafaf;
+    font-size:18px;
+font-family: 'Itim', cursive;
+
+    }
+
+    .book-button-signout {
+    border-radius: 10px;
+    width: 150px !important;
+    border: 2px solid #FFD1D1;
+    font-size:18px;
+    font-family: 'Itim', cursive;
+    color: #FF6666;
+      background: #FFEFEF;
+
+    }
+
+.form-input-password
+{
+font-family: 'Itim', cursive;
+    font-size:18px;
+
+        border-radius: 12px;
+
+}
+
+.form-input-floating-label{
+font-family: 'Itim', cursive;
+color: #5b5b5b;
+
+}
+
+.form-title-label{
+font-family: 'Itim', cursive;
+}
+
+.body_main_content{
+      background: #FFEFEF;
+    height: 100%;
+    width: 100%;
+
+}
+
+.card-page {
+    border-radius: 12px;
+    width: 18rem;
+    }

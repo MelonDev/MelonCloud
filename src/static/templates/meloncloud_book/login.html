@@ -1,0 +1,24 @@
+{% extends "meloncloud_book/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="text-center">
+        <form class="form-login center " action="/meloncloud-book" method="POST">
+
+            <img src="./static/templates/meloncloud_book/img/bookshelf.png" alt="" width="96" height="96"
+                 class="d-inline-block align-text-top mb-4">
+
+            <h1 class="h3 mb-3 form-title-label">ชั้นหนังสือ</h1>
+            <div class="form-floating mb-5 mt-5">
+                <input name="password" type="password" class="form-control form-input-password" id="input_password"
+                       placeholder="Password" required>
+                <label for="input_password" class="form-input-floating-label">รหัสผ่าน</label>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block form-button-submit" type="submit">
+                ตรวจสอบ
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
