@@ -36,3 +36,15 @@ class MelonCloudBookDatabase(Base):
         self.group = group
         self.cover_url = cover_url
         self.tags = tags if tags is not None else []
+
+    @property
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "category": self.category,
+            "language": self.language,
+            "artist": self.artist,
+            "group": self.group,
+            "cover": self.cover_url
+        }

@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from src.environment.database import Base
-from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey
+from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Integer
 
 
 class MelonCloudBookPageDatabase(Base):
@@ -15,12 +15,24 @@ class MelonCloudBookPageDatabase(Base):
     url = Column(Text, nullable=False)
     name = Column(Text, nullable=False)
     extension = Column(Text, nullable=False)
+    number = Column(Integer, nullable=False)
 
     book = relationship("MelonCloudBookDatabase", back_populates="pages")
 
-    def __init__(self, book_id: uuid, url: str, name: str, extension: str):
+    def __init__(self, book_id: uuid, url: str, name: str, extension: str, number:int):
         self.id = uuid.uuid4()
         self.book_id = book_id
         self.url = url
         self.name = name
         self.extension = extension
+        self.number = number
+
+    @property
+    def serialize(self):
+        return {
+            "id": self.id,
+            "url": self.url,
+            "name": self.name,
+            "extension": self.extension,
+            "number": self.number
+        }
