@@ -7,30 +7,30 @@
             Top Bar
         </div>
     </div>
-    <div class="row flex-grow-1">
-        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-0 border">
-            Bottom Left
+    <div class="row flex-grow-2">
+        <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-0  border">
+            <div class="w-25 p-3" style="background-color: #eee;">Width 25%</div>
+
+
         </div>
-        <div class="col-xl-9 col-lg-9 col-md-8 col-sm-12 border">
-            <div class="row justify-content-center">
+        <div class="col-xxl-10 col-xl-9 col-lg-9 col-md-8 col-sm-12 col-xs-12 ">
+            <div class="row pt-3 pb-3">
                 <div class="d-flex align-content-around flex-wrap justify-content-center">
                     {% for book in data %}
-                    <div class="p-2">
-                        <div class="card card-page">
-                            <img src="./static/templates/home/img/towfiqu-barbhuiya-FnA5pAzqhMM-unsplash.jpg"
-                                 class="card-img-top card-img-top-page" alt="...">
-                            <div class="card-body">
-                                <h4 class="card-title card-title-page">รหัสผ่านความปลอดภัยแบบสุ่ม</h4>
-                                <p class="card-text">Some quick example text to build on the card title and make up the
-                                    bulk
-                                    of the card's content</p>
-                                <button class="btn btn-primary card-button-submit-page" onclick="openPage('pwg_v2')">
-                                    เปิด
-                                </button>
-                                <button class="btn btn-outline-secondary card-outline-button-submit-page"
-                                        onclick="openPage('api/v2/security/pwg_v2/docs')">
-                                    คู่มือ
-                                </button>
+                    <div class="card mb-3 mr-3 card-page">
+                        <div class="row g-0">
+                            <div class="col-xs-2 col-sm-3 col-md-4 px-0">
+                                <img src="{{book['cover']}}" class="img-fluid card-img-top-page" alt="...">
+                            </div>
+                            <div class="col-xs-8 col-sm-9 col-md-8">
+                                <div class="card-body">
+                                    <div class="card-title card-title-page">{{book['name']}}</div>
+                                    <div class="card-text">Artist: {{book['artist']}}</div>
+                                                                        <div class="card-text"><small class="text-muted">Group: {{book['artist']}}</small></div>
+
+                                    <div class="card-text"><small class="text-muted">Language: {{book['language']}}</small></div>
+
+                                </div>
                             </div>
                         </div>
                     </div>

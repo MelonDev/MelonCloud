@@ -78,11 +78,48 @@ font-family: 'Itim', cursive;
 .body_main_content{
       background: #FFEFEF;
     height: 100%;
-    width: 100%;
+    width: 16px !important;
 
 }
 
 .card-page {
     border-radius: 12px;
-    width: 18rem;
+width: 50em !important;
+margin-right: 15px;
+max-width: 21em;
+min-width: 14px;
+        height: auto;
+
+
+    }
+
+    .card-img-top-page {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    width: 100px;
+        height: 10em;
+        object-fit: cover;
+    }
+
+    .card-title-page {
+    font-family: 'Itim', cursive;
+font-size: 20px;
+font-weight: 700;
+text-overflow: ellipsis;
+overflow:hidden;
+white-space:nowrap;
+
+    }
+
+    .card-button-submit-page {
+    border-radius: 6px;
+    width: 100px !important;
+    border: 0px solid #afafaf;
+    font-size:18px;
+    font-family: 'Itim', cursive;
+
+
+    }
+
+    .card_body {
     }
