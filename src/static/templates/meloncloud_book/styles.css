@@ -1,4 +1,7 @@
 
+    body{
+          background: #ebebeb;
+    }
 
     .center {
       margin: 0;
@@ -93,22 +96,17 @@ min-width: 14px;
 
     }
 
-    .card-img-top-page {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-    width: 100px;
-        height: 10em;
-        object-fit: cover;
-    }
 
-    .card-title-page {
+
+    .card-item-title {
     font-family: 'Itim', cursive;
 font-size: 20px;
 font-weight: 700;
 text-overflow: ellipsis;
-overflow:hidden;
-white-space:nowrap;
-
+overflow: hidden;
+display: -webkit-box;
+-webkit-line-clamp: 1;
+-webkit-box-orient: vertical;
     }
 
     .card-button-submit-page {
@@ -123,3 +121,127 @@ white-space:nowrap;
 
     .card_body {
     }
+
+
+
+    .my-card-inside-root-area {
+background-color: #FFFFFF;
+  border-radius: 12px;
+  z-index: 2;
+
+  -webkit-transition: all 500ms ease-out;
+   -moz-transition: all 500ms ease-out;
+   -o-transition: all 500ms ease-out;
+   -ms-transition: all 500ms ease-out;
+   transition: all 500ms ease-out;
+cursor: pointer;
+}
+
+    .my-card-inside-root-area:hover {
+
+}
+
+.my-card-inside-root-area:active {
+  background-color: #e3e3e3;
+
+}
+
+.neumorphic{
+transition: 0.25s;
+  border-radius: 12px;
+
+  filter: drop-shadow(0px 0px 5px rgb(183, 177, 181)) drop-shadow(-0px -0px 5px white);
+  -webkit-filter: drop-shadow(0px 0px 5px rgb(183, 177, 181)) drop-shadow(-0px -0px 5px white);
+  box-shadow: inset 0px 0px 7px #fff;
+
+  background-color: #FFFFFF;
+  -webkit-transition: all 500ms ease-out;
+   -moz-transition: all 500ms ease-out;
+   -o-transition: all 500ms ease-out;
+   -ms-transition: all 500ms ease-out;
+   transition: all 500ms ease-out;
+}
+.neumorphic:hover{
+
+  filter: drop-shadow(0px 0px 7px rgb(183, 177, 181));
+  -webkit-filter: drop-shadow(0px 0px 7px rgb(183, 177, 181));
+  box-shadow: inset 0px 0px 5px #fff;
+}
+.neumorphic:active{
+  background-color: #e3e3e3;
+
+  filter: drop-shadow(0px 0px 0px rgb(183, 177, 181));
+  -webkit-filter: drop-shadow(0px 0px 0px rgb(183, 177, 181));
+  box-shadow: inset 0px 0px 7px rgb(183, 177, 181);
+
+}
+
+.neumorphic-demo {
+          background-color: white;
+box-shadow: 12px 12px 24px 0 rgba(0, 0, 0, 0.2),
+    -12px -12px 24px 0 rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 1.3rem;
+  display: flex;
+
+-webkit-transition: all 500ms ease-out;
+   -moz-transition: all 500ms ease-out;
+   -o-transition: all 500ms ease-out;
+   -ms-transition: all 500ms ease-out;
+   transition: all 500ms ease-out;
+
+
+}
+
+.neumorphic-demo:active {
+  box-shadow: inset 6px 6px 10px 0 rgba(0, 0, 0, 0.2),
+    inset -6px -6px 10px 0 rgba(255, 255, 255, 0.5);
+
+}
+
+.my-card-inside-img-area {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 0px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 0px;
+
+        height: 150px;
+        padding: 0px;
+
+    }
+
+    .my-card-inside-content-area {
+        border-top-left-radius: 0px;
+        border-top-right-radius: 12px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 12px;
+
+        padding-top: 16px;
+        padding-left: 12px;
+        padding-right: 12px;
+
+        height: 150px;
+
+
+    }
+
+    .card-item-img {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+        height: 100%;
+        width: 100%;
+        display: block;
+        font-size:0;
+        object-fit: cover;
+    }
+
+    .no-select {
+user-select: none;
+    }
+
+.filter-area {
+    border-radius: 12px;
+      background-color: #FFFFFF;
+
+}

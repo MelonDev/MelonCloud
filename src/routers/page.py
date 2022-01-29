@@ -3,10 +3,12 @@ import json
 from fastapi import APIRouter, Request, Depends, Form, Response, Cookie
 from fastapi.encoders import jsonable_encoder
 from fastapi_jwt_auth import AuthJWT
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse, RedirectResponse
 from typing import Optional
 
+from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.environment.database import get_db
 from src.environment.share_environment import templates
 from src.models.meloncloud_book_model import RequestBookQueryModel
@@ -61,7 +63,8 @@ async def book_logout(request: Request, Authorize: AuthJWT = Depends()):
 
 @router.get("/meloncloud-book", include_in_schema=False)
 @router.post("/meloncloud-book", include_in_schema=False)
-async def book(request: Request,params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),db: Session = Depends(get_db)):
+async def book(request: Request, params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
+               db: Session = Depends(get_db)):
     form = await request.form()
     form = jsonable_encoder(form)
     access_token = request.cookies['access_token_cookie'] if "access_token_cookie" in request.cookies else None
@@ -80,13 +83,35 @@ async def book(request: Request,params: RequestBookQueryModel = Depends(), Autho
         authorized = await request_is_authorized(Authorize)
 
     if authorized:
-        print("P1")
-        res = await load_book(params=params,db=db,Authorize=Authorize)
-        print("P2")
-
+        res = await load_book(params=params, db=db, Authorize=Authorize)
         data = jsonable_encoder(res)
+
+        raw_languages = db.query(MelonCloudBookDatabase.language, func.count(MelonCloudBookDatabase.language))
+        if params.language is None and params.artist is not None:
+            raw_languages = raw_languages.filter(MelonCloudBookDatabase.artist.contains(params.artist))
+        raw_languages = raw_languages.group_by(MelonCloudBookDatabase.language).all()
+
+        list_language = []
+        data_languages_sorted = sorted(raw_languages, key=lambda kv: kv[1], reverse=True)
+        for language in data_languages_sorted:
+            list_language.append({"name": language[0], "count": language[1]})
+
+        raw_artists = db.query(MelonCloudBookDatabase.artist, func.count(MelonCloudBookDatabase.artist))
+        if params.artist is None and params.language is not None:
+            raw_artists = raw_artists.filter(MelonCloudBookDatabase.language.contains(params.language))
+        raw_artists = raw_artists.group_by(MelonCloudBookDatabase.artist).all()
+        list_artist = []
+        data_artists_sorted = sorted(raw_artists, key=lambda kv: kv[1], reverse=True)
+
+        for artist in data_artists_sorted:
+            list_artist.append({"name": artist[0], "count": artist[1]})
+
         response = templates.TemplateResponse("meloncloud_book/home.html",
-                                              {"request": request, "data": data['data']})
+                                              {"request": request, "data": data['data'],
+                                               "total_page": data['total_page'], "rows": data['rows'],
+                                               "page": data['page'], "languages": list_language,
+                                               "language": params.language, "artists": list_artist,
+                                               "artist": params.artist, "infinite": params.infinite})
     else:
         access_token = None
 

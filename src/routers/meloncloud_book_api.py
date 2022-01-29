@@ -72,8 +72,9 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
 
         total_count = compute_database.count()
         current_count = limit_database.count()
-        total_page = math.ceil(total_count / current_count)
-
+        total_page = 1
+        if current_count > 0:
+            total_page = math.ceil(total_count / current_count)
     return await verify_return(
         data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))
 
@@ -153,7 +154,7 @@ def apply_database_for_book_filters(params: RequestBookQueryModel, db):
 
 def apply_limit_to_database(params: RequestBookQueryModel, database):
     if not bool(params.infinite):
-        page = params.page if params.page is not None else 0
+        page = params.page - 1 if params.page is not None else 0
         limit = params.limit if params.limit is not None else 20
         database = database.limit(limit).offset(int(page * limit))
     return database
@@ -241,7 +242,12 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
 
         total_count = compute_database.count()
         current_count = limit_database.count()
-        total_page = math.ceil(total_count / current_count)
+
+        print(params.page)
+
+        total_page = 1
+        if current_count > 0:
+            total_page = math.ceil(total_count / current_count)
 
     return await verify_return(
         data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))

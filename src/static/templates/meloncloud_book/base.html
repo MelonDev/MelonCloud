@@ -17,13 +17,13 @@
 
 </head>
 
-<body class="bg-light text-dark">
+<body class=" text-dark">
 <nav class="navbar navbar-light bg-white border">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="">
             <img src="./static/templates/meloncloud_book/img/bootstrap-logo.svg" alt="" width="30" height="24"
-                 class="d-inline-block align-text-top">
-            <span class="nav-title-style">MelonCloud</span>
+                 class="d-inline-block align-text-top no-select">
+            <span class="nav-title-style no-select">MelonCloud</span>
 
         </a>
         {% if data != null %}
@@ -32,6 +32,7 @@
 
     </div>
 </nav>
+
 <div class="container">
     {% block content %}
     {% endblock %}

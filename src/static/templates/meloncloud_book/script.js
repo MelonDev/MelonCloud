@@ -25,8 +25,40 @@ function logout() {
 }
 
 function callAPI(){
-	var step  = document.getElementById("password").value;
-	console.log(step);
+	var page  = document.getElementById("select-page").value;
+	var limit  = document.getElementById("select-limit").value;
+	var artist  = document.getElementById("select-artist").value;
+	var language  = document.getElementById("select-language").value;
+
+	var path = "?";
+
+	console.log(page);
+	console.log(limit);
+	console.log(artist);
+	console.log(language);
+
+
+		if(limit == "-1"){
+			path = path+"&infinite="+true;
+		}else {
+		        if(page == ""){
+				path = path+"page=1&limit="+limit;
+		        }else {
+		        				path =  path+"page="+page+"&limit="+limit;
+
+		        }
+
+		}
+		if(artist != "null"){
+			path = path+"&artist="+artist;
+		}
+	if(language != "null"){
+			path = path+"&language="+language;
+		}
+
+
 
 	//window.location.href = "/pwg_v2?step=" + step + "&length=" + length + action;
+	window.location.href = "/meloncloud-book"+path;
 }
+

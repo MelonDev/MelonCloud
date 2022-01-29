@@ -2,39 +2,115 @@
 {% block content %}
 
 <div class="container-fluid min-vh-100 d-flex flex-column">
-    <div class="row">
-        <div class="col">
-            Top Bar
+    <div class="row flex-grow-0 mt-3 ms-3 me-3 filter-area" style="padding: 0px;">
+        <div class="col-12" style="padding: 0px;">
+            <div class="row " style="padding-right: 32px; margin: 0px;">
+                <div class="col-12 col-xs-6 col-sm-4 col-md-5 col-lg-3"
+                     style="padding:0px; margin-left:16px; margin-top:16px;">
+                    <div class="input-group">
+                        <span class="input-group-text">Page</span>
+                        <select class="form-select" {% if infinite == true %}disabled{% endif %} id="select-page">
+                            {% for n in range(total_page) %}
+                            <option {% if page== n+1 %}selected{% endif %}>{{n+1}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 col-xs-6 col-sm-7 col-md-6 col-lg-3 col-xl-3 "
+                     style="padding:0px; margin-left:16px; margin-top:16px;">
+                    <div class="input-group">
+                        <span class="input-group-text">Limit</span>
+                        <select class="form-select" id="select-limit">
+                            {% for n in [20,40,60,80,100] %}
+                            <option {% if rows== n %}selected{% endif %} value="{{n}}">{{n}}</option>
+                            {% endfor %}
+                            <option {% if infinite == true %}selected{% endif %} value="-1">Infinite</option>
+
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 col-xs-12 col-sm-12 col-md-6 col-lg-5 col-xl-4 "
+                     style="padding:0px; margin-left:16px; margin-top:16px;">
+                    <div class="input-group">
+                        <span class="input-group-text">Artist</span>
+                        <select class="form-select" id="select-artist">
+                            <option {% if artist== null %}selected{% endif %} value="null">Choose..</option>
+
+                            {% for n in artists %}
+                            <option {% if artist== n[
+                            'name'] %}selected{% endif %} value="{{n['name']}}">{{n['name']}} ({{n['count']}})</option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 col-xs-12 col-sm-12 col-md-5 col-lg-4 col-xl-4 "
+                     style="padding:0px; margin-left:16px; margin-top:16px;">
+                    <div class="input-group">
+                        <span class="input-group-text">Language</span>
+                        <select class="form-select" id="select-language">
+                            <option {% if language== null %}selected{% endif %} value="null">Choose..</option>
+
+                            {% for n in languages %}
+                            <option {% if language== n[
+                            "name"] %}selected{% endif %} value="{{n['name']}}">{{n['name']}} ({{n['count']}})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
+        <div class="col-12 " style="padding: 0px;">
+            <div class="row" style="padding-left: 16px; padding-bottom: 16px; padding-right: 16px; margin: 0px;">
+
+                <div style="padding:0px; margin-left:0px; margin-top:16px;"></div>
+                <button class="col-12 btn btn-primary" onclick="callAPI();">Confirm</button>
+            </div>
+        </div>
+
     </div>
-    <div class="row flex-grow-2">
+
+    <div class="row flex-grow-0 mt-3 mb-5">
+        <!--
         <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-0  border">
             <div class="w-25 p-3" style="background-color: #eee;">Width 25%</div>
 
 
         </div>
         <div class="col-xxl-10 col-xl-9 col-lg-9 col-md-8 col-sm-12 col-xs-12 ">
-            <div class="row pt-3 pb-3">
-                <div class="d-flex align-content-around flex-wrap justify-content-center">
-                    {% for book in data %}
-                    <div class="card mb-3 mr-3 card-page">
-                        <div class="row g-0">
-                            <div class="col-xs-2 col-sm-3 col-md-4 px-0">
-                                <img src="{{book['cover']}}" class="img-fluid card-img-top-page" alt="...">
-                            </div>
-                            <div class="col-xs-8 col-sm-9 col-md-8">
-                                <div class="card-body">
-                                    <div class="card-title card-title-page">{{book['name']}}</div>
-                                    <div class="card-text">Artist: {{book['artist']}}</div>
-                                                                        <div class="card-text"><small class="text-muted">Group: {{book['artist']}}</small></div>
+        -->
+        <div class="col-12 ">
 
-                                    <div class="card-text"><small class="text-muted">Language: {{book['language']}}</small></div>
+            <div class="container">
+                <div class="row">
+                    {% for book in data %}
+
+                    <div class="col-12 col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3 d-flex justify-content-center">
+                        <div class="container-fluid p-0 mb-2 m-2">
+
+                            <div class="row my-card-inside-root-area">
+                                <div class="my-card-inside-img-area col-4 col-sm-5 bg-primary">
+                                    <img src="{{book['cover']}}" class="no-select card-item-img" alt="...">
+                                </div>
+                                <div class="my-card-inside-content-area col-8 col-sm-7" style="">
+                                    <div class="card-title card-item-title no-select">{{book['name']}}</div>
+                                    <div class="card-text no-select">{{book['artist']}} {% if group != null
+                                        %}({{book['group']}}){% endif %}
+                                    </div>
+
+                                    <div class="card-text no-select"><small class="text-muted">Language:
+                                        {{book['language']}}</small></div>
 
                                 </div>
+
                             </div>
                         </div>
                     </div>
                     {% endfor %}
+
+
                 </div>
             </div>
         </div>
