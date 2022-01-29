@@ -245,9 +245,13 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
         if params.infinite is None:
             if current_count > 0 and (current_count <= (params.limit if params.limit is not None else 20)):
                 total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
+            elif current_count == 0 and total_count > (params.limit if params.limit is not None else 20):
+                total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
         else:
             if not params.infinite:
                 if current_count > 0 and (current_count <= (params.limit if params.limit is not None else 20)):
+                    total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
+                elif current_count == 0 and total_count > (params.limit if params.limit is not None else 20):
                     total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
 
         if params.page > total_page:
@@ -257,6 +261,7 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
             results = limit_database.all()
             result = [i.serialize for i in results]
 
-
     return await verify_return(
-        data=ResponsePageModel(data=result, rows=current_count, page=total_page if params.page > total_page else params.page,limit=params.limit, total_page=total_page))
+        data=ResponsePageModel(data=result, rows=current_count,
+                               page=total_page if params.page > total_page else params.page, limit=params.limit,
+                               total_page=total_page))
