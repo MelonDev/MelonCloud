@@ -130,10 +130,12 @@ async def book(request: Request, params: RequestBookQueryModel = Depends(), Auth
                 else:
                     e = t
                     s = p - (d + 2)
+        print(data['limit'])
 
         response = templates.TemplateResponse("meloncloud_book/home.html",
                                               {"request": request, "data": data['data'],
-                                               "total_page": data['total_page'], "rows": data['rows'],
+                                               "total_page": data['total_page'], "limit": data['limit'],
+                                               "rows": data['rows'],
                                                "page": data['page'], "languages": list_language,
                                                "language": params.language, "artists": list_artist,
                                                "artist": params.artist, "infinite": params.infinite,

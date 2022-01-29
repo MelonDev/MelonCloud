@@ -23,7 +23,7 @@
                         <span class="input-group-text itim input-label">จำนวน</span>
                         <select class="form-select itim input-select" id="select-limit">
                             {% for n in [20,40,60,80,100] %}
-                            <option {% if rows== n %}selected{% endif %} value="{{n}}">{{n}}</option>
+                            <option {% if limit == n %}selected{% endif %} value="{{n}}">{{n}}</option>
                             {% endfor %}
                             <option {% if infinite== true %}selected{% endif %} value="-1">ทั้งหมด</option>
 
