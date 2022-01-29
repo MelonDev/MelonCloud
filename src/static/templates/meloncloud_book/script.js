@@ -24,19 +24,30 @@ function logout() {
 	window.location.href = path;
 }
 
-function callAPI(){
+function callAPI(total_page,id){
 	var page  = document.getElementById("select-page").value;
 	var limit  = document.getElementById("select-limit").value;
 	var artist  = document.getElementById("select-artist").value;
 	var language  = document.getElementById("select-language").value;
 
+	if(total_page != null && id != null){
+	if(id == -2){
+	    page = 1;
+	}
+	else if(id == -1){
+	page = page - 1;
+	}
+	else if(id == -3){
+	    page = page + 1;
+	}
+	else if(id == -4){
+	page = total_page.toString();
+	}
+	else {
+	page = id.toString();
+	}
+}
 	var path = "?";
-
-	console.log(page);
-	console.log(limit);
-	console.log(artist);
-	console.log(language);
-
 
 		if(limit == "-1"){
 			path = path+"&infinite="+true;

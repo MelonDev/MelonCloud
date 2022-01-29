@@ -1,15 +1,16 @@
 {% extends "meloncloud_book/base.html" %}
 {% block content %}
-<div class="container-fluid h-100" style="padding: 0px; margin: 0px;">
+<div class="container-fluid h-100" style="padding: 0px; margin:0px;">
     <div class="row h-100" style="padding: 0px; margin: 0px;">
         <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
-            <div class="row filter-area "
+            <div class="row filter-area"
                  style="padding: 16px; margin-left: 8px; margin-right: 8px; margin-top: 16px; margin-bottom: 16px;; ">
                 <div class="col-12"
                      style="padding:0px; margin-left:0px; margin-top:16px;">
                     <div class="input-group itim">
                         <span class="input-group-text itim input-label">หน้า</span>
-                        <select class="form-select itim input-select" {% if infinite== true %}disabled{% endif %}>
+                        <select class="form-select itim input-select " id="select-page" {% if infinite== true
+                                %}disabled{% endif %}>
                             {% for n in range(total_page) %}
                             <option class="itim" {% if page== n+1 %}selected{% endif %}>{{n+1}}</option>
                             {% endfor %}
@@ -20,7 +21,7 @@
                      style="padding:0px; margin-left:0px; margin-top:16px;">
                     <div class="input-group">
                         <span class="input-group-text itim input-label">จำนวน</span>
-                        <select class="form-select itim input-select">
+                        <select class="form-select itim input-select" id="select-limit">
                             {% for n in [20,40,60,80,100] %}
                             <option {% if rows== n %}selected{% endif %} value="{{n}}">{{n}}</option>
                             {% endfor %}
@@ -33,7 +34,7 @@
                      style="padding:0px; margin-left:0px; margin-top:16px;">
                     <div class="input-group">
                         <span class="input-group-text itim input-label">นักวาด</span>
-                        <select class="form-select itim input-select">
+                        <select class="form-select itim input-select" id="select-artist">
                             <option {% if artist== null %}selected{% endif %} value="null">ทั้งหมด..</option>
 
                             {% for n in artists %}
@@ -48,7 +49,7 @@
                      style="padding:0px; margin-left:0px; margin-top:16px;">
                     <div class="input-group">
                         <span class="input-group-text itim input-label">ภาษา</span>
-                        <select class="form-select itim input-select">
+                        <select class="form-select itim input-select" id="select-language">
                             <option {% if language== null %}selected{% endif %} value="null">ทั้งหมด..</option>
 
                             {% for n in languages %}
@@ -68,29 +69,33 @@
                 </div>
             </div>
         </div>
-        <!--Contains the main content
-                of the webpage-->
-        <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9"
-             style="text-align: justify; padding: 0px; margin: 0px;">
+
+        <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9 "
+             style="text-align: justify; padding: 0px; margin-right: 0px; margin-top: 0px; margin-bottom: 70px; margin-left: 0px;">
             <div class="container-fluid w-100" style="margin-top: 20px;">
                 <div class="row justify-content-center" style="padding: 0px; margin: 0px;">
                     <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
                         <nav class="" aria-label="...">
                             <ul class="pagination d-flex justify-content-center">
-                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                    <a class="page-link itim" href="#" tabindex="-2" aria-disabled="true">หน้าแรก</a>
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-2);">
+                                    <a class="page-link itim " tabindex="-2" aria-disabled="true">หน้าแรก</a>
                                 </li>
-                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                    <a class="page-link itim" href="#" tabindex="-1" aria-disabled="true">ก่อนหน้า</a>
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-1);">
+                                    <a class="page-link itim" tabindex="-1" aria-disabled="true">ก่อนหน้า</a>
                                 </li>
                                 {% for n in range(start_page_number,end_page_number+1) %}
-                                <li class="page-item {% if page == n %}active{% endif %}"><a class="page-link itim">{{n}}</a></li>
+                                <li class="page-item {% if page == n %}active{% endif %}"
+                                    onclick="callAPI({{total_page}},{{n}});"><a class="page-link itim">{{n}}</a></li>
                                 {% endfor %}
-                                <li class="page-item {% if page == total_page %}disabled{% endif %}">
-                                    <a class="page-link itim " href="#">ถัดไป</a>
+                                <li class="page-item {% if page == total_page %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-3);">
+                                    <a class="page-link itim ">ถัดไป</a>
                                 </li>
-                                <li class="page-item {% if page == total_page %}disabled{% endif %}">
-                                    <a class="page-link itim " href="#">สุดท้าย</a>
+                                <li class="page-item {% if page == total_page %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-4);">
+                                    <a class="page-link itim ">สุดท้าย</a>
                                 </li>
                             </ul>
                         </nav>
@@ -125,12 +130,41 @@
 
 
                 </div>
+                <div class="row justify-content-center" style="padding: 0px; margin-right: 0px; margin-top: 20px; margin-bottom: 0px; margin-left: 0px;">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                        <nav class="" aria-label="...">
+                            <ul class="pagination d-flex justify-content-center">
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-2);">
+                                    <a class="page-link itim" tabindex="-2" aria-disabled="true">หน้าแรก</a>
+                                </li>
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-1);">
+                                    <a class="page-link itim" tabindex="-1" aria-disabled="true">ก่อนหน้า</a>
+                                </li>
+                                {% for n in range(start_page_number,end_page_number+1) %}
+                                <li class="page-item {% if page == n %}active{% endif %}"
+                                    onclick="callAPI({{total_page}},{{n}});"><a class="page-link itim">{{n}}</a></li>
+                                {% endfor %}
+                                <li class="page-item {% if page == total_page %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-3);">
+                                    <a class="page-link itim ">ถัดไป</a>
+                                </li>
+                                <li class="page-item {% if page == total_page %}disabled{% endif %}"
+                                    onclick="callAPI({{total_page}},-4);">
+                                    <a class="page-link itim ">สุดท้าย</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-
+<!--
 <div class="container min-vh-100 d-flex flex-column">
     <div class="row flex-grow-0 mt-3 ms-3 me-3 filter-area" style="padding: 0px;">
         <div class="col-12" style="padding: 0px;">
@@ -203,14 +237,7 @@
     </div>
 
     <div class="row flex-grow-0 mt-3 mb-5">
-        <!--
-        <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-0  border">
-            <div class="w-25 p-3" style="background-color: #eee;">Width 25%</div>
 
-
-        </div>
-        <div class="col-xxl-10 col-xl-9 col-lg-9 col-md-8 col-sm-12 col-xs-12 ">
-        -->
         <div class="col-12 ">
 
             <div class="container">
@@ -246,5 +273,6 @@
         </div>
     </div>
 </div>
+-->
 
 {% endblock %}

@@ -240,13 +240,8 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
         total_count = compute_database.count()
         current_count = limit_database.count()
 
-        print(params.page)
-
         total_page = 1
-        print(total_count)
 
-        print(current_count)
-        print(params.limit)
         if params.infinite is None:
             if current_count > 0 and (current_count <= (params.limit if params.limit is not None else 20)):
                 total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))

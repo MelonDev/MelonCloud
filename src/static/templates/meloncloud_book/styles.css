@@ -283,6 +283,10 @@ font-family: 'Itim', cursive;
 
 }
 
+.p-disabled {
+      background-color: red;
+}
+
 .pagination > li > a {
    border: 1px solid #ddd;
    border-radius: 20px!important;
