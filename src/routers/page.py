@@ -106,12 +106,42 @@ async def book(request: Request, params: RequestBookQueryModel = Depends(), Auth
         for artist in data_artists_sorted:
             list_artist.append({"name": artist[0], "count": artist[1]})
 
+        s = 1
+        e = 1
+
+        t = data['total_page']
+        p = data['page']
+
+        if t <= 5:
+            s = 1
+            e = t
+        else:
+            if p == t:
+                e = t
+                s = p - 4
+            elif p <= 3:
+                s = 1
+                e = 5
+            else:
+                d = t - p
+                if d >= 3:
+                    e = p + 2
+                    s = p - 2
+                else:
+                    e = t
+                    s = p - (d + 2)
+        print("HELLO")
+        print(data['total_page'])
+        print("Hi")
+
         response = templates.TemplateResponse("meloncloud_book/home.html",
                                               {"request": request, "data": data['data'],
                                                "total_page": data['total_page'], "rows": data['rows'],
                                                "page": data['page'], "languages": list_language,
                                                "language": params.language, "artists": list_artist,
-                                               "artist": params.artist, "infinite": params.infinite})
+                                               "artist": params.artist, "infinite": params.infinite,
+                                               "start_page_number": s,
+                                               "end_page_number": e})
     else:
         access_token = None
 

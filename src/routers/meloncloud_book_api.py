@@ -4,7 +4,7 @@ from datetime import timedelta
 
 import fastapi_jwt_auth.exceptions
 
-from fastapi import APIRouter, Depends, status as code, HTTPException, Request,Response
+from fastapi import APIRouter, Depends, status as code, HTTPException, Request, Response
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
@@ -23,7 +23,6 @@ from src.models.meloncloud_book_model import RequestBookQueryModel, MelonCloudBo
 from src.models.response_model import ResponseModel, ResponsePageModel
 from src.tools.verify_hub import verify_return
 from fastapi.encoders import jsonable_encoder
-
 
 
 @AuthJWT.load_config
@@ -77,7 +76,6 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
             total_page = math.ceil(total_count / current_count)
     return await verify_return(
         data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))
-
 
 
 @router.get("/upload", include_in_schema=False)
@@ -213,13 +211,12 @@ async def authorizing(password: str, Authorize: AuthJWT):
 
     access_token = Authorize.create_access_token(subject=str(SECRET_KEY), expires_time=expires)
 
-
     Authorize.set_access_cookies(access_token)
     return access_token
 
 
 async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
-                db: Session = Depends(get_db)):
+                    db: Session = Depends(get_db)):
     database = db.query(MelonCloudBookDatabase)
 
     total_page = None
@@ -246,10 +243,17 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
         print(params.page)
 
         total_page = 1
-        if current_count > 0:
-            total_page = math.ceil(total_count / current_count)
+        print(total_count)
+
+        print(current_count)
+        print(params.limit)
+        if params.infinite is None:
+            if current_count > 0 and (current_count <= (params.limit if params.limit is not None else 20)):
+                total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
+        else:
+            if not params.infinite:
+                if current_count > 0 and (current_count <= (params.limit if params.limit is not None else 20)):
+                    total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
 
     return await verify_return(
         data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))
-
-

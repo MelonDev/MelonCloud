@@ -1,6 +1,7 @@
 
     body{
           background: #ebebeb;
+
     }
 
     .center {
@@ -126,7 +127,7 @@ display: -webkit-box;
 
     .my-card-inside-root-area {
 background-color: #FFFFFF;
-  border-radius: 12px;
+  border-radius: 14px;
   z-index: 2;
 
   -webkit-transition: all 500ms ease-out;
@@ -201,9 +202,9 @@ box-shadow: 12px 12px 24px 0 rgba(0, 0, 0, 0.2),
 }
 
 .my-card-inside-img-area {
-        border-top-left-radius: 12px;
+        border-top-left-radius: 14px;
         border-top-right-radius: 0px;
-        border-bottom-left-radius: 12px;
+        border-bottom-left-radius: 14px;
         border-bottom-right-radius: 0px;
 
         height: 150px;
@@ -213,9 +214,9 @@ box-shadow: 12px 12px 24px 0 rgba(0, 0, 0, 0.2),
 
     .my-card-inside-content-area {
         border-top-left-radius: 0px;
-        border-top-right-radius: 12px;
+        border-top-right-radius: 14px;
         border-bottom-left-radius: 0px;
-        border-bottom-right-radius: 12px;
+        border-bottom-right-radius: 14px;
 
         padding-top: 16px;
         padding-left: 12px;
@@ -227,8 +228,8 @@ box-shadow: 12px 12px 24px 0 rgba(0, 0, 0, 0.2),
     }
 
     .card-item-img {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
         height: 100%;
         width: 100%;
         display: block;
@@ -241,7 +242,63 @@ user-select: none;
     }
 
 .filter-area {
-    border-radius: 12px;
+    border-radius: 24px;
       background-color: #FFFFFF;
 
 }
+
+.itim {
+font-family: 'Itim', cursive;
+
+}
+
+.button-filter {
+    border-radius: 14px;
+    border: 0px solid #afafaf;
+    font-size:18px;
+
+    }
+
+.input-label {
+    border-radius: 10px;
+
+}
+
+.input-select {
+    border-radius: 10px;
+
+}
+
+.pagination-page {
+    border-radius: 10px;
+
+}
+
+.pagination {
+}
+
+.pagination > li {
+   margin-left: 2px;
+    margin-right: 2px;
+
+}
+
+.pagination > li > a {
+   border: 1px solid #ddd;
+   border-radius: 20px!important;
+}
+
+.pagination-start-page {
+border-top-left-radius: 14px;
+        border-top-right-radius: 0px;
+        border-bottom-left-radius: 14px;
+        border-bottom-right-radius: 0px;
+}
+
+.pagination-end-page {
+border-top-left-radius: 0px;
+        border-top-right-radius: 14px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 14px;
+}
+
