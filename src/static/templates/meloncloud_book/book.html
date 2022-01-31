@@ -1,0 +1,45 @@
+{% extends "meloncloud_book/base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-3 col-md-2 px-0 position-fixed" id="sticky-sidebar">
+            <nav id="navbar-example3"
+                 class="navbar navbar-light flex-column align-items-stretch p-0 flex-nowrap vh-100 overflow-auto">
+                <a class="nav-link itim nav-link-back no-select m-3 border" href="/meloncloud-book">กลับ</a>
+
+                <div class="bg-light p-3 border" style="border-radius: 20px;">
+                    <a class="navbar-brand itim no-select"
+                       style="margin-top:20px; font-size: 32px; padding-left: 24px;">หน้า</a>
+                    <nav class="nav nav-pills flex-column " style="padding-bottom: 100px;">
+                        {% for page in data['pages'] %}
+
+                        <a class="nav-link itim nav-link-menu no-select" href="#{{page['number']}}">{{page['name']}}</a>
+                        {% endfor %}
+
+                    </nav>
+                </div>
+
+            </nav>
+        </div>
+
+        <div class="col-9 col-md-10 px-0 offset-3 offset-md-2 position-fixed" id="main">
+            <div class=" flex-column align-self-center p-3 flex-nowrap vh-100 overflow-auto">
+                <div data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-offset="0" tabindex="0" class=""
+                     style="margin-bottom: 100px;">
+                    {% for page in data['pages'] %}
+                    <div id="{{page['number']}}" style="margin-top: 20px; padding: 16px; border-radius: 16px;"
+                         class="bg-white no-select">
+                        <img src="{{page['url']}}" class="d-block w-100 no-select" style="object-fit: contain;"
+                             alt="...">
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

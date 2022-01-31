@@ -24,6 +24,15 @@ function logout() {
 	window.location.href = path;
 }
 
+function openBook(id) {
+console.log(id);
+	//window.location.href = "/meloncloud-book";
+}
+
+function reset() {
+	window.location.href = "/meloncloud-book";
+}
+
 function callAPI(total_page,id){
 	var page  = document.getElementById("select-page").value;
 	var limit  = document.getElementById("select-limit").value;

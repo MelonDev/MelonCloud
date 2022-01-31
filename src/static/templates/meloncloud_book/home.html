@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container-fluid h-100" style="padding: 0px; margin:0px;">
     <div class="row h-100" style="padding: 0px; margin: 0px;">
-        <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+        <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3" >
             <div class="row filter-area"
                  style="padding: 16px; margin-left: 8px; margin-right: 8px; margin-top: 16px; margin-bottom: 16px;; ">
                 <div class="col-12"
@@ -61,10 +61,18 @@
                 </div>
                 <div class="col-12 " style="padding: 0px;">
                     <div class="row"
-                         style="padding-left: 0px; padding-bottom: 16px; padding-right: 0px; padding-top: 16px; margin: 0px;">
+                         style="padding-left: 0px; padding-bottom: 0px; padding-right: 0px; padding-top: 16px; margin: 0px;">
 
                         <div style="padding:0px; margin-left:0px; margin-top:16px;"></div>
                         <button class="col-12 btn btn-primary button-filter itim" onclick="callAPI();">ปรับแต่ง</button>
+                    </div>
+                </div>
+                <div class="col-12 " style="padding: 0px;">
+                    <div class="row"
+                         style="padding-left: 0px; padding-bottom: 8px; padding-right: 0px; padding-top: 0px; margin: 0px;">
+
+                        <div style="padding:0px; margin-left:0px; margin-top:16px;"></div>
+                        <button class="col-12 btn btn-outline-secondary button-reset itim" onclick="reset();">ค่าเริ่มต้น</button>
                     </div>
                 </div>
             </div>
@@ -108,7 +116,7 @@
                     <div class="col-12 col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-4 col-xxl-4 d-flex justify-content-center">
                         <div class="container-fluid p-0 mb-2 m-2">
 
-                            <div class="row my-card-inside-root-area">
+                            <div class="row my-card-inside-root-area" onclick="window.location.href = '/meloncloud-book?id={{book['id']}}';">
                                 <div class="my-card-inside-img-area col-4 col-sm-5 bg-primary">
                                     <img src="{{book['cover']}}" class="no-select card-item-img" alt="...">
                                 </div>
