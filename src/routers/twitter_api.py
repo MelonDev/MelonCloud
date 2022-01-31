@@ -321,7 +321,7 @@ async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Sessio
 
 
 @router.get("/export", status_code=code.HTTP_200_OK)
-async def export_twitter_data(db: Session = Depends(get_db)):
+def export_twitter_data(db: Session = Depends(get_db)):
     name = MelonDevTwitterDatabase.__tablename__
     date = datetime.datetime.now().strftime('%Y_%m_%d')
 
@@ -329,13 +329,13 @@ async def export_twitter_data(db: Session = Depends(get_db)):
 
     raw = db.query(MelonDevTwitterDatabase).all()
 
-    headers = list(raw[0].serialize.keys())
+    headers = list(raw[0].export.keys())
 
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(headers)
     for i in raw:
-        x = list(v for k, v in i.serialize.items())
+        x = list(v for k, v in i.export.items())
         writer.writerow(x)
     output.seek(0)
 
