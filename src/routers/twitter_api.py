@@ -1,7 +1,10 @@
 import math
 from typing import Optional
 
-#import pandas
+import datetime
+import csv
+
+# import pandas
 from fastapi import APIRouter, Depends, HTTPException, status as code, Response, WebSocket
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
@@ -12,6 +15,7 @@ from functools import partial
 from urllib.parse import urlparse
 
 from environment import TWITTER_SECRET_PASSWORD
+from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.database.twitter_observer_database import TwitterObserverDatabase
 from fastapi.responses import StreamingResponse
@@ -185,7 +189,8 @@ async def process_tweet(req, package, tweet_id, db: Session, enable_commit=True)
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
-        elif not req.only_media and (is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account)):
+        elif not req.only_media and (
+                is_circle_language(package.tweet.lang) or has_in_my_history(db, package.tweet.account)):
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
@@ -313,6 +318,32 @@ async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Sessio
 
     return response
 '''
+
+
+@router.get("/export", status_code=code.HTTP_200_OK)
+async def export_twitter_data(db: Session = Depends(get_db)):
+    name = MelonDevTwitterDatabase.__tablename__
+    date = datetime.datetime.now().strftime('%Y_%m_%d')
+
+    filename = name + "_" + date
+
+    raw = db.query(MelonDevTwitterDatabase).all()
+
+    headers = list(raw[0].serialize.keys())
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+    for i in raw:
+        x = list(v for k, v in i.serialize.items())
+        writer.writerow(x)
+    output.seek(0)
+
+    response = Response(content=output.read(), media_type="text/csv")
+    response.headers[
+        "Content-Disposition"
+    ] = f"attachment; filename=" + filename + ".csv"
+    return response
 
 
 def is_not_retweet(value) -> bool:

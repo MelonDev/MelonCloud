@@ -4,7 +4,7 @@ import json
 import firebase_admin
 from firebase_admin import credentials, storage
 
-from fastapi import APIRouter, Depends, Response, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, Request
 from passlib.utils import unicode
 
 from sqlalchemy.orm import Session
@@ -17,6 +17,7 @@ from src.models.twitter_model import TwitterValidatorModel
 
 from fastapi.responses import StreamingResponse
 import io
+import csv
 
 from src.tools.generators.database_export_generator import export_database
 
@@ -134,6 +135,30 @@ async def database(db: Session = Depends(get_db)):
     return b
 
 
+@router.get("/csv", include_in_schema=True)
+async def download_csv(request: Request):
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    header = [
+        "Header Name 1",
+        "Header Name 2",
+        "Header Name 3"
+    ]
+
+    writer.writerow(header)
+    writer.writerow(["data one", "data two", "data three"])
+    writer.writerow(["data one", "data two", "data three"])
+    writer.writerow(["data one", "data two", "data three"])
+
+    output.seek(0)
+    response = Response(content=output.read(), media_type="text/csv")
+    response.headers[
+        "Content-Disposition"
+    ] = f"attachment; filename=filename.csv"
+    return response
+
+
 @router.post("/firebase", include_in_schema=True)
 async def firebase(file: UploadFile = File(...)):
     data = create_credentials_file()
@@ -141,10 +166,10 @@ async def firebase(file: UploadFile = File(...)):
         cred = credentials.Certificate(data)
         firebase_admin.initialize_app(cred, {'storageBucket': firebase_storage_url()})
     bucket = storage.bucket()
-    blob = bucket.blob("test/"+file.filename)
+    blob = bucket.blob("test/" + file.filename)
     print(file.content_type)
 
-    blob.upload_from_file(file.file,content_type=file.content_type)
+    blob.upload_from_file(file.file, content_type=file.content_type)
 
     # Opt : if you want to make public access from the URL
     blob.make_public()
