@@ -321,7 +321,7 @@ async def export_twitter_data(req: TwitterValidatorModel = Depends(), db: Sessio
 
 
 @router.get("/export", status_code=code.HTTP_200_OK)
-def export_twitter_data(db: Session = Depends(get_db)):
+async def export_twitter_data(db: Session = Depends(get_db)):
     name = MelonDevTwitterDatabase.__tablename__
     date = datetime.datetime.now().strftime('%Y_%m_%d')
 
