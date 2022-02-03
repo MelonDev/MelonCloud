@@ -2,6 +2,7 @@
 import json
 
 import firebase_admin
+from anyio import key
 from firebase_admin import credentials, storage
 
 from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, Request
@@ -9,6 +10,7 @@ from passlib.utils import unicode
 
 from sqlalchemy.orm import Session
 
+from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.engines.twitter_engines import test_client_mode
 from src.environment.database import get_db
@@ -19,6 +21,7 @@ from fastapi.responses import StreamingResponse
 import io
 import csv
 
+from src.tools.db_exporter import export
 from src.tools.generators.database_export_generator import export_database
 
 router = APIRouter()
@@ -177,3 +180,10 @@ async def firebase(file: UploadFile = File(...)):
     print("your file url", blob.public_url)
 
     return {"your file url": blob.public_url}
+
+
+@router.get("/csv_test", include_in_schema=True)
+async def download_csv_test(request: Request, db: Session = Depends(get_db)):
+
+
+    return export(db=db, session=MelonCloudBookDatabase)
