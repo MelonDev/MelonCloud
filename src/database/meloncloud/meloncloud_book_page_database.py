@@ -36,3 +36,14 @@ class MelonCloudBookPageDatabase(Base):
             "extension": self.extension,
             "number": self.number
         }
+
+    @property
+    def export(self):
+        return {
+            "id": self.id,
+            "book_id": self.book_id,
+            "name": self.name,
+            "url": self.url,
+            "extension": self.extension,
+            "number": self.number,
+        }
