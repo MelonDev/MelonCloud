@@ -1,19 +1,32 @@
-import uuid
 import datetime
-from fastapi import HTTPException, status, Response
-from sqlalchemy.dialects.postgresql import UUID
-
+from fastapi import Response
 import csv
 import io
+import calendar
 
-from sqlalchemy import Text, DateTime as SQLDateTime, ARRAY
-
-from src.tools.converters.datetime_converter import convert_datetime_to_string_for_backup_mode
-from src.tools.converters.list_converter import list_to_set
+from src.tools.none_tool import ifNone
 
 
 def export(db, session, filename=None):
     data = query_all(db, session)
+    return compose_response(output=writer_data(data=data), session=session, filename=filename)
+
+
+def export_year(db, session, year: int = None, filename=None):
+    year = ifNone(year, current_year())
+    until_datetime = last_day_of_month(year, 12)
+    since_datetime = prefix_datetime(year, 1)
+    data = db.query(session).filter(session.addedAt <= until_datetime).filter(session.addedAt >= since_datetime).all()
+    return compose_response(output=writer_data(data=data), session=session, filename=filename)
+
+
+def export_month_in_year(db, session, year: int = None, month: int = None, filename=None):
+    year = ifNone(year, current_year())
+    month = ifNone(month, current_month())
+
+    until_datetime = last_day_of_month(year, month)
+    since_datetime = prefix_datetime(year, month)
+    data = db.query(session).filter(session.addedAt <= until_datetime).filter(session.addedAt >= since_datetime).all()
     return compose_response(output=writer_data(data=data), session=session, filename=filename)
 
 
@@ -81,3 +94,41 @@ def get_writer(output):
 
 def get_date():
     return datetime.datetime.now().strftime('%Y_%m_%d')
+
+
+def current_year() -> int:
+    return int(current_datetime().strftime('%Y'))
+
+
+def current_month() -> int:
+    return int(current_datetime().strftime('%m'))
+
+
+def current_month_year() -> str:
+    return current_datetime().strftime('%Y-%m')
+
+
+def current_datetime():
+    return datetime.datetime.now()
+
+
+def day_of_month(year: int = None, month: int = None):
+    return calendar.monthrange(ifNone(year, current_year()), ifNone(month, current_month()))[1]
+
+
+def last_day_of_month(year: int = None, month: int = None):
+    year = ifNone(year, current_year())
+    month = ifNone(month, current_month())
+    return datetime.datetime.strptime(
+        f"{year}-{month}-{day_of_month(year, month)}  23:59:59",
+        "%Y-%m-%d %H:%M:%S")
+
+
+def last_day_of_year(year: int = None):
+    return last_day_of_month(year, month=12)
+
+
+def prefix_datetime(year: int = None, month: int = None):
+    return datetime.datetime.strptime(
+        f"{ifNone(year, current_year())}-{ifNone(month, current_month())}-01  00:00:00",
+        "%Y-%m-%d %H:%M:%S")
