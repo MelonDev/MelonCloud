@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import APIRouter, Depends, status as code, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
@@ -24,7 +26,8 @@ async def trigger():
     for item in items:
         name = f"{item.__tablename__}"
         url = f"{path}{name.lower()}"
-        await call_backup_api({"name": name, "url": url})
+        date = str(datetime.datetime.now().strftime('%d %b %Y'))
+        await call_backup_api({"name": name, "url": url, 'folder': date})
     return "TRIGGERED!"
 
 

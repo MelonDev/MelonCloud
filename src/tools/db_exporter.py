@@ -104,6 +104,10 @@ def current_month() -> int:
     return int(current_datetime().strftime('%m'))
 
 
+def current_day() -> int:
+    return int(current_datetime().strftime('%d'))
+
+
 def current_month_year() -> str:
     return current_datetime().strftime('%Y-%m')
 
