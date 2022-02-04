@@ -45,8 +45,46 @@ async def pwg_v2(request: Request, step: int = None, length: int = None, action:
 
 @router.get("/home", include_in_schema=False)
 async def home(request: Request):
+    items = [
+        {
+            "name": "รหัสผ่านความปลอดภัยแบบสุ่ม",
+            "image": "./static/templates/home/img/towfiqu-barbhuiya-FnA5pAzqhMM-unsplash.jpg",
+            "page": "pwg_v2",
+            "doc": "api/v2/security/pwg_v2/docs"
+        },
+        {
+            "name": "ทวิตเตอร์",
+            "image": "./static/templates/home/img/jeremy-bezanger-Jm1YUfYjpHI-unsplash.jpg",
+            "page": "null",
+            "doc": "api/v2/twitter/docs"
+        },
+        {
+            "name": "พื้นที่ทดสอบ",
+            "image": "./static/templates/home/img/pankaj-patel-_SgRNwAVNKw-unsplash.jpg",
+            "page": "null",
+            "doc": "api/v2.0-alpha/docs"
+        },
+        {
+            "name": "จัดการกระบือ",
+            "image": "./static/templates/home/img/zachary-pearson-thC1uwWdMfM-unsplash.jpg",
+            "page": "null",
+            "doc": "api/v2/buff/docs"
+        },
+        {
+            "name": "ชั้นหนังสือ",
+            "image": "./static/templates/home/img/mitchell-luo-g_Y9K409vNw-unsplash.jpg",
+            "page": "meloncloud-book",
+            "doc": "api/v2/meloncloud-book/docs"
+        },
+        {
+            "name": "สำรองฐานข้อมูล",
+            "image": "./static/templates/home/img/markus-winkler-cV9-hOgoaok-unsplash.jpg",
+            "page": "null",
+            "doc": "api/v2/database-backup/docs"
+        }
+    ]
     return templates.TemplateResponse("home/home.html",
-                                      {"request": request})
+                                      {"request": request, "items": items})
 
 
 @router.get("/meloncloud-book/logout", include_in_schema=False)
@@ -86,9 +124,8 @@ async def book(request: Request, params: RequestBookQueryModel = Depends(), Auth
         res = await load_book(params=params, db=db, Authorize=Authorize)
         data = jsonable_encoder(res)
         if params.id is not None:
-            print(data)
             response = templates.TemplateResponse("meloncloud_book/book.html",
-                                                  {"request": request, "data": data['data'],})
+                                                  {"request": request, "data": data['data'], })
         else:
             raw_languages = db.query(MelonCloudBookDatabase.language, func.count(MelonCloudBookDatabase.language))
             if params.language is None and params.artist is not None:
