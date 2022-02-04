@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 
 from src.environment.database import Base
-from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Text, Integer
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -20,7 +20,7 @@ class BuffNotifyDatabase(Base):
     datetime = Column(DateTime(timezone=True), nullable=False)
     value = Column(Text, nullable=False)
     category = Column(Text, nullable=False)
-    schedule = Column(Text, nullable=True)
+    schedule = Column(Integer, nullable=True)
 
     activity = relationship("BuffActivityLogDatabase", back_populates="notify")
 
@@ -30,5 +30,3 @@ class BuffNotifyDatabase(Base):
         self.datetime = datetime
         self.value = value
         self.category = category
-
-        self.status = True

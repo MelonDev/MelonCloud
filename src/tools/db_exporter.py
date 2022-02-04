@@ -20,9 +20,17 @@ def export_year(db, session, year: int = None, filename=None):
     return compose_response(output=writer_data(data=data), session=session, filename=filename)
 
 
-def export_month_in_year(db, session, year: int = None, month: int = None, filename=None):
+def export_twitter_month_on_year(db, session, year: int = None, month: int = None, day: int = None, filename=None):
     year = ifNone(year, current_year())
     month = ifNone(month, current_month())
+    day = ifNone(day, current_day())
+
+    if day == 1:
+        if month == 1:
+            month = 12
+            year -= 1
+        else:
+            month -= 1
 
     until_datetime = last_day_of_month(year, month)
     since_datetime = prefix_datetime(year, month)

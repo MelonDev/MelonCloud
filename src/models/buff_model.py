@@ -3,6 +3,7 @@ from uuid import UUID
 
 from oauthlib.oauth2.rfc6749.grant_types import refresh_token
 from pydantic import BaseModel
+from typing import List
 
 from environment import OPENSSL_SECRET_KEY
 from src.tools.as_form import as_form
@@ -63,6 +64,54 @@ class EditBuffForm(BaseModel):
     father_id: UUID = None
     mother_id: UUID = None
     source: str = None
+
+
+@as_form
+class BuffBreedingModel(BaseModel):
+    buff_id: UUID
+    artificial_insemination: bool
+    breeder_id: UUID
+    date: datetime.date = None
+    notify: bool
+
+
+
+@as_form
+class BuffReturnEstrusModel(BaseModel):
+    buff_id: UUID
+    estrus_result: bool
+    message_result: str = None
+    date: datetime.date = None
+    notify: bool
+
+
+@as_form
+class BuffVaccineInjectionModel(BaseModel):
+    buff_id: UUID
+    vaccine_name: str
+    other_vaccine_name: str = None
+    date: datetime.date = None
+    notify: bool
+    notify_choice: str
+
+
+@as_form
+class BuffDewormingModel(BaseModel):
+    buff_id: UUID
+    anthelmintic_drug_name: str
+    date: datetime.date = None
+    next_deworming_duration: int = None
+    notify: bool
+
+
+@as_form
+class BuffDiseaseTreatmentModel(BaseModel):
+    buff_id: UUID
+    disease_name: str
+    symptom: List[str]
+    drugs: List[str]
+    healed_status: bool
+    date: datetime.date = None
 
 
 class BuffTokenModel:

@@ -15,6 +15,7 @@ class BuffDatabase(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
     name = Column(Text, nullable=False)
+    tag = Column(Text, nullable=False)
 
     created_at = Column(DateTime(timezone=True), nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False)
@@ -31,8 +32,9 @@ class BuffDatabase(Base):
     farm = relationship("FarmDatabase", back_populates="buffs")
     activity = relationship("BuffActivityLogDatabase", back_populates="buff")
 
-    def __init__(self, name, gender, birth_date, farm_id):
+    def __init__(self, name, tag, gender, birth_date, farm_id):
         self.name = name
+        self.tag = tag
         self.gender = gender
         self.birth_date = birth_date
         self.farm_id = farm_id
@@ -47,6 +49,7 @@ class BuffDatabase(Base):
         return {
             "id": self.id,
             "name": self.name,
+            "tag": self.tag,
             "gender": self.gender,
             "birth_date": self.birth_date,
             "father_id": self.father_id,

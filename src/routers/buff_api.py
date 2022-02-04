@@ -6,15 +6,19 @@ from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
+from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
 from src.database.buff_management.farm_database import FarmDatabase
 from src.environment.database import get_db
+import datetime
 
 from src.models.buff_model import BuffSettings, RegisterFarmForm, BuffAuthenticatedResponseModel, BuffLoginForm, \
-    BuffChangePasswordForm, BuffChangeFarmInfoForm, EditBuffForm, AddBuffForm
+    BuffChangePasswordForm, BuffChangeFarmInfoForm, EditBuffForm, AddBuffForm, BuffBreedingModel
 from src.models.response_model import ResponseModel
 from src.tools.converters.datetime_converter import convert_short_string_to_datetime, \
     convert_short_string_form_to_datetime
+from src.tools.db_exporter import current_datetime
 from src.tools.verify_hub import verify_return
 
 
@@ -287,6 +291,30 @@ async def remove_buff(id: str, Authorize: AuthJWT = Depends(),
     db.commit()
 
     return await verify_return(data=ResponseModel(data={"msg": "Delete successfully"}))
+
+
+@router.post('/breeding', include_in_schema=True, tags=['Activities'])
+async def breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.as_form),
+                        Authorize: AuthJWT = Depends(),
+                        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    print(farm_id)
+    breeding_datetime = form.date if form.date is not None else current_datetime()
+
+    buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
+    if buff is None:
+        not_found_exception()
+
+    log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value="BREEDING")
+    log.bool_value = form.artificial_insemination if form.artificial_insemination is not None else False
+    log.refer_id = form.breeder_id
+    log.datetime_value = form.date if form.date is not None else current_datetime()
+
+    notify_date = (form.date if form.date is not None else current_datetime()) + datetime.timedelta(days=21)
+    notify = BuffNotifyDatabase(activity_id=log.id, datetime=current_datetime(), value="BREEDING", category="BREEDING")
+
+    return "BREEDING"
 
 
 def get_buff_response(buff):
