@@ -19,7 +19,7 @@ from src.models.twitter_model import TwitterValidatorModel
 import io
 import csv
 
-from src.tools.db_exporter import export, last_day_of_month, export_month_in_year
+from src.tools.db_exporter import export, last_day_of_month, export_month_on_year
 from src.tools.verify_hub import verify_return
 
 router = APIRouter()
@@ -97,7 +97,7 @@ async def firebase(file: UploadFile = File(...)):
 
 @router.get("/csv_test", include_in_schema=True)
 async def download_csv_test(request: Request, db: Session = Depends(get_db)):
-    return export_month_in_year(db=db, session=MelonDevTwitterDatabase)
+    return export_month_on_year(db=db, session=MelonDevTwitterDatabase)
     # return export_month_in_year(db=db, session=MelonDevTwitterDatabase)
 
     # return export(db=db, session=MelonCloudBookDatabase)
