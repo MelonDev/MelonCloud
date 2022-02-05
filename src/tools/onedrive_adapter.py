@@ -2,12 +2,14 @@ import datetime as dt
 import httpx
 from fastapi import requests
 
+from environment import IFTTT_SECRET_KEY
+
 client = httpx.AsyncClient()
 
 
 async def send_url_to_onedrive(medias):
-    # icloud_url = 'https://maker.ifttt.com/trigger/save_image_to_icloud_photo/with/key/c0lOuTaY1ogijIhHwlSps9'
-    onedrive_url = 'https://maker.ifttt.com/trigger/save_file_to_onedrive/with/key/c0lOuTaY1ogijIhHwlSps9'
+    # icloud_url = f'https://maker.ifttt.com/trigger/save_image_to_icloud_photo/with/key/{IFTTT_SECRET_KEY}'
+    onedrive_url = f'https://maker.ifttt.com/trigger/save_file_to_onedrive/with/key/{IFTTT_SECRET_KEY}'
 
     now = dt.datetime.now()
     year = str(now.year)

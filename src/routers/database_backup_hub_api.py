@@ -3,6 +3,7 @@ import datetime
 from fastapi import APIRouter, Depends, status as code, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
+from environment import IFTTT_SECRET_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
@@ -33,7 +34,7 @@ async def trigger():
 
 async def call_backup_api(payload):
     webhook_name = "auto_database_backup"
-    webhook_url = f"https://maker.ifttt.com/trigger/{webhook_name}/json/with/key/c0lOuTaY1ogijIhHwlSps9"
+    webhook_url = f"https://maker.ifttt.com/trigger/{webhook_name}/json/with/key/{IFTTT_SECRET_KEY}"
     await client.post(webhook_url, json=payload)
 
 
