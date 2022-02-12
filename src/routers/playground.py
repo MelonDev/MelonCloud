@@ -1,4 +1,4 @@
-
+from enum import Enum
 from string import digits
 from random import choice
 
@@ -20,6 +20,7 @@ import io
 import csv
 
 from src.tools.db_exporter import export, last_day_of_month, export_month_on_year
+from src.tools.generators.enum_generator import make_enum
 from src.tools.verify_hub import verify_return
 
 router = APIRouter()
@@ -27,6 +28,12 @@ router = APIRouter()
 
 class TestModel(TwitterValidatorModel):
     content: dict
+
+
+class NameEnumModel(str, Enum):
+    alexnet = "alexnet"
+    resnet = "resnet"
+    lenet = "lenet"
 
 
 @router.get("/tests")
@@ -101,3 +108,9 @@ async def download_csv_test(request: Request, db: Session = Depends(get_db)):
     # return export_month_in_year(db=db, session=MelonDevTwitterDatabase)
 
     # return export(db=db, session=MelonCloudBookDatabase)
+
+
+@router.get("/models/{name_model}/{num}")
+async def get_model(name_model: NameEnumModel, num: make_enum("Table", [("HELLO", "hello"), ("HI", "hi")]),
+                    name: make_enum("Name", ["John", "Edward"]) = None):
+    return f'{name_model} {num.value} {name.value}'

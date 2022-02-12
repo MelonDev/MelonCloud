@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
-from src.tools.converters.datetime_converter import current_datetime_with_timezone
+from src.tools.converters.datetime_converter import current_datetime_with_timezone, convert_date_to_string
 
 
 class BuffDatabase(Base):
@@ -51,9 +51,22 @@ class BuffDatabase(Base):
             "name": self.name,
             "tag": self.tag,
             "gender": self.gender,
-            "birth_date": self.birth_date,
+            # "birth_date": convert_date_to_string(self.birth_date),
+            "birth_date": self.birth_date.date(),
             "father_id": self.father_id,
             "mother_id": self.mother_id,
             "source": self.source,
+            "image_url": self.image_url,
+        }
+
+    @property
+    def sub_serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "tag": self.tag,
+            "gender": self.gender,
+            # "birth_date": convert_date_to_string(self.birth_date),
+            "birth_date": self.birth_date.date(),
             "image_url": self.image_url,
         }

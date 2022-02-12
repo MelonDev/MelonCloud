@@ -1,9 +1,12 @@
+import json
 import uuid
+from typing import Optional
 
 import fastapi_jwt_auth.exceptions
 from fastapi import APIRouter, Depends, HTTPException, status as code
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
+from pyparsing import Opt
 from sqlalchemy.orm import Session
 
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
@@ -14,10 +17,13 @@ from src.environment.database import get_db
 import datetime
 
 from src.models.buff_model import BuffSettings, RegisterFarmForm, BuffAuthenticatedResponseModel, BuffLoginForm, \
-    BuffChangePasswordForm, BuffChangeFarmInfoForm, EditBuffForm, AddBuffForm, BuffBreedingModel
+    BuffChangePasswordForm, BuffChangeFarmInfoForm, EditBuffForm, AddBuffForm, BuffBreedingModel, GetBuffModel, \
+    BuffEditBreedingModel, BuffActivityType, BuffReturnEstrusModel, BuffEditReturnEstrusModel, \
+    BuffVaccineInjectionModel, vaccines, BuffVaccine, BuffEditVaccineInjectionModel, BuffDewormingModel, \
+    BuffEditDewormingModel, BuffDiseaseTreatmentModel, BuffEditDiseaseTreatmentModel
 from src.models.response_model import ResponseModel
 from src.tools.converters.datetime_converter import convert_short_string_to_datetime, \
-    convert_short_string_form_to_datetime
+    convert_short_string_form_to_datetime, current_datetime_with_timezone
 from src.tools.db_exporter import current_datetime
 from src.tools.verify_hub import verify_return
 
@@ -52,7 +58,7 @@ async def info(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
     id = Authorize.get_jwt_subject()
     farm = get_farm_from_id(db, id)
     result = farm.serialize
-    result['buffs'] = [i.serialize for i in farm.buffs]
+    result['buffs'] = [i.sub_serialize for i in farm.buffs]
     return await verify_return(data=ResponseModel(data=result))
 
 
@@ -177,14 +183,36 @@ async def logout(Authorize: AuthJWT = Depends()):
 
 
 @router.get('/buffs', include_in_schema=True, tags=['Buff'])
-async def get_buffs(Authorize: AuthJWT = Depends(),
+async def get_buffs(params: GetBuffModel = Depends(), Authorize: AuthJWT = Depends(),
                     db: Session = Depends(get_db)):
     await check_authorize(Authorize)
     id = Authorize.get_jwt_subject()
 
     if id is None:
         bad_request_exception()
-    buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(id)).all()
+
+    database = db.query(BuffDatabase)
+    database = database.filter(BuffDatabase.farm_id == uuid.UUID(id))
+
+    if params.name is not None:
+        buff = database.filter(BuffDatabase.name.ilike(params.name))
+        return await verify_return(data=ResponseModel(data=buff.serialize))
+    if params.tag is not None:
+        buff = database.filter(BuffDatabase.tag.ilike(params.tag))
+        return await verify_return(data=ResponseModel(data=buff.serialize))
+
+    if params.gender is not None:
+        gender = params.gender.name.upper()
+        if gender == "MALE" or gender == "FEMALE":
+            database = database.filter(BuffDatabase.gender.ilike(gender))
+        else:
+            bad_request_exception()
+    if params.father_id is not None:
+        database = database.filter(BuffDatabase.father == params.father_id)
+    if params.mother_id is not None:
+        database = database.filter(BuffDatabase.mother == params.mother_id)
+
+    buffs = database.all()
     data_results = [i.serialize for i in buffs]
 
     return await verify_return(data=ResponseModel(data=data_results))
@@ -195,10 +223,21 @@ async def detail_buff(id: str, Authorize: AuthJWT = Depends(),
                       db: Session = Depends(get_db)):
     await check_authorize(Authorize)
     farm_id = Authorize.get_jwt_subject()
-
     buff = await get_buff(db, id, farm_id)
 
     return await verify_return(data=get_buff_response(buff))
+
+
+@router.get('/buffs/{id}/{type}', include_in_schema=True, tags=['Buff'])
+async def buff_activities(id: str, type: BuffActivityType, delete: bool = None, Authorize: AuthJWT = Depends(),
+                          db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    buff = await get_buff(db, id, farm_id)
+
+    if type is not None:
+        return await verify_return(data=filter_buff_activities(buff, type, delete))
+    return await verify_return(data=get_buff_response(buff.name))
 
 
 @router.patch('/buffs/{id}', include_in_schema=True, tags=['Buff'])
@@ -209,20 +248,38 @@ async def edit_buff(id: str, form: EditBuffForm = Depends(EditBuffForm.as_form),
 
     buff = await get_buff(db, id, farm_id)
 
-    if form.name:
+    updated = False
+
+    if form.name is not None:
         buff.name = form.name
-    if form.gender:
-        buff.gender = form.gender
-    if form.birth_date:
+        updated = True
+    if form.gender is not None:
+        buff.gender = form.gender.name
+        updated = True
+
+    if form.birth_date is not None:
         buff.birth_date = form.birth_date
-    if form.source:
+        updated = True
+
+    if form.source is not None:
         buff.source = form.source
-    if form.father_id:
+        updated = True
+
+    if form.father_id is not None:
         buff.father_id = form.father_id
-    if form.mother_id:
+        updated = True
+
+    if form.mother_id is not None:
         buff.mother_id = form.mother_id
-    db.add(buff)
-    db.commit()
+        updated = True
+    if form.tag:
+        buff.tag = form.tag
+        updated = True
+
+    if updated:
+        buff.updated_at = current_datetime_with_timezone()
+        db.add(buff)
+        db.commit()
 
     return await verify_return(data=get_buff_response(buff))
 
@@ -256,13 +313,15 @@ async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
         bad_request_exception()
 
     birth_date = convert_short_string_form_to_datetime(form.birth_date.strftime('%Y-%m-%d'))
-    buff = BuffDatabase(name=form.name, gender=form.gender, birth_date=birth_date, farm_id=id)
+    buff = BuffDatabase(name=form.name, gender=form.gender.name, birth_date=birth_date, farm_id=id)
     if form.father_id:
         buff.father_id = form.father_id
     if form.mother_id:
         buff.mother_id = form.mother_id
     if form.source:
         buff.source = form.source
+    if form.tag:
+        buff.tag = form.tag
 
     buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(id)).all()
     buffs.append(buff)
@@ -293,40 +352,698 @@ async def remove_buff(id: str, Authorize: AuthJWT = Depends(),
     return await verify_return(data=ResponseModel(data={"msg": "Delete successfully"}))
 
 
-@router.post('/breeding', include_in_schema=True, tags=['Activities'])
-async def breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.as_form),
-                        Authorize: AuthJWT = Depends(),
-                        db: Session = Depends(get_db)):
+@router.get('/activities', include_in_schema=True, tags=['Activities'], deprecated=False)
+async def get_activities(
+        delete: bool = None,
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
     await check_authorize(Authorize)
     farm_id = Authorize.get_jwt_subject()
-    print(farm_id)
+    farm = get_farm_from_id(db, farm_id)
+
+    result = {}
+    for buff in farm.buffs:
+        for activity in buff.activity:
+            if activity.name == 'BREEDING':
+                append_activities(result, activity.name.lower(), activity.breeding_serialize,
+                                  activity_delete=activity.delete, delete=delete)
+            elif activity.name == "RETURN_ESTRUS":
+                append_activities(result, activity.name.lower(), activity.return_estrus_serialize,
+                                  activity_delete=activity.delete, delete=delete)
+            elif activity.name == "VACCINE_INJECTION":
+                append_activities(result, activity.name.lower(), activity.vaccine_injection_serialize,
+                                  activity_delete=activity.delete, delete=delete)
+            elif activity.name == "DEWORMING":
+                append_activities(result, activity.name.lower(), activity.deworming_serialize,
+                                  activity_delete=activity.delete, delete=delete)
+            elif activity.name == "DISEASE_TREATMENT":
+                append_activities(result, activity.name.lower(), activity.disease_treatment_serialize,
+                                  activity_delete=activity.delete, delete=delete)
+            else:
+                append_activities(result, "other", activity.sub_serialize, activity_delete=activity.delete,
+                                  delete=delete)
+
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.get('/activities/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
+async def get_buff_activities(
+        id: str,
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    log = db.query(BuffActivityLogDatabase).get(id)
+    if log is None:
+        not_found_exception()
+    buff = log.buff
+    if str(buff.farm_id) != farm_id:
+        not_allowed_exception()
+    result = {}
+    if log.name == "BREEDING":
+        result = log.breeding_serialize
+    else:
+        result = log.sub_serialize
+    result['buff'] = buff.sub_serialize
+
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.delete('/activities/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
+async def delete_buff_activity(
+        id: uuid.UUID,
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    log = db.query(BuffActivityLogDatabase).get(id)
+
+    if log is None:
+        not_found_exception()
+
+    log.delete = True
+    log.status = False
+    db.add(log)
+    db.commit()
+
+    return await verify_return(ResponseModel(data="Delete successfully"))
+
+
+@router.post('/breeding', include_in_schema=True, tags=['Breeding'])
+async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.as_form),
+                            Authorize: AuthJWT = Depends(),
+                            db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    if form.buff_id == form.breeder_id:
+        bad_request_exception()
+
+    count_of_breeding = db.query(BuffActivityLogDatabase).filter(
+        BuffActivityLogDatabase.buff_id == form.buff_id).filter(
+        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).count()
+
     breeding_datetime = form.date if form.date is not None else current_datetime()
+
+    buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
+
+    if buff is None:
+        not_found_exception()
+    if buff.gender == "MALE":
+        bad_request_exception("MALE CAN'T NOT BREEDING")
+
+    if count_of_breeding > 0:
+        bad_request_exception(f"'{buff.name}' in the process of breeding, Cannot be added")
+
+    log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value=None)
+    log.bool_value = form.artificial_insemination if form.artificial_insemination is not None else False
+
+    breeder_buff = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
+    if breeder_buff is None:
+        not_found_exception()
+    if breeder_buff.gender == "FEMALE":
+        bad_request_exception("FEMALE CAN'T NOT BREEDER")
+
+    log.refer_id = breeder_buff.id
+    log.datetime_value = breeding_datetime
+
+    db.add(log)
+
+    if form.notify is not None:
+        if form.notify:
+            create_notify_to_database(db, activity_id=log.id, date=form.date, value="RETURN_ESTRUS",
+                                      category="BREEDING", days=21)
+
+    db.commit()
+
+    result = log.breeding_serialize
+    result['buff'] = buff.sub_serialize
+    if log.refer_id is not None:
+        breeder = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
+        result['breeder'] = breeder.sub_serialize
+
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.patch('/breeding/{id}', include_in_schema=True, tags=['Breeding'], deprecated=False)
+async def edit_breeding_buff(
+        id: str,
+        form: BuffEditBreedingModel = Depends(BuffEditBreedingModel.as_form),
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    log = db.query(BuffActivityLogDatabase).get(id)
+
+    if log is None:
+        not_found_exception()
+    if log.delete or (log.delete and not log.status):
+        bad_request_exception("This activity was deleted")
+
+    updated = False
+    notify = get_notify_from_database(db, log.id)
+    date_changed = False
+
+    if form.breeder_id is not None:
+        if id == form.breeder_id:
+            bad_request_exception()
+        breeder_buff = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
+        if breeder_buff is None:
+            not_found_exception()
+        if breeder_buff.gender == "FEMALE":
+            bad_request_exception("FEMALE CAN'T NOT BREEDER")
+        log.refer_id = breeder_buff.id
+        updated = True
+
+    if form.artificial_insemination is not None:
+        log.bool_value = form.artificial_insemination
+        updated = True
+
+    if form.date is not None:
+        log.datetime_value = form.date
+        date_changed = True
+        updated = True
+
+    if form.notify is not None:
+        if notify is not None and not form.notify:
+            delete_notify_on_database(db, activity_id=log.id)
+            updated = True
+
+        elif notify is not None and form.notify:
+            update_notify_on_database(db, activity_id=log.id, date=log.datetime_value, days=21)
+            updated = True
+
+        elif notify is None and form.notify:
+            create_notify_to_database(db, activity_id=log.id, date=form.date, value="RETURN_ESTRUS",
+                                      category="BREEDING", days=21)
+            updated = True
+
+    else:
+        if date_changed and notify is not None:
+            update_notify_on_database(db, activity_id=log.id, date=log.datetime_value, days=21)
+            updated = True
+
+    if updated:
+        log.updated_at = current_datetime_with_timezone()
+        db.add(log)
+        db.commit()
+
+    result = log.breeding_serialize
+    buff = await get_buff(db=db, id=log.buff_id, farm_id=farm_id)
+    result['buff'] = buff.sub_serialize
+    if log.refer_id is not None:
+        breeder = await get_buff(db=db, id=log.refer_id, farm_id=farm_id)
+        result['breeder'] = breeder.sub_serialize
+
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.post('/return-estrus', include_in_schema=True, tags=['Return Estrus'])
+async def add_return_estrus_buff(form: BuffReturnEstrusModel = Depends(BuffReturnEstrusModel.as_form),
+                                 Authorize: AuthJWT = Depends(),
+                                 db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    breeding_database = db.query(BuffActivityLogDatabase).filter(
+        BuffActivityLogDatabase.buff_id == form.buff_id).filter(
+        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False))
 
     buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
     if buff is None:
         not_found_exception()
 
-    log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value="BREEDING")
-    log.bool_value = form.artificial_insemination if form.artificial_insemination is not None else False
-    log.refer_id = form.breeder_id
-    log.datetime_value = form.date if form.date is not None else current_datetime()
+    if breeding_database.count() == 0:
+        bad_request_exception(f"{buff.name} not in the process of breeding")
 
-    notify_date = (form.date if form.date is not None else current_datetime()) + datetime.timedelta(days=21)
-    notify = BuffNotifyDatabase(activity_id=log.id, datetime=current_datetime(), value="BREEDING", category="BREEDING")
+    breeding = breeding_database.first()
+    return_estrus = BuffActivityLogDatabase(buff_id=buff.id, name="RETURN_ESTRUS", value=form.message_result)
+    return_estrus.bool_value = form.estrus_result
 
-    return "BREEDING"
+    breeding.delete = True
+    breeding.status = False
+    db.add(breeding)
+    delete_notify_on_database(db, activity_id=breeding.id)
+
+    birth_datetime = breeding.datetime_value + datetime.timedelta(days=310)
+    return_estrus.datetime_value = birth_datetime
+    return_estrus.status = not form.estrus_result
+    return_estrus.refer_id = breeding.id
+    db.add(return_estrus)
+
+    if not form.estrus_result:
+        if form.notify is not None:
+            if form.notify:
+                create_notify_to_database(db, activity_id=return_estrus.id, date=breeding.datetime_value, value="BIRTH",
+                                          category="RETURN_ESTRUS", days=310)
+    db.commit()
+
+    result = return_estrus.return_estrus_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.patch('/return-estrus/{id}', include_in_schema=True, tags=['Return Estrus'], deprecated=False)
+async def edit_return_estrus_buff(
+        id: str,
+        form: BuffEditReturnEstrusModel = Depends(BuffEditReturnEstrusModel.as_form),
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    log = db.query(BuffActivityLogDatabase).get(id)
+
+    if log is None:
+        not_found_exception()
+    if log.delete or (log.delete and not log.status):
+        bad_request_exception("This activity was deleted")
+
+    updated = False
+    notify = get_notify_from_database(db, log.id)
+
+    if form.message_result is not None:
+        log.value = form.message_result
+        updated = True
+
+    if form.estrus_result is not None:
+        log.status = not form.estrus_result
+
+    if form.notify is not None:
+        if notify is not None and not form.notify:
+            delete_notify_on_database(db, activity_id=log.id)
+            updated = True
+        elif notify is None and form.notify:
+            if not form.estrus_result:
+                create_notify_to_database(db, activity_id=log.id, date=log.datetime_value, value="BIRTH",
+                                          category="RETURN_ESTRUS")
+                updated = True
+
+    if updated:
+        log.updated_at = current_datetime_with_timezone()
+        db.add(log)
+        db.commit()
+
+    result = log.return_estrus_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.post('/vaccine_injection', include_in_schema=True, tags=['Vaccine Injection'])
+async def add_vaccine_injection_buff(form: BuffVaccineInjectionModel = Depends(BuffVaccineInjectionModel.as_form),
+                                     Authorize: AuthJWT = Depends(),
+                                     db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
+    if buff is None:
+        not_found_exception()
+
+    if form.vaccine_name.name == "OTHER" and form.other_vaccine_name is None:
+        bad_request_exception()
+
+    vaccine = vaccines[next((i for i, e in enumerate(vaccines) if
+                             e.key == form.vaccine_name.name))] if form.vaccine_name.name != "OTHER" else BuffVaccine(
+        name=form.other_vaccine_name, key="OTHER",
+        days=(form.vaccine_duration if form.vaccine_duration is not None else -1))
+
+    injection = BuffActivityLogDatabase(buff_id=form.buff_id, name="VACCINE_INJECTION", value=vaccine.name)
+    injection.secondary_value = f"{vaccine.key}/{vaccine.days}"
+
+    if vaccine.days >= 0:
+        target_datetime = form.date if form.date is not None else current_datetime()
+        injection_datetime = target_datetime + datetime.timedelta(days=vaccine.days)
+        injection.datetime_value = injection_datetime
+    else:
+        injection.datetime_value = None
+
+    db.add(injection)
+
+    if form.notify is not None:
+        if form.notify:
+            create_notify_to_database(db, activity_id=injection.id, date=injection.datetime_value, value="INJECTION",
+                                      category="VACCINE_INJECTION")
+
+    db.commit()
+
+    result = injection.vaccine_injection_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.patch('/vaccine_injection/{id}', include_in_schema=True, tags=['Vaccine Injection'], deprecated=False)
+async def edit_vaccine_injection_buff(
+        id: str,
+        form: BuffEditVaccineInjectionModel = Depends(BuffEditVaccineInjectionModel.as_form),
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    injection = db.query(BuffActivityLogDatabase).get(id)
+
+    if injection is None:
+        not_found_exception()
+    if injection.delete or (injection.delete and not injection.status):
+        bad_request_exception("This activity was deleted")
+
+    old_value_set = injection.secondary_value.split("/")
+    old_days = int(old_value_set[1])
+    old_injection_datetime = injection.datetime_value - datetime.timedelta(days=old_days)
+    notify = get_notify_from_database(db, injection.id)
+
+    date_changed = False
+    updated = False
+
+    if form.vaccine_name is not None:
+        if form.vaccine_name.name == "OTHER" and form.other_vaccine_name is None:
+            bad_request_exception()
+
+        vaccine = vaccines[next((i for i, e in enumerate(vaccines) if
+                                 e.key == form.vaccine_name.name))] if form.vaccine_name.name != "OTHER" else BuffVaccine(
+            name=form.other_vaccine_name, key="OTHER",
+            days=(form.vaccine_duration if form.vaccine_duration is not None else -1))
+
+        injection.secondary_value = f"{vaccine.key}/{vaccine.days}"
+
+        if vaccine.days > 0:
+            target_datetime = form.date if form.date is not None else old_injection_datetime
+            injection_datetime = target_datetime + datetime.timedelta(days=vaccine.days)
+            injection.datetime_value = injection_datetime
+        else:
+            injection.datetime_value = None
+        updated = True
+        date_changed = True
+    if form.date is not None and not date_changed:
+        injection_datetime = form.date + datetime.timedelta(days=old_days)
+        injection.datetime_value = injection_datetime
+        updated = True
+
+    if form.notify is not None:
+        if notify is not None and not form.notify:
+            delete_notify_on_database(db, activity_id=injection.id)
+            updated = True
+
+        elif notify is not None and form.notify:
+            update_notify_on_database(db, activity_id=injection.id, date=injection.datetime_value)
+            updated = True
+
+        elif notify is None and form.notify:
+            create_notify_to_database(db, activity_id=injection.id, date=injection.datetime_value, value="INJECTION",
+                                      category="VACCINE_INJECTION")
+            updated = True
+
+    else:
+        if date_changed and notify is not None:
+            update_notify_on_database(db, activity_id=injection.id, date=injection.datetime_value)
+            updated = True
+
+    if updated:
+        injection.updated_at = current_datetime_with_timezone()
+        db.add(injection)
+        db.commit()
+
+    result = injection.vaccine_injection_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.post('/deworming', include_in_schema=True, tags=['Deworming'])
+async def add_deworming_buff(form: BuffDewormingModel = Depends(BuffDewormingModel.as_form),
+                             Authorize: AuthJWT = Depends(),
+                             db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
+    if buff is None:
+        not_found_exception()
+
+    log = BuffActivityLogDatabase(buff_id=buff.id, name="DEWORMING", value=form.anthelmintic_drug_name)
+    target_datetime = form.date if form.date is not None else current_datetime()
+
+    if form.next_deworming_duration is not None:
+        log.secondary_value = form.next_deworming_duration
+        next_datetime = target_datetime + datetime.timedelta(days=int(form.next_deworming_duration))
+        log.datetime_value = next_datetime
+        if form.notify is not None:
+            if form.notify:
+                create_notify_to_database(db, activity_id=log.id, date=log.datetime_value,
+                                          value="NEXT_DEWORMING",
+                                          category="DEWORMING")
+    else:
+        log.datetime_value = target_datetime
+        log.status = False
+
+    db.add(log)
+    db.commit()
+    result = log.deworming_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.patch('/deworming/{id}', include_in_schema=True, tags=['Deworming'], deprecated=False)
+async def edit_deworming_buff(
+        id: str,
+        form: BuffEditDewormingModel = Depends(BuffEditDewormingModel.as_form),
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    log = db.query(BuffActivityLogDatabase).get(id)
+
+    if log is None:
+        not_found_exception()
+    if log.delete or (log.delete and not log.status):
+        bad_request_exception("This activity was deleted")
+
+    notify = get_notify_from_database(db, log.id)
+
+    date_changed = False
+    updated = False
+
+    if form.anthelmintic_drug_name is not None:
+        log.value = form.anthelmintic_drug_name
+        if form.next_deworming_duration is not None:
+            target_datetime = form.date if form.date is not None else (log.datetime_value - datetime.timedelta(
+                days=int(log.secondary_value)) if log.secondary_value is not None else log.datetime_value)
+            if form.next_deworming_duration > 0:
+                log.secondary_value = form.next_deworming_duration
+                next_deworming_datetime = target_datetime + datetime.timedelta(days=form.next_deworming_duration)
+                log.datetime_value = next_deworming_datetime
+                log.status = True
+            else:
+                log.secondary_value = None
+                log.datetime_value = target_datetime
+                log.status = False
+            date_changed = True
+        else:
+            bad_request_exception("If you change anthelmintic drug name, You should add duration")
+
+    if form.notify is not None:
+        if log.status:
+            if notify is not None and not form.notify:
+                delete_notify_on_database(db, activity_id=log.id)
+                updated = True
+
+            elif notify is not None and form.notify:
+                update_notify_on_database(db, activity_id=log.id, date=log.datetime_value)
+
+                updated = True
+
+            elif notify is None and form.notify:
+                create_notify_to_database(db, activity_id=log.id, date=log.datetime_value, value="NEXT_DEWORMING",
+                                          category="DEWORMING")
+                updated = True
+        else:
+            if notify is not None:
+                delete_notify_on_database(db, activity_id=log.id)
+                updated = True
+    else:
+        if date_changed and notify is not None and not log.status:
+            update_notify_on_database(db, activity_id=log.id, date=log.datetime_value)
+            updated = True
+
+    if updated:
+        log.updated_at = current_datetime_with_timezone()
+        db.add(log)
+        db.commit()
+
+    result = log.deworming_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.post('/disease-treatment', include_in_schema=True, tags=['Disease Treatment'])
+async def add_disease_treatment_buff(form: BuffDiseaseTreatmentModel = Depends(BuffDiseaseTreatmentModel.as_form),
+                                     Authorize: AuthJWT = Depends(),
+                                     db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+
+    buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
+    if buff is None:
+        not_found_exception()
+
+    log = BuffActivityLogDatabase(buff_id=buff.id, name="DISEASE_TREATMENT", value=form.disease_name)
+    target_datetime = form.date if form.date is not None else current_datetime()
+
+    data = {"symptom": form.symptom, "drugs": form.drugs}
+    data_value = json.dumps(data)
+    log.secondary_value = data_value
+    log.bool_value = form.healed_status
+    log.datetime_value = target_datetime
+
+    log.status = False
+
+    db.add(log)
+    db.commit()
+
+    result = log.disease_treatment_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.patch('/disease-treatment/{id}', include_in_schema=True, tags=['Disease Treatment'], deprecated=False)
+async def edit_disease_treatment_buff(
+        id: str,
+        form: BuffEditDiseaseTreatmentModel = Depends(BuffEditDiseaseTreatmentModel.as_form),
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    log = db.query(BuffActivityLogDatabase).get(id)
+
+    if log is None:
+        not_found_exception()
+    if log.delete or (log.delete and not log.status):
+        bad_request_exception("This activity was deleted")
+
+    obj = json.loads(str(log.secondary_value))
+    symptom = obj["symptom"]
+    drugs = obj["drugs"]
+
+    log.value = form.disease_name if form.disease_name is not None else log.value
+    symptom = form.symptom if form.symptom is not None else symptom
+    drugs = form.drugs if form.drugs is not None else drugs
+    log.datetime_value = form.date if form.date is not None else log.datetime_value
+    log.bool_value = form.healed_status if form.healed_status is not None else log.bool_value
+
+    data = {"symptom": symptom, "drugs": drugs}
+    data_value = json.dumps(data)
+    log.secondary_value = data_value
+
+    log.updated_at = current_datetime_with_timezone()
+    log.status = False
+
+    db.add(log)
+    db.commit()
+    result = log.disease_treatment_serialize
+    return await verify_return(ResponseModel(data=result))
+
+
+def initial_notify(activity_id, datetime, value, category):
+    return BuffNotifyDatabase(activity_id=activity_id, datetime=datetime, value=value,
+                              category=category)
+
+
+def get_notify_from_database(db, activity_id):
+    return db.query(BuffNotifyDatabase).filter(BuffNotifyDatabase.activity_id == activity_id).first()
+
+
+def create_notify_to_database(db, date, activity_id, value, category, days=0, schedule=None):
+    breeding_datetime = date if date is not None else current_datetime()
+
+    notify_date = breeding_datetime + datetime.timedelta(days=days)
+
+    notify = initial_notify(activity_id=activity_id, datetime=notify_date, value=value,
+                            category=category)
+    if schedule is not None:
+        notify.schedule = str(schedule)
+    db.add(notify)
+    return notify
+
+
+def update_notify_on_database(db, activity_id, date, days=0):
+    notify = get_notify_from_database(db, activity_id)
+    breeding_datetime = date if date is not None else current_datetime()
+    notify_date = breeding_datetime + datetime.timedelta(days=days)
+    if notify is None:
+        not_found_exception()
+    notify.datetime = notify_date
+    db.add(notify)
+    return notify
+
+
+def delete_notify_on_database(db, activity_id):
+    notify = get_notify_from_database(db, activity_id)
+    if notify is None:
+        not_found_exception()
+    db.delete(notify)
+    return True
 
 
 def get_buff_response(buff):
     result = buff.serialize
     result['farm'] = buff.farm.serialize
-    result['activity'] = [i.sub_serialize for i in buff.activity]
-
+    for i in buff.activity:
+        rechecking_activities_path_available(result)
+        if i.name == 'BREEDING':
+            append_to_activities(result, i.name.lower(), i.breeding_serialize)
+        elif i.name == 'RETURN_ESTRUS':
+            append_to_activities(result, i.name.lower(), i.return_estrus_serialize)
+        elif i.name == 'VACCINE_INJECTION':
+            append_to_activities(result, i.name.lower(), i.vaccine_injection_serialize)
+        elif i.name == 'DEWORMING':
+            append_to_activities(result, i.name.lower(), i.deworming_serialize)
+        elif i.name == 'DISEASE_TREATMENT':
+            append_to_activities(result, i.name.lower(), i.disease_treatment_serialize)
+        else:
+            append_to_activities(result, "other", i.sub_serialize)
     return ResponseModel(data=result)
+
+
+def filter_buff_activities(buff, activity, delete):
+    if type(activity) is not BuffActivityType:
+        bad_request_exception()
+    result = []
+    for i in buff.activity:
+
+        if activity == BuffActivityType.BREEDING:
+            if delete is not None:
+                if i.delete == delete:
+                    result.append(i.breeding_serialize)
+            else:
+                result.append(i.breeding_serialize)
+
+        if activity == BuffActivityType.RETURN_ESTRUS:
+            if delete is not None:
+                if i.delete == delete:
+                    result.append(i.return_estrus_serialize)
+            else:
+                result.append(i.return_estrus_serialize)
+
+    return result
+
+
+def rechecking_activities_path_available(result):
+    if "activities" not in result:
+        result['activities'] = {}
+
+
+def append_to_activities(result, key, value):
+    if key not in result['activities']:
+        result['activities'][key] = []
+    result['activities'][key].append(value)
+
+
+def append_activities(result, key, value, activity_delete, delete):
+    if delete is not None:
+        if activity_delete == delete:
+            if key not in result:
+                result[key] = []
+            result[key].append(value)
+    else:
+        if key not in result:
+            result[key] = []
+        result[key].append(value)
 
 
 async def get_buff(db, id, farm_id):
     buff = db.query(BuffDatabase).get(id)
+    if buff is None:
+        not_found_exception()
     if buff.farm_id != uuid.UUID(farm_id):
         not_found_exception()
     return buff
@@ -337,6 +1054,9 @@ async def check_authorize(Authorize: AuthJWT):
         Authorize.jwt_required()
     except fastapi_jwt_auth.exceptions.MissingTokenError:
         unauthorized_exception(message="UNAUTHORIZED")
+        return await verify_return(data=None)
+    except fastapi_jwt_auth.exceptions.AuthJWTException:
+        unauthorized_exception(message="UNAUTHORIZED OR TOKEN IS EXPIRED")
         return await verify_return(data=None)
     except Exception as e:
         print(e)
@@ -446,6 +1166,12 @@ def unauthorized_exception(message=None):
     raise HTTPException(
         status_code=code.HTTP_401_UNAUTHORIZED,
         detail=message if message is not None else "UNAUTHORIZED")
+
+
+def not_allowed_exception(message=None):
+    raise HTTPException(
+        status_code=code.HTTP_405_METHOD_NOT_ALLOWED,
+        detail=message if message is not None else "NOT ALLOWED")
 
 
 def not_modified_exception(message=None):

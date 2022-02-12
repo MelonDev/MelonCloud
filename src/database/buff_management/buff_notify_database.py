@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
-from src.tools.converters.datetime_converter import current_datetime_with_timezone
+from src.tools.converters.datetime_converter import current_datetime_with_timezone, convert_datetime_to_string
 
 
 class BuffNotifyDatabase(Base):
@@ -30,3 +30,14 @@ class BuffNotifyDatabase(Base):
         self.datetime = datetime
         self.value = value
         self.category = category
+
+    @property
+    def serialize(self):
+        return {
+            "id": self.id,
+            "value": self.value,
+            "category": self.category,
+            # "notify_datetime": convert_datetime_to_string(self.notify_datetime),
+            "notify_datetime": self.notify_datetime.date(),
+            "status": self.status
+        }

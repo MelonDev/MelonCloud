@@ -23,7 +23,6 @@ from src.database.buff_management.farm_database import FarmDatabase
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
 
-
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
 from src.routers.poc.jwt import jwt_poc
@@ -39,10 +38,10 @@ def include_router_page(app):
 def include_router(app):
     # twitter_app.include_router(twitter_api.router, prefix="/api/twitter", tags=["Twitter"])
     # app.include_router(pwg_api.router, prefix="/api/security", tags=["Random Password Generator"])
-    app.include_router(jwt_poc.router, prefix="/api/poc/jwt", tags=["JWT"])
-    app.include_router(oauth_poc.router, prefix="/api/poc/oauth", tags=["OAuth2"])
-    app.include_router(playground.router, prefix="/api/playground", tags=["playground"])
-    app.include_router(user.router, prefix="/api/user", tags=["users"])
+    app.include_router(jwt_poc.router, prefix="/poc/jwt", tags=["JWT"])
+    app.include_router(oauth_poc.router, prefix="/poc/oauth", tags=["OAuth2"])
+    app.include_router(playground.router, prefix="/playground", tags=["playground"])
+    app.include_router(user.router, prefix="/user", tags=["users"])
 
 
 def configure_static(app):
@@ -56,7 +55,6 @@ def configure_sub_application(app):
     app.mount("/api/v2/buff", buff_app)
     app.mount("/api/v2/meloncloud-book", meloncloud_book_app)
     app.mount("/api/v2/database-backup", database_backup_hub_app)
-
 
 
 def init_app():
