@@ -14,6 +14,9 @@ def _video_key(value) -> str:
 
 
 def _photo_type_url(value, type: ImageQualityEnum) -> str:
+    if "http://" in value:
+        print("FOUND")
+        value = value.replace("http://", "https://")
     return value + ":" + (type if type is not None else ImageQualityEnum.orig)
 
 
