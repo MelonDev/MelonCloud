@@ -31,6 +31,8 @@ class MelonCloudTwitterDatabase(Base):
     deleted = Column(Boolean, default=False, nullable=True)
     memories = Column(Boolean, default=False, nullable=True)
 
+
+
     def __init__(self, id: str, tweeted_at: datetime, account_id: str):
         self.id = id
         self.tweeted_at = tweeted_at

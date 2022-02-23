@@ -42,7 +42,7 @@ class FarmDatabase(Base):
         self.updated_at = dt
         self.delete = False
 
-    def change_password(self,password):
+    def change_password(self, password):
         self.password = password
         self.updated_at = current_datetime_with_timezone()
 
@@ -58,11 +58,20 @@ class FarmDatabase(Base):
             if farm_name:
                 self.name = farm_name
 
-
     @property
     def serialize(self):
         return {
             "farm_name": self.name,
             "address": self.address,
             "email": self.email,
+        }
+
+    @property
+    def test(self):
+        return {
+            "farm_name": self.name,
+            "address": self.address,
+            "email": self.email,
+            #"buffs": [buff.sub_serialize for buff in self.buffs]]
+            "buffs" : self.buffs
         }

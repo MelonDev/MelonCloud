@@ -1,12 +1,16 @@
 import datetime
+from enum import Enum
+from typing import List
 
 import tweepy
 from fastapi import HTTPException, status as code
 
 from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY_V2, \
     CONSUMER_SECRET_V2, ACCESS_TOKEN_V2, ACCESS_TOKEN_SECRET_V2, BEARER_TOKEN_V2
+from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.enums.profile_enum import ProfileTypeEnum
+from src.models.meloncloud_twitter_model import MelonCloudTweetResponseModel
 from src.models.twitter_model import TweetResponseModel
 from src.tools.converters.datetime_converter import convert_string_to_datetime
 
@@ -19,6 +23,12 @@ def authentication():
 
 def access():
     return tweepy.API(auth=authentication(), wait_on_rate_limit=True)
+
+
+class TweetTypeEnum(str, Enum):
+    PHOTO = "PHOTO"
+    VIDEO = "VIDEO"
+    TEXT = "TEXT"
 
 
 def test_client_mode():
@@ -47,6 +57,26 @@ def get_status(id):
         return data._json
     except tweepy.errors.TweepyException:
         return None
+
+
+def get_lookup_statuses(ids: List[str]):
+    data = access().lookup_statuses(ids)
+    return list(map(lambda x: x._json, data))
+
+
+def get_dict_lookup_statuses(ids: List[str]):
+    data = access().lookup_statuses(ids)
+    return dict(map(lambda x: (x._json['id_str'], x._json), data))
+
+
+def has_deleted(id: str):
+    try:
+        data = access().get_status(id, tweet_mode='extended')
+        return data is None
+    except tweepy.errors.NotFound:
+        return True
+    except tweepy.errors.TweepyException:
+        return False
 
 
 def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.user_id):
@@ -161,6 +191,17 @@ def initialize_tweet_model(data) -> MelonDevTwitterDatabase:
     return model
 
 
+def initialize_melonncloud_tweet_model(data) -> MelonDevTwitterDatabase:
+    created_at = convert_string_to_datetime(str(data['created_at']))
+
+    model = MelonCloudTwitterDatabase(id=data['id_str'], tweeted_at=created_at, account_id=data['user']['id_str'])
+    model.message = data['full_text'] if "full_text" in data else data['text']
+    model.lang = data['lang']
+    model.deleted = False
+
+    return model
+
+
 async def hasFavorited(id) -> bool:
     tweet = get_status(id)
     return bool(tweet['favorited']) if "favorited" in tweet else False
@@ -169,6 +210,69 @@ async def hasFavorited(id) -> bool:
 async def hasRetweeted(id) -> bool:
     tweet = await get_status(id)
     return bool(tweet['retweeted']) if "retweeted" in tweet else False
+
+
+async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetResponseModel:
+    data = data if data is not None else get_status(id)
+    if data is None:
+        raise HTTPException(
+            status_code=code.HTTP_404_NOT_FOUND,
+            detail="The requested tweet was not found")
+
+    tweet = initialize_melonncloud_tweet_model(data)
+
+    videos = []
+    photos = []
+    medias = []
+
+    if 'extended_entities' in data:
+        media = data['extended_entities']['media']
+        for value in media:
+            type = value['type']
+            if type == 'video' or type == 'animated_gif':
+                tweet.thumbnail = value['media_url_https']
+                info = value['video_info']
+                variants = info['variants']
+                [variants.remove(i) for i in variants if 'bitrate' not in i]
+                url = max(variants, key=lambda x: x['bitrate'])['url']
+
+                name = (url.split('/')[-1]).split('?')[0].replace(".mp4", "")
+
+                videos.append(url)
+                medias.append({
+                    "name": name,
+                    "url": url,
+                    "type": TweetTypeEnum.VIDEO
+                })
+                tweet.type = TweetTypeEnum.VIDEO
+            elif type == 'photo':
+                url = value['media_url_https']
+                photos.append(url)
+                name = (url.split('/')[-1]).replace(".jpg", "")
+                medias.append({
+                    "name": name,
+                    "url": url,
+                    "type": TweetTypeEnum.PHOTO
+                })
+                tweet.type = TweetTypeEnum.PHOTO
+            else:
+                tweet.type = TweetTypeEnum.TEXT
+
+    tweet.video = videos if len(videos) > 0 else None
+    tweet.photo = photos if len(photos) > 0 else None
+
+    entities = data['entities']
+
+    hashtags = entities['hashtags']
+    tweet.hashtags = [value['text'] for value in hashtags] if len(hashtags) > 0 else None
+
+    mentions = entities['user_mentions']
+    tweet.mentions = [value['id_str'] for value in mentions] if len(mentions) > 0 else None
+
+    urls = entities['urls']
+    tweet.urls = [value['expanded_url'] for value in urls] if len(urls) > 0 else None
+
+    return MelonCloudTweetResponseModel(tweet=tweet, media_urls=medias)
 
 
 async def get_tweet_model(id, data: dict = None, para_tweet=None) -> TweetResponseModel:

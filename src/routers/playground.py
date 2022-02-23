@@ -1,3 +1,4 @@
+import random
 from enum import Enum
 from string import digits
 from random import choice
@@ -6,11 +7,15 @@ import firebase_admin
 from firebase_admin import credentials, storage
 
 from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, Request
+from sqlalchemy import func
 
 from sqlalchemy.orm import Session
 
+from src.database.buff_management.buff_database import BuffDatabase
+from src.database.buff_management.farm_database import FarmDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
-from src.engines.twitter_engines import test_client_mode
+from src.engines.twitter_engines import test_client_mode, get_status, has_deleted, get_lookup_statuses, \
+    get_dict_lookup_statuses
 from src.environment.database import get_db
 from src.environment.firebase_enviroment import create_credentials_file, firebase_storage_url
 from src.models.response_model import ResponseModel
@@ -114,3 +119,50 @@ async def download_csv_test(request: Request, db: Session = Depends(get_db)):
 async def get_model(name_model: NameEnumModel, num: make_enum("Table", [("HELLO", "hello"), ("HI", "hi")]),
                     name: make_enum("Name", ["John", "Edward"]) = None):
     return f'{name_model} {num.value} {name.value}'
+
+@router.get("/test-buff", include_in_schema=True)
+async def test_buff(request: Request, db: Session = Depends(get_db)):
+    farms = db.query(FarmDatabase).filter(FarmDatabase.buffs.any(BuffDatabase.gender == "FEMALE")).all()
+    result = [farm.test for farm in farms]
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.get("/random-tweet", include_in_schema=True)
+async def random_tweet(request: Request, db: Session = Depends(get_db)):
+    tweets = db.query(MelonDevTwitterDatabase).order_by(func.random()).limit(100).all()
+    #result = [tweet.serialize for tweet in tweets]
+    #deleted_tweet_id = "1389449192918044672"
+    #tweet = has_deleted(deleted_tweet_id)
+
+    #ids = ["1496088918131093508","1496090053902282754","1389449192918044672","1380893596593754115","1495323508896768000"]
+    ids = [i.id for i in tweets]
+    data = get_dict_lookup_statuses(ids)
+    for k,v in data.items():
+        print(k)
+        print(v)
+    #a = [d for d in data if tuple(d.items()) not in ids]
+    a = [target for target in ids if target not in data]
+    print(a)
+    print("\n")
+
+    b = [i for i in tweets if i.id not in data]
+    for i in b:
+        print(i.serialize)
+
+
+    #return await verify_return(ResponseModel(data=result))
+    return await verify_return(ResponseModel(data="result"))
+
+
+@router.get("/automatic-check-tweet-has-deleted", include_in_schema=True)
+async def automatic_check_tweet_has_deleted(request: Request, db: Session = Depends(get_db)):
+    tweets = db.query(MelonDevTwitterDatabase).order_by(func.random()).limit(100).all()
+    data = get_dict_lookup_statuses([i.id for i in tweets])
+
+    for tweet in tweets:
+        deleted = tweet.id not in data
+        if tweet.deleted != deleted:
+            tweet.deleted = deleted
+
+    return await verify_return(ResponseModel(data="result"))
+

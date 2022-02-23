@@ -45,6 +45,8 @@ class MelonCloudPeopleDatabase(Base):
         self.bilibili_id = bilibili_id
         self.furaffinity_id = furaffinity_id
 
+
+
     @property
     def serialize(self):
         return {
