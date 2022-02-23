@@ -90,7 +90,7 @@ def is_action(value: str, action: str) -> bool:
 
 def is_not_action(value: str, action: str) -> bool:
     if value is None:
-        return False
+        return True
     return value != action
 
 
