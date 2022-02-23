@@ -25,7 +25,7 @@ def access():
     return tweepy.API(auth=authentication(), wait_on_rate_limit=True)
 
 
-class TweetTypeEnum(str, Enum):
+class TweetMediaType(str, Enum):
     PHOTO = "PHOTO"
     VIDEO = "VIDEO"
     TEXT = "TEXT"
@@ -242,9 +242,9 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
                 medias.append({
                     "name": name,
                     "url": url,
-                    "type": TweetTypeEnum.VIDEO
+                    "type": TweetMediaType.VIDEO
                 })
-                tweet.type = TweetTypeEnum.VIDEO
+                tweet.type = TweetMediaType.VIDEO
             elif type == 'photo':
                 url = value['media_url_https']
                 photos.append(url)
@@ -252,11 +252,11 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
                 medias.append({
                     "name": name,
                     "url": url,
-                    "type": TweetTypeEnum.PHOTO
+                    "type": TweetMediaType.PHOTO
                 })
-                tweet.type = TweetTypeEnum.PHOTO
+                tweet.type = TweetMediaType.PHOTO
             else:
-                tweet.type = TweetTypeEnum.TEXT
+                tweet.type = TweetMediaType.TEXT
 
     tweet.video = videos if len(videos) > 0 else None
     tweet.photo = photos if len(photos) > 0 else None

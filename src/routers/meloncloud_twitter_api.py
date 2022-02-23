@@ -12,7 +12,7 @@ from src.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model,
     hasFavorited, like_tweet
 from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction
-from src.tools.onedrive_adapter import send_url_to_onedrive
+from src.tools.onedrive_adapter import send_url_to_onedrive, send_url_to_meloncloud_onedrive
 from src.tools.verify_hub import response
 
 router = APIRouter()
@@ -65,7 +65,7 @@ async def process_tweet(request: RequestAnalyzeModel, package, tweet_id: str, db
             await like_tweet(tweet_id)
         if item is not None:
             if request.tag == 'ME LIKE':
-                await send_url_to_onedrive(package.media_urls)
+                await send_url_to_meloncloud_onedrive(package.media_urls)
                 item.memories = True
                 if is_action(request.action, TweetAction.LIKE) or is_action(request.action, TweetAction.SECRET_LIKE):
                     item.event = request.tag
@@ -76,7 +76,7 @@ async def process_tweet(request: RequestAnalyzeModel, package, tweet_id: str, db
             package.tweet.event = request.tag
             if request.tag == 'ME LIKE':
                 package.tweet.memories = True
-                await send_url_to_onedrive(package.media_urls)
+                await send_url_to_meloncloud_onedrive(package.media_urls)
             db.add(package.tweet)
             if enable_commit:
                 db.commit()
