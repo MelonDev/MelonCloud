@@ -196,7 +196,7 @@ def initialize_melonncloud_tweet_model(data) -> MelonDevTwitterDatabase:
 
     model = MelonCloudTwitterDatabase(id=data['id_str'], tweeted_at=created_at, account_id=data['user']['id_str'])
     model.message = data['full_text'] if "full_text" in data else data['text']
-    model.lang = data['lang']
+    model.language = data['lang']
     model.deleted = False
 
     return model
