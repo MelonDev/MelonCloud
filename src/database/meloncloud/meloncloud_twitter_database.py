@@ -38,7 +38,7 @@ class MelonCloudTwitterDatabase(Base):
         self.tweeted_at = tweeted_at
         self.account_id = account_id
 
-        self.stored_at = current_datetime_with_timezone()
+        self.stored_at = datetime.datetime.now()
 
         self.deleted = False
         self.memories = False
