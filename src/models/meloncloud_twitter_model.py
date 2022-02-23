@@ -27,7 +27,7 @@ class TweetAction(str, Enum):
 
 
 @as_form
-class RequestAnalyzeModel(BaseModel):
+class RequestAnalyzeModel(ValidatorModel):
     tag: str
     url: str
     action: TweetAction = None
