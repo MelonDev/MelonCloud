@@ -1,4 +1,5 @@
 import datetime
+import json
 from enum import Enum
 from typing import List
 
@@ -13,6 +14,7 @@ from src.enums.profile_enum import ProfileTypeEnum
 from src.models.meloncloud_twitter_model import MelonCloudTweetResponseModel
 from src.models.twitter_model import TweetResponseModel
 from src.tools.converters.datetime_converter import convert_string_to_datetime
+from src.tools.json_tool import to_json_object, has_key
 
 
 def authentication():
@@ -258,8 +260,8 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
             else:
                 tweet.type = TweetMediaType.TEXT
 
-    tweet.video = videos if len(videos) > 0 else None
-    tweet.photo = photos if len(photos) > 0 else None
+    tweet.videos = videos if len(videos) > 0 else None
+    tweet.photos = photos if len(photos) > 0 else None
 
     entities = data['entities']
 

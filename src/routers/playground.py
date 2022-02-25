@@ -1,3 +1,4 @@
+import json
 import random
 from enum import Enum
 from string import digits
@@ -7,15 +8,17 @@ import firebase_admin
 from firebase_admin import credentials, storage
 
 from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, Request
+from pyxtension.Json import Json
 from sqlalchemy import func
 
 from sqlalchemy.orm import Session
 
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.farm_database import FarmDatabase
+from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.engines.twitter_engines import test_client_mode, get_status, has_deleted, get_lookup_statuses, \
-    get_dict_lookup_statuses
+    get_dict_lookup_statuses, get_meloncloud_tweet_model, TweetMediaType
 from src.environment.database import get_db
 from src.environment.firebase_enviroment import create_credentials_file, firebase_storage_url
 from src.models.response_model import ResponseModel
@@ -26,7 +29,8 @@ import csv
 
 from src.tools.db_exporter import export, last_day_of_month, export_month_on_year
 from src.tools.generators.enum_generator import make_enum
-from src.tools.verify_hub import verify_return
+from src.tools.json_tool import pretty_json, to_json_object
+from src.tools.verify_hub import verify_return, response
 
 router = APIRouter()
 
@@ -120,6 +124,7 @@ async def get_model(name_model: NameEnumModel, num: make_enum("Table", [("HELLO"
                     name: make_enum("Name", ["John", "Edward"]) = None):
     return f'{name_model} {num.value} {name.value}'
 
+
 @router.get("/test-buff", include_in_schema=True)
 async def test_buff(request: Request, db: Session = Depends(get_db)):
     farms = db.query(FarmDatabase).filter(FarmDatabase.buffs.any(BuffDatabase.gender == "FEMALE")).all()
@@ -130,17 +135,17 @@ async def test_buff(request: Request, db: Session = Depends(get_db)):
 @router.get("/random-tweet", include_in_schema=True)
 async def random_tweet(request: Request, db: Session = Depends(get_db)):
     tweets = db.query(MelonDevTwitterDatabase).order_by(func.random()).limit(100).all()
-    #result = [tweet.serialize for tweet in tweets]
-    #deleted_tweet_id = "1389449192918044672"
-    #tweet = has_deleted(deleted_tweet_id)
+    # result = [tweet.serialize for tweet in tweets]
+    # deleted_tweet_id = "1389449192918044672"
+    # tweet = has_deleted(deleted_tweet_id)
 
-    #ids = ["1496088918131093508","1496090053902282754","1389449192918044672","1380893596593754115","1495323508896768000"]
+    # ids = ["1496088918131093508","1496090053902282754","1389449192918044672","1380893596593754115","1495323508896768000"]
     ids = [i.id for i in tweets]
     data = get_dict_lookup_statuses(ids)
-    for k,v in data.items():
+    for k, v in data.items():
         print(k)
         print(v)
-    #a = [d for d in data if tuple(d.items()) not in ids]
+    # a = [d for d in data if tuple(d.items()) not in ids]
     a = [target for target in ids if target not in data]
     print(a)
     print("\n")
@@ -149,9 +154,41 @@ async def random_tweet(request: Request, db: Session = Depends(get_db)):
     for i in b:
         print(i.serialize)
 
-
-    #return await verify_return(ResponseModel(data=result))
+    # return await verify_return(ResponseModel(data=result))
     return await verify_return(ResponseModel(data="result"))
+
+
+@router.get("/poc-twitter", include_in_schema=True)
+async def poc_twitter(request: Request, db: Session = Depends(get_db)):
+    id = "1496944541282144269"
+    # tweet = get_status(id)
+    # print(tweet)
+    # json_object = to_json_object(tweet)
+    # print(json_object.created_at)
+    # print(type(json_object.created_at))
+    # print(json_object)
+    # print(pretty_json(tweet))
+    database = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.type == TweetMediaType.PHOTO).filter(
+        MelonCloudTwitterDatabase.photos == None).all()
+
+    data_list = list(chunks(database,100))
+    for i in data_list:
+        list_id = [j.id for j in i]
+        data = get_dict_lookup_statuses(list_id)
+        print(len(data))
+
+    '''
+    for i in data:
+        package = await get_meloncloud_tweet_model(i.id)
+        print(package.tweet.photos)
+        '''
+
+    return response("HELLO")
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 
 @router.get("/automatic-check-tweet-has-deleted", include_in_schema=True)
@@ -165,4 +202,3 @@ async def automatic_check_tweet_has_deleted(request: Request, db: Session = Depe
             tweet.deleted = deleted
 
     return await verify_return(ResponseModel(data="result"))
-

@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, validator
 
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
+from src.enums.sorting_enum import SortingEnum
 from src.tools.as_form import as_form
 
 
@@ -24,6 +25,22 @@ class TweetAction(str, Enum):
     LIKE = "Like"
     SECRET_LIKE = "Secret like"
     ONLY_MEDIA = "Only media"
+
+class RequestTweetQueryModel(BaseModel):
+    event: str = None
+    hashtag: str = None
+    account_id: str = None
+    account_name: str = None
+    me_like: bool = None
+    mention_id: str = None
+    mention_name: str = None
+    start_date: str = None
+    end_date: str = None
+    limit: int = None
+    page: int = None
+    infinite: bool = None
+    sorting: SortingEnum = None
+    deleted: bool = None
 
 
 @as_form

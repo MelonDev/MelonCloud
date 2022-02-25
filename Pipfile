@@ -38,6 +38,7 @@ app = "*"
 google-cloud-storage = "*"
 firebase = "*"
 firebase-admin = "*"
+pyxtension = "*"
 
 [dev-packages]
 
