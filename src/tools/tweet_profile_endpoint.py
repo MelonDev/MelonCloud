@@ -1,3 +1,4 @@
+from src.models.meloncloud_twitter_model import MelonCloudTweetPeopleModel
 from src.models.twitter_model import TweetPeopleModel, TweetPeopleResponseModel
 
 
@@ -8,6 +9,27 @@ def get_profile_endpoint(data):
     profile = TweetPeopleModel(id=in_dict(data, 'id_str'), name=in_dict(data, 'name'),
                                screen_name=in_dict(data, 'screen_name'),
                                protected=in_dict_for_bool(data, 'protected'))
+    profile.set_profile(profile_banner=in_dict(data, 'profile_banner_url'),
+                        profile_image=remove_normal_from_user_image(in_dict(data, 'profile_image_url_https')),
+                        profile_text_color=in_dict(data, 'profile_text_color'),
+                        profile_sidebar_fill_color=in_dict(data, 'profile_sidebar_fill_color'),
+                        profile_sidebar_border_color=in_dict(data, 'profile_sidebar_border_color'),
+                        profile_link_color=in_dict(data, 'profile_link_color'))
+    profile.set_description(location=in_dict(data, 'location'), description=in_dict(data, 'description'))
+    profile.set_counters(followers_count=in_dict_for_int(data, 'followers_count'),
+                         friends_count=in_dict_for_int(data, 'friends_count'),
+                         favourites_count=in_dict_for_int(data, 'favourites_count'),
+                         statuses_count=in_dict_for_int(data, 'statuses_count'))
+    return profile
+
+
+def get_meloncloud_tweet_profile_endpoint(data):
+    if data is None:
+        return None
+
+    profile = MelonCloudTweetPeopleModel(id=in_dict(data, 'id_str'), name=in_dict(data, 'name'),
+                                         screen_name=in_dict(data, 'screen_name'),
+                                         protected=in_dict_for_bool(data, 'protected'))
     profile.set_profile(profile_banner=in_dict(data, 'profile_banner_url'),
                         profile_image=remove_normal_from_user_image(in_dict(data, 'profile_image_url_https')),
                         profile_text_color=in_dict(data, 'profile_text_color'),

@@ -2,12 +2,12 @@ from enum import Enum
 
 
 class ProfileQueryEnum(str, Enum):
-    tweet = 'tweet'
-    mention = 'mention'
-    combine = 'combine'
-    raw = 'raw'
+    TWEET = 'TWEET'
+    MENTION = 'MENTION'
+    COMBINE = 'COMBINE'
+    RAW = 'RAW'
 
 
 class ProfileTypeEnum(str, Enum):
-    user_id = 'user_id'
-    screen_name = 'screen_name'
+    USER_ID = 'USER_ID'
+    SCREEN_NAME = 'SCREEN_NAME'

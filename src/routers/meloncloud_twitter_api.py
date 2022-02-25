@@ -1,3 +1,5 @@
+import math
+
 from fastapi import APIRouter, Depends, HTTPException, status as code, Response, WebSocket
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
@@ -9,12 +11,18 @@ from urllib.parse import urlparse
 
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_meloncloud_tweet_model, \
-    hasFavorited, like_tweet, get_user_id
+    hasFavorited, like_tweet, get_user_id, get_status, get_dict_lookup_user, get_user_profile
+from src.enums.profile_enum import ProfileTypeEnum, ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
+from src.enums.type_enum import FileTypeEnum
 from src.environment.database import get_db
-from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel
+from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel, \
+    RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, TweetMediaType
+from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import append_timezone
 from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
+from src.tools.photos_endpoint import tweet_people_endpoint, tweet_photo_endpoint, tweet_video_endpoint
+from src.tools.tweet_profile_endpoint import get_meloncloud_tweet_profile_endpoint
 from src.tools.verify_hub import response
 
 router = APIRouter()
@@ -31,6 +39,27 @@ async def number_of_tweets(db: Session = Depends(get_db)):
     return response(count)
 
 
+@router.get("/media")
+async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
+    if params.type is None:
+        bad_request_exception("Media type have not been defined")
+    if params.type is TweetMediaType.TEXT:
+        bad_request_exception("Text is not media")
+    file_type = FileTypeEnum.PHOTOS if params.type is TweetMediaType.PHOTO else FileTypeEnum.VIDEOS
+    database = database_media_type_categorize(db=db, file_type=file_type)
+    compute_database = filtering_meloncloud_twitter_database(params=params, db=database)
+    limit_database = append_limit_to_database(params=params, database=compute_database)
+    results = limit_database.all()
+    if file_type is FileTypeEnum.PHOTOS:
+        data = list(map(lambda x: tweet_photo_endpoint(x, params.quality), results))
+        return response(data)
+    elif file_type is FileTypeEnum.VIDEOS:
+        data = list(map(lambda x: tweet_video_endpoint(x), results))
+        return response(data)
+    else:
+        bad_request_exception()
+
+
 @router.get("/tweets")
 async def get_all_tweets(params: RequestTweetQueryModel = Depends(),
                          db: Session = Depends(get_db)):
@@ -40,6 +69,135 @@ async def get_all_tweets(params: RequestTweetQueryModel = Depends(),
     results = limit_database.all()
     data_results = [i.serialize for i in results]
     return response(data_results)
+
+
+@router.get("/tweets/{tweet_id}", status_code=code.HTTP_200_OK)
+async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
+    if bool(req.raw):
+        package = await get_status(req.tweet_id)
+        return response(package)
+    else:
+        tweet = db.query(MelonCloudTwitterDatabase).get(req.tweet_id)
+        if tweet is None:
+            not_found_exception()
+
+        return response(tweet.serialize)
+
+
+@router.get("/peoples", status_code=code.HTTP_200_OK)
+async def get_all_peoples(params: RequestPeopleQueryModel = Depends(), db: Session = Depends(get_db)):
+    if bool(params.infinite):
+        bad_request_exception("The infinite has duplicated")
+
+    database = db.query(MelonCloudTwitterDatabase.account_id,
+                        func.count(MelonCloudTwitterDatabase.account_id))
+    compute_database = filtering_people_database(params=params, db=database)
+    count = compute_database.count()
+    raw = compute_database.all()
+    reverse = (True if params.sorting is SortingTweet.DESC else False) if params.sorting is not None else True
+    data_sorted = sorted(raw, key=lambda kv: kv[1], reverse=reverse)
+    limit = len(data_sorted) if bool(params.infinite) else int(params.limit if params.limit is not None else 50)
+    page = 0 if bool(params.infinite) else int(params.page if params.page is not None else 0) * limit
+    real_page = int(params.page if params.page is not None else 0)
+
+    total_page = int(math.ceil(count / limit)) if count > 0 else 0
+    is_overflow(real_page, total_page)
+
+    data_list = data_sorted[page:page + limit]
+
+    if len(data_list) > 100:
+        list_chunks = chunks(data_list, int(math.ceil(len(data_list) / 100)))
+        peoples_list = {}
+        for i in list_chunks:
+            peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), i)))
+            peoples_list.update(peoples)
+        results = list(filter(partial(is_not, None),
+                              map(lambda x: tweet_people_endpoint(
+                                  get_meloncloud_tweet_profile_endpoint(peoples_list.get(x[0], None)), x[1]),
+                                  data_list)))
+
+    else:
+        peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), data_list)))
+        results = list(filter(partial(is_not, None),
+                              map(lambda x: tweet_people_endpoint(
+                                  get_meloncloud_tweet_profile_endpoint(peoples.get(x[0], None)), x[1]),
+                                  data_list)))
+
+    real_page = int(params.page if params.page is not None else 0)
+    fabric = {
+        "total_items": count,
+        "per_page": int(params.limit if params.limit is not None else 50),
+        "item_on_page": len(results),
+        "total_page": total_page,
+        "current_page": real_page,
+        "next_page": real_page + 1 if real_page < total_page - 1 else None,
+        "previous_page": real_page - 1 if real_page > 0 else None
+    }
+
+    return response(data=results, fabric=fabric)
+
+
+@router.get("/peoples/{account}", status_code=code.HTTP_200_OK)
+async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = Depends(get_db)):
+    if bool(req.infinite):
+        bad_request_exception("infinite has duplicated")
+
+    if req.account is None:
+        not_found_exception()
+    account = get_profile(req.account)
+    if bool(req.query is ProfileQueryEnum.RAW):
+        return response(account)
+    else:
+        profile = get_meloncloud_tweet_profile_endpoint(account)
+        result = {}
+
+        if profile is not None:
+            result["profile"] = profile
+
+            count = 0
+            page = req.page if req.page is not None else 0
+            limit = req.limit if req.limit is not None else 50
+            total_page = 0
+            item_count = limit
+
+            if req.query is not None:
+                database = None
+
+                if req.query is ProfileQueryEnum.TWEET or req.query is None:
+                    database = db.query(MelonCloudTwitterDatabase).filter(
+                        MelonCloudTwitterDatabase.account_id.contains(profile.id))
+                if req.query is ProfileQueryEnum.MENTION:
+                    database = db.query(MelonCloudTwitterDatabase).filter(
+                        MelonCloudTwitterDatabase.mentions.any(profile.id))
+                if req.query is ProfileQueryEnum.COMBINE:
+                    database = db.query(MelonCloudTwitterDatabase).filter(
+                        or_(MelonCloudTwitterDatabase.account_id.contains(profile.id),
+                            MelonCloudTwitterDatabase.mentions.any(profile.id)))
+
+                database = filtering_profile_database(params=req, database=database)
+                count = database.count()
+
+                total_page = int(math.ceil(count / limit)) if count > 0 else 0
+                is_overflow(page, total_page)
+
+                limit_database = append_limit_to_database(params=req, database=database)
+                item_count = limit_database.count()
+                tweets = limit_database.all()
+                result["tweets"] = [i.serialize for i in tweets]
+
+            fabric = {
+                "total_items": count,
+                "per_page": limit,
+                "item_on_page": item_count,
+                "total_page": total_page,
+                "current_page": page,
+                "next_page": page + 1 if page < total_page - 1 else None,
+                "previous_page": page - 1 if page > 0 else None
+            }
+
+            return response(data=result, fabric=fabric)
+
+        return response(result)
 
 
 @router.post("/analyze", summary="วิเคราะห์ทวีต",
@@ -95,6 +253,58 @@ async def processing_tweet(request: RequestAnalyzeModel, package, tweet_id: str,
                 db.commit()
 
 
+def filtering_people_database(params: RequestPeopleQueryModel, db):
+    database = db if type(db) is DBQuery else db.query(MelonCloudTwitterDatabase.account,
+                                                       func.count(MelonCloudTwitterDatabase.account))
+
+    if params is None:
+        bad_request_exception()
+
+    database = database.group_by(MelonCloudTwitterDatabase.account_id)
+
+    if params.hashtag is not None:
+        database = database.filter(MelonCloudTwitterDatabase.hashtags.any(params.hashtag))
+    if params.event is not None:
+        database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
+    if params.me_like is not None:
+        database = database.filter(MelonCloudTwitterDatabase.memories.is_(params.me_like))
+    if params.start_date is not None:
+        ds = append_timezone(dt.datetime.strptime(f"{params.start_date} 00:00:00", "%Y-%m-%d %H:%M:%S"))
+        database = database.filter(MelonCloudTwitterDatabase.stored_at >= ds)
+    if params.end_date is not None:
+        de = append_timezone(dt.datetime.strptime(f"{params.end_date} 23:59:59", '%Y-%m-%d %H:%M:%S'))
+        database = database.filter(MelonCloudTwitterDatabase.stored_at <= de)
+
+    return database
+
+
+def filtering_profile_database(params: RequestProfileModel, database):
+    if database is None or params is None:
+        bad_request_exception()
+    if params.hashtag is not None:
+        database = database.filter(MelonCloudTwitterDatabase.hashtags.any(params.hashtag))
+    if params.event is not None:
+        database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
+    if params.me_like is not None:
+        database = database.filter(MelonCloudTwitterDatabase.memories.is_(params.me_like))
+    if params.start_date is not None:
+        ds = append_timezone(dt.datetime.strptime(f"{params.start_date} 00:00:00", "%Y-%m-%d %H:%M:%S"))
+        database = database.filter(MelonCloudTwitterDatabase.addedAt >= ds)
+    if params.end_date is not None:
+        de = append_timezone(dt.datetime.strptime(f"{params.end_date} 23:59:59", '%Y-%m-%d %H:%M:%S'))
+        database = database.filter(MelonCloudTwitterDatabase.addedAt <= de)
+
+    if params.deleted is not None:
+        database = database.filter(MelonCloudTwitterDatabase.deleted.is_(params.deleted))
+
+    if params.sorting == SortingTweet.ASC:
+        database = database.order_by(asc(MelonCloudTwitterDatabase.stored_at))
+    else:
+        database = database.order_by(desc(MelonCloudTwitterDatabase.stored_at))
+
+    return database
+
+
 def filtering_meloncloud_twitter_database(params: RequestTweetQueryModel, db):
     database = db if type(db) is DBQuery else db.query(MelonCloudTwitterDatabase)
 
@@ -118,10 +328,10 @@ def filtering_meloncloud_twitter_database(params: RequestTweetQueryModel, db):
     if params.type is not None:
         database = database.filter(MelonCloudTwitterDatabase.type.contains(params.type))
     if params.start_date is not None:
-        ds = append_timezone(dt.datetime.strptime(str(params.start_date) + " 00:00:00", '%Y-%m-%d %H:%M:%S'))
+        ds = append_timezone(dt.datetime.strptime(f"{params.start_date} 00:00:00", "%Y-%m-%d %H:%M:%S"))
         database = database.filter(MelonCloudTwitterDatabase.stored_at >= ds)
     if params.end_date is not None:
-        de = append_timezone(dt.datetime.strptime(str(params.end_date) + " 23:59:59", '%Y-%m-%d %H:%M:%S'))
+        de = append_timezone(dt.datetime.strptime(f"{params.end_date} 23:59:59", '%Y-%m-%d %H:%M:%S'))
         database = database.filter(MelonCloudTwitterDatabase.stored_at <= de)
 
     if params.deleted is not None:
@@ -135,12 +345,42 @@ def filtering_meloncloud_twitter_database(params: RequestTweetQueryModel, db):
     return database
 
 
+def get_profile(account: str):
+    if account.isdigit():
+        package = get_user_profile(account, type=ProfileTypeEnum.USER_ID)
+        if package is None:
+            package = get_user_profile(account, type=ProfileTypeEnum.SCREEN_NAME)
+    else:
+        package = get_user_profile(account, type=ProfileTypeEnum.SCREEN_NAME)
+        if package is None:
+            package = get_user_profile(account, type=ProfileTypeEnum.USER_ID)
+    return package
+
+
 def append_limit_to_database(params, database):
     if not bool(params.infinite):
         page = params.page if params.page is not None else 0
         limit = params.limit if params.limit is not None else 50
         database = database.limit(limit).offset(int(page * limit))
     return database
+
+
+def database_media_type_categorize(db, file_type: FileTypeEnum):
+    if file_type is FileTypeEnum.PHOTOS:
+        return db.query(func.unnest(MelonCloudTwitterDatabase.photos), MelonCloudTwitterDatabase.id,
+                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at)
+    elif file_type is FileTypeEnum.VIDEOS:
+        return db.query(func.unnest(MelonCloudTwitterDatabase.videos), MelonCloudTwitterDatabase.id,
+                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
+                        MelonCloudTwitterDatabase.thumbnail)
+    else:
+        bad_request_exception()
+
+
+def is_overflow(page: int, total_page: int):
+    if page >= total_page:
+        bad_request_exception(
+            f"Page Overflow : Total page is {total_page} and the page starts at page 0 to {total_page - 1}")
 
 
 def is_action(value: str, action: str) -> bool:

@@ -59,10 +59,10 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
     compute_database = apply_database_for_tweet_filters(params=params, db=database)
     limit_database = apply_limit_to_database(params=params, database=compute_database)
     results = limit_database.all()
-    if params.file_type is FileTypeEnum.photos:
+    if params.file_type is FileTypeEnum.PHOTOS:
         data = list(map(lambda x: tweet_photo_endpoint(x, params.quality), results))
         return await verify_return(data=ResponseModel(data=data))
-    elif params.file_type is FileTypeEnum.videos:
+    elif params.file_type is FileTypeEnum.VIDEOS:
         data = list(map(lambda x: tweet_video_endpoint(x), results))
         return await verify_return(data=ResponseModel(data=data))
     else:
@@ -120,7 +120,7 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
     if req.account is None:
         not_found_exception()
     account = get_profile(req.account)
-    if bool(req.query is ProfileQueryEnum.raw):
+    if bool(req.query is ProfileQueryEnum.RAW):
         return await verify_return(data=ResponseModel(account))
     else:
         profile = get_profile_endpoint(account)
@@ -132,13 +132,13 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
 
             database = None
 
-            if req.query is ProfileQueryEnum.tweet or req.query is None:
+            if req.query is ProfileQueryEnum.TWEET or req.query is None:
                 database = db.query(MelonDevTwitterDatabase).filter(
                     MelonDevTwitterDatabase.account.contains(profile.id))
-            if req.query is ProfileQueryEnum.mention:
+            if req.query is ProfileQueryEnum.MENTION:
                 database = db.query(MelonDevTwitterDatabase).filter(
                     MelonDevTwitterDatabase.mention.any(profile.id))
-            if req.query is ProfileQueryEnum.combine:
+            if req.query is ProfileQueryEnum.COMBINE:
                 database = db.query(MelonDevTwitterDatabase).filter(
                     or_(MelonDevTwitterDatabase.account.contains(profile.id),
                         MelonDevTwitterDatabase.mention.any(profile.id)))
@@ -360,10 +360,10 @@ def has_in_my_history(db, account) -> bool:
 
 
 def database_media_type_categorize(db, file_type: FileTypeEnum):
-    if file_type is FileTypeEnum.photos:
+    if file_type is FileTypeEnum.PHOTOS:
         return db.query(func.unnest(MelonDevTwitterDatabase.photo), MelonDevTwitterDatabase.id,
                         MelonDevTwitterDatabase.account, MelonDevTwitterDatabase.createdAt)
-    elif file_type is FileTypeEnum.videos:
+    elif file_type is FileTypeEnum.VIDEOS:
         return db.query(func.unnest(MelonDevTwitterDatabase.video), MelonDevTwitterDatabase.id,
                         MelonDevTwitterDatabase.account, MelonDevTwitterDatabase.createdAt,
                         MelonDevTwitterDatabase.thumbnail)
@@ -373,13 +373,13 @@ def database_media_type_categorize(db, file_type: FileTypeEnum):
 
 def get_profile(account: str):
     if account.isdigit():
-        package = get_user_profile(account, type=ProfileTypeEnum.user_id)
+        package = get_user_profile(account, type=ProfileTypeEnum.USER_ID)
         if package is None:
-            package = get_user_profile(account, type=ProfileTypeEnum.screen_name)
+            package = get_user_profile(account, type=ProfileTypeEnum.SCREEN_NAME)
     else:
-        package = get_user_profile(account, type=ProfileTypeEnum.screen_name)
+        package = get_user_profile(account, type=ProfileTypeEnum.SCREEN_NAME)
         if package is None:
-            package = get_user_profile(account, type=ProfileTypeEnum.user_id)
+            package = get_user_profile(account, type=ProfileTypeEnum.USER_ID)
     return package
 
 

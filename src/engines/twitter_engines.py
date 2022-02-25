@@ -81,18 +81,21 @@ def has_deleted(id: str):
         return False
 
 
-def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.user_id):
+def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.USER_ID):
     try:
-        if type is ProfileTypeEnum.user_id:
+        if type is ProfileTypeEnum.USER_ID:
             data = access().get_user(user_id=account)
             return data._json
-        if type is ProfileTypeEnum.screen_name:
+        if type is ProfileTypeEnum.SCREEN_NAME:
             data = access().get_user(screen_name=account)
             return data._json
         return None
     except tweepy.errors.TweepyException as e:
         print("Error: " + str(e))
         return None
+
+
+
 
 
 def get_lookup_user(ids: list):

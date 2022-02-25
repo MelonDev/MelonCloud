@@ -2,7 +2,7 @@ from os import abort
 
 from fastapi import HTTPException
 
-from src.models.response_model import ResponseModel
+from src.models.response_model import ResponseModel, FabricResponseModel
 
 
 def verify_parameters(value, is_empty: bool = None):
@@ -35,9 +35,9 @@ async def verify_return(data=None, code=None, message=None, content=None):
     raise HTTPException(status_code=500, detail="Error 500")
 
 
-def response(data=None, code=None, message=None, content=None):
+def response(data=None, code=None, message=None, content=None, fabric=None):
     if data is not None:
-        response = ResponseModel(data=data)
+        response = FabricResponseModel(data=data, fabric=fabric) if fabric is not None else ResponseModel(data=data)
         if code is not None:
             return response, code
         return response
