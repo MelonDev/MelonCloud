@@ -41,10 +41,13 @@ async def number_of_tweets(db: Session = Depends(get_db)):
 
 @router.get("/media")
 async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
-    if params.type is None:
-        bad_request_exception("Media type have not been defined")
+    params.type = TweetMediaType.PHOTO if params.type is TweetMediaType.PHOTO else params.type
+
+    if bool(params.infinite):
+        bad_request_exception("infinite has duplicated")
     if params.type is TweetMediaType.TEXT:
         bad_request_exception("Text is not media")
+
     file_type = FileTypeEnum.PHOTOS if params.type is TweetMediaType.PHOTO else FileTypeEnum.VIDEOS
     database = database_media_type_categorize(db=db, file_type=file_type)
     compute_database = filtering_meloncloud_twitter_database(params=params, db=database)
