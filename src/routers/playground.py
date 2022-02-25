@@ -160,35 +160,16 @@ async def random_tweet(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/poc-twitter", include_in_schema=True)
 async def poc_twitter(request: Request, db: Session = Depends(get_db)):
-    id = "1496944541282144269"
-    # tweet = get_status(id)
-    # print(tweet)
+    id = "1497000640236589070"
+    ae = get_status(id)
+    print(pretty_json(ae))
     # json_object = to_json_object(tweet)
     # print(json_object.created_at)
     # print(type(json_object.created_at))
     # print(json_object)
     # print(pretty_json(tweet))
-    database = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.type == TweetMediaType.PHOTO).filter(
-        MelonCloudTwitterDatabase.photos == None).all()
-
-    data_list = list(chunks(database,100))
-    for i in data_list:
-        list_id = [j.id for j in i]
-        data = get_dict_lookup_statuses(list_id)
-        print(len(data))
-
-    '''
-    for i in data:
-        package = await get_meloncloud_tweet_model(i.id)
-        print(package.tweet.photos)
-        '''
 
     return response("HELLO")
-
-def chunks(lst, n):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
 
 
 @router.get("/automatic-check-tweet-has-deleted", include_in_schema=True)

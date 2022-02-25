@@ -10,9 +10,10 @@ from urllib.parse import urlparse
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_meloncloud_tweet_model, \
     hasFavorited, like_tweet, get_user_id
-from src.enums.sorting_enum import SortingEnum
+from src.enums.sorting_enum import SortingTweet
 from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel
+from src.tools.converters.datetime_converter import append_timezone
 from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
 from src.tools.verify_hub import response
 
@@ -114,17 +115,19 @@ def filtering_meloncloud_twitter_database(params: RequestTweetQueryModel, db):
         database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
     if params.me_like is not None:
         database = database.filter(MelonCloudTwitterDatabase.memories.is_(params.me_like))
+    if params.type is not None:
+        database = database.filter(MelonCloudTwitterDatabase.type.contains(params.type))
     if params.start_date is not None:
-        ds = dt.datetime.strptime(params.start_date + " 00:00:00", '%Y-%m-%d %H:%M:%S')
+        ds = append_timezone(dt.datetime.strptime(str(params.start_date) + " 00:00:00", '%Y-%m-%d %H:%M:%S'))
         database = database.filter(MelonCloudTwitterDatabase.stored_at >= ds)
     if params.end_date is not None:
-        de = dt.datetime.strptime(params.end_date + " 23:59:59", '%Y-%m-%d %H:%M:%S')
+        de = append_timezone(dt.datetime.strptime(str(params.end_date) + " 23:59:59", '%Y-%m-%d %H:%M:%S'))
         database = database.filter(MelonCloudTwitterDatabase.stored_at <= de)
 
     if params.deleted is not None:
         database = database.filter(MelonCloudTwitterDatabase.deleted.is_(params.deleted))
 
-    if params.sorting == SortingEnum.asc:
+    if params.sorting == SortingTweet.ASC:
         database = database.order_by(asc(MelonCloudTwitterDatabase.stored_at))
     else:
         database = database.order_by(desc(MelonCloudTwitterDatabase.stored_at))

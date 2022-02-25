@@ -1,13 +1,22 @@
 from enum import Enum
 from typing import List
 
+from pydantic.color import Color
+from pydantic.networks import HttpUrl
+from pydantic.types import SecretStr, PastDate, PositiveInt, date
+
 from environment import TWITTER_SECRET_PASSWORD
 from fastapi import HTTPException, status
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, constr
 
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
-from src.enums.sorting_enum import SortingEnum
+from src.enums.sorting_enum import SortingEnum, SortingTweet
 from src.tools.as_form import as_form
+
+class TweetMediaType(str, Enum):
+    PHOTO = "PHOTO"
+    VIDEO = "VIDEO"
+    TEXT = "TEXT"
 
 
 class ValidatorModel(BaseModel):
@@ -32,14 +41,15 @@ class RequestTweetQueryModel(BaseModel):
     account_id: str = None
     account_name: str = None
     me_like: bool = None
+    type :TweetMediaType = None
     mention_id: str = None
     mention_name: str = None
-    start_date: str = None
-    end_date: str = None
-    limit: int = None
-    page: int = None
+    start_date: date = None
+    end_date: date = None
+    limit: PositiveInt = None
+    page: PositiveInt = None
     infinite: bool = None
-    sorting: SortingEnum = None
+    sorting: SortingTweet = None
     deleted: bool = None
 
 
