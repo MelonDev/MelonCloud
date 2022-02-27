@@ -6,6 +6,25 @@ def today():
     return dt.date.today()
 
 
+def pack_date(day=None, month=None, year=None):
+    tod = today()
+    if day is not None:
+        tod = tod.replace(day=day)
+    if month is not None:
+        tod = tod.replace(month=month)
+    if year is not None:
+        tod = tod.replace(year=year)
+    return tod
+
+
+def start_datetime(day=None, month=None, year=None):
+    return dt.datetime.combine(pack_date(day=day, month=month, year=year), dt.time.min)
+
+
+def end_datetime(day=None, month=None, year=None):
+    return dt.datetime.combine(pack_date(day=day, month=month, year=year), dt.time.max)
+
+
 def first_day_of_month(month=None, year=None):
     day = today()
     if month is not None:
@@ -100,6 +119,11 @@ def first_day_of_year(year=None):
     return day.replace(month=1, day=1)
 
 
+def first_day_of_year_with_time(year=None):
+    first_day = first_day_of_year(year)
+    return dt.datetime.combine(first_day, dt.time.min)
+
+
 def last_day_of_year(year=None):
     day = today()
     if year is not None:
@@ -107,7 +131,28 @@ def last_day_of_year(year=None):
     return day.replace(month=12, day=31)
 
 
-def previous_year(date):
-    date -= dt.timedelta(days=365)
-    return date
+def last_day_of_year_with_time(year=None):
+    last_day = last_day_of_year(year)
+    return dt.datetime.combine(last_day, dt.time.max)
 
+
+def first_day_of_previous_year(year=None):
+    year = first_day_of_year(year)
+    prev_year = year.replace(year=year.year - 1)
+    return prev_year
+
+
+def first_day_of_previous_year_with_time(year=None):
+    first_day = first_day_of_previous_year(year)
+    return dt.datetime.combine(first_day, dt.time.min)
+
+
+def last_day_of_previous_year(year=None):
+    year = last_day_of_year(year)
+    prev_year = year.replace(year=year.year - 1)
+    return prev_year
+
+
+def last_day_of_previous_year_with_time(year=None):
+    last_day = last_day_of_previous_year(year)
+    return dt.datetime.combine(last_day, dt.time.max)

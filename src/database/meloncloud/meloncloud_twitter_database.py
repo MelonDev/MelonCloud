@@ -88,24 +88,23 @@ class MelonCloudTwitterDatabase(Base):
 
         }
 
-
-@property
-def export(self):
-    return {
-        'id': self.id,
-        'tweeted_at': convert_datetime_to_string_for_backup_mode(self.tweeted_at),
-        'stored_at': convert_datetime_to_string_for_backup_mode(self.stored_at),
-        'message': self.message,
-        'account_id': self.account,
-        'hashtags': list_to_set(self.hashtags),
-        'mentions': list_to_set(self.mentions),
-        'urls': list_to_set(self.urls),
-        'type': self.type,
-        'photo': list_to_set(self.photo),
-        'video': list_to_set(self.video),
-        'thumbnail': self.thumbnail,
-        'language': self.language,
-        'event': self.event,
-        'memories': self.memories,
-        'deleted': self.deleted
-    }
+    @property
+    def export(self):
+        return {
+            'id': self.id,
+            'tweeted_at': convert_datetime_to_string_for_backup_mode(self.tweeted_at),
+            'stored_at': convert_datetime_to_string_for_backup_mode(self.stored_at),
+            'message': self.message,
+            'account_id': self.account_id,
+            'hashtags': list_to_set(self.hashtags),
+            'mentions': list_to_set(self.mentions),
+            'urls': list_to_set(self.urls),
+            'type': self.type,
+            'photos': list_to_set(self.photos),
+            'videos': list_to_set(self.videos),
+            'thumbnail': self.thumbnail,
+            'language': self.language,
+            'event': self.event,
+            'memories': self.memories,
+            'deleted': self.deleted
+        }

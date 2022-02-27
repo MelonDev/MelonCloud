@@ -2,15 +2,22 @@ import calendar
 import math
 from collections import Counter
 
-from fastapi import APIRouter, Depends, HTTPException, status as code
+from fastapi import APIRouter, Depends, HTTPException, status as code, Response
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
+import csv
+import io
+
 import datetime as dt
 from operator import is_not
 from functools import partial
 from urllib.parse import urlparse
 
+from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
+from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
+from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
+from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_meloncloud_tweet_model, \
     hasFavorited, like_tweet, get_user_id, get_status, get_dict_lookup_user, get_user_profile
@@ -21,10 +28,15 @@ from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, TweetMediaType, \
     RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \
-    MelonCloudBackupModel
+    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName
 from src.tools.chunks import chunks
-from src.tools.converters.datetime_converter import append_timezone, convert_datetime_to_string
-from src.tools.date_for_backup import today
+from src.tools.converters.datetime_converter import append_timezone, convert_datetime_to_string, \
+    convert_short_string_form_to_datetime
+from src.tools.date_for_backup import today, first_day_of_month, last_day_of_month, first_day_of_month_with_time, \
+    last_day_of_month_with_time, first_day_of_previous_month_with_time, last_day_of_previous_month_with_time, \
+    start_datetime, end_datetime, first_day_of_year, last_day_of_year, last_day_of_previous_year, \
+    first_day_of_previous_year, first_day_of_year_with_time, last_day_of_year_with_time, \
+    first_day_of_previous_year_with_time, last_day_of_previous_year_with_time
 from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
 from src.tools.photos_endpoint import tweet_people_endpoint, tweet_photo_endpoint, tweet_video_endpoint, \
     tweet_all_media_endpoint
@@ -338,12 +350,84 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
 
 @router.get("/export", status_code=code.HTTP_200_OK)
 async def export_twitter_data(params: MelonCloudBackupModel = Depends(), db: Session = Depends(get_db)):
-    name = MelonCloudTwitterDatabase.__tablename__
-    date = today().strftime('%Y_%m_%d')
+    name = get_database_name(DatabaseQueryName.MelonCloudTwitterDatabase)
 
-    filename = name + "_" + date
-    print(filename)
-    return response("HELLO")
+    filename = f"{name}_{today().strftime('%Y_%m_%d')}"
+    data = None
+    if params.date_range is None:
+        data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase,
+                                   start_date=first_day_of_month_with_time(),
+                                   end_date=last_day_of_month_with_time())
+    else:
+        if params.date_range is BackupQueryDate.DAILY:
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase,
+                                       start_date=first_day_of_month_with_time(),
+                                       end_date=last_day_of_month_with_time())
+        elif params.date_range is BackupQueryDate.MONTHLY:
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase,
+                                       start_date=first_day_of_month_with_time(),
+                                       end_date=last_day_of_month_with_time())
+            filename = f"{name}_{str(BackupQueryDate.MONTHLY).capitalize()}_{today().strftime('%Y_%m')}"
+        elif params.date_range is BackupQueryDate.LAST_MONTH:
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase,
+                                       start_date=first_day_of_previous_month_with_time(),
+                                       end_date=last_day_of_previous_month_with_time())
+            filename = f"{name}_{str(BackupQueryDate.LAST_MONTH).capitalize()}_{first_day_of_previous_month_with_time().strftime('%Y_%m')}"
+        elif params.date_range is BackupQueryDate.YEARLY:
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase,
+                                       start_date=first_day_of_year_with_time(),
+                                       end_date=last_day_of_year_with_time())
+            filename = f"{name}_{str(BackupQueryDate.YEARLY).capitalize()}_{today().strftime('%Y')}"
+        elif params.date_range is BackupQueryDate.LAST_YEAR:
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase,
+                                       start_date=first_day_of_previous_year_with_time(),
+                                       end_date=last_day_of_previous_year_with_time())
+            filename = f"{name}_{str(BackupQueryDate.LAST_YEAR).capitalize()}_{first_day_of_previous_year_with_time().strftime('%Y')}"
+
+        elif params.date_range is BackupQueryDate.ALL:
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase)
+            filename = f"{name}_Backup_{today().strftime('%Y_%m_%d')}"
+
+        elif params.date_range is BackupQueryDate.CUSTOM:
+            if params.start_date is None or params.end_date is None:
+                bad_request_exception()
+            ds = dt.datetime.strptime(f"{params.start_date} 00:00:00", "%Y-%m-%d %H:%M:%S")
+            de = dt.datetime.strptime(f"{params.end_date} 23:59:59", '%Y-%m-%d %H:%M:%S')
+            data = database_for_backup(db=db, name=DatabaseQueryName.MelonCloudTwitterDatabase, start_date=ds,
+                                       end_date=de)
+            filename = f"{name}_{ds.strftime('%Y_%m_%d')}_to_{de.strftime('%Y_%m_%d')}"
+
+    return packing_backup(data=data, filename=filename)
+
+    # return response("HELLO")
+
+
+def database_for_backup(db, name, start_date=None, end_date=None):
+    database = get_database(db, name)
+
+    if start_date is not None:
+        database = database.filter(MelonCloudTwitterDatabase.stored_at >= start_date)
+    if end_date is not None:
+        database = database.filter(MelonCloudTwitterDatabase.stored_at <= end_date)
+    return database
+
+
+def packing_backup(data, filename):
+    headers = list(data[0].export.keys())
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+    for i in data:
+        x = list(v for k, v in i.export.items())
+        writer.writerow(x)
+    output.seek(0)
+
+    res = Response(content=output.read(), media_type="text/csv")
+    res.headers[
+        "Content-Disposition"
+    ] = f"attachment; filename=" + filename + ".csv"
+    return res
 
 
 async def processing_tweet(request: RequestAnalyzeModel, package, tweet_id: str, db: Session, enable_commit=True):
@@ -694,3 +778,24 @@ def media_query_to_people_query(params: RequestMediaQueryModel) -> RequestPeople
     peoples_params.limit = 30
     peoples_params.page = 0
     return peoples_params
+
+
+def get_database_name(name: DatabaseQueryName):
+    return {
+        DatabaseQueryName.MelonCloudTwitterDatabase: MelonCloudTwitterDatabase.__tablename__,
+        DatabaseQueryName.MelonCloudPeopleDatabase: MelonCloudPeopleDatabase.__tablename__,
+        DatabaseQueryName.MelonCloudBeastCharacterDatabase: MelonCloudBeastCharacterDatabase.__tablename__,
+        DatabaseQueryName.MelonCloudBookDatabase: MelonCloudBookDatabase.__tablename__,
+        DatabaseQueryName.MelonCloudBookPageDatabase: MelonCloudBookPageDatabase.__tablename__
+    }[name]
+
+
+def get_database(db, name: DatabaseQueryName):
+    return {
+        DatabaseQueryName.MelonCloudTwitterDatabase: db.query(MelonCloudTwitterDatabase),
+        DatabaseQueryName.MelonCloudPeopleDatabase: db.query(MelonCloudPeopleDatabase),
+        DatabaseQueryName.MelonCloudBeastCharacterDatabase: db.query(MelonCloudBeastCharacterDatabase),
+        DatabaseQueryName.MelonCloudBookDatabase: db.query(MelonCloudBookDatabase),
+        DatabaseQueryName.MelonCloudBookPageDatabase: db.query(MelonCloudBookPageDatabase)
+
+    }[name]

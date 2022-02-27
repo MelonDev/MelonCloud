@@ -10,6 +10,8 @@ from environment import TWITTER_SECRET_PASSWORD, TWITTER_VIEWER_PASSWORD
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator, constr
 
+from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
+from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingEnum, SortingTweet
@@ -34,9 +36,21 @@ class HashtagQueryDate(str, Enum):
 
 
 class BackupQueryDate(str, Enum):
-    MONTH = "MONTH"
-    YEAR = "YEAR"
+    DAILY = "DAILY"
+    MONTHLY = "MONTHLY"
+    YEARLY = "YEARLY"
+    LAST_MONTH = "LAST_MONTH"
+    LAST_YEAR = "LAST_YEAR"
+    ALL = "ALL"
     CUSTOM = "CUSTOM"
+
+
+class DatabaseQueryName(str, Enum):
+    MelonCloudTwitterDatabase = "MelonCloudTwitterDatabase"
+    MelonCloudPeopleDatabase = "MelonCloudPeopleDatabase"
+    MelonCloudBeastCharacterDatabase = "MelonCloudBeastCharacterDatabase"
+    MelonCloudBookDatabase = "MelonCloudBookDatabase"
+    MelonCloudBookPageDatabase = "MelonCloudBookPageDatabase"
 
 
 class MediaExtraOptional(str, Enum):
@@ -211,7 +225,8 @@ class MelonCloudTweetResponseModel:
         self.media_urls = media_urls
 
 
-class MelonCloudBackupModel(BaseModel):
-    date_range: BackupQueryDate
+class MelonCloudBackupModel(ValidatorModel):
+    #database: DatabaseQueryName
+    date_range: BackupQueryDate = None
     start_date: date = None
     end_date: date = None
