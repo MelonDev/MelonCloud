@@ -19,7 +19,7 @@ from src.enums.type_enum import MelonCloudFileTypeEnum
 from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, TweetMediaType, \
-    RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict
+    RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import append_timezone, convert_datetime_to_string
 from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
@@ -47,9 +47,15 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
     limit = params.limit if params.limit is not None else 50
     page = params.page if params.page is not None else 0
 
+    account = None
+    extra_optional = None
+
+    if params.account is not None:
+        account = get_profile(params.account)
+
     file_type = MelonCloudFileTypeEnum.PHOTOS if params.type is None else params.type
     database = database_media_type_categorize(db=db, file_type=file_type)
-    compute_database = filtering_meloncloud_twitter_database_for_media(params=params, db=database)
+    compute_database = filtering_meloncloud_twitter_database_for_media(params=params, db=database, account=account)
     count = compute_database.count()
     total_page = int(math.ceil(count / limit)) if count > 0 else 0
     is_overflow(page, total_page)
@@ -67,23 +73,26 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
         "previous_page": page - 1 if page > 0 else None
     }
 
-    profile = None
+    if params.extra_optional is not None:
+        if params.extra_optional is MediaExtraOptional.PROFILE:
+            extra_optional = get_meloncloud_tweet_profile_endpoint(account)
+        if params.extra_optional is MediaExtraOptional.PEOPLES:
 
-    if params.account is not None and bool(params.with_profile):
-        account = get_profile(params.account)
-        profile = get_meloncloud_tweet_profile_endpoint(account)
+            peoples_params = media_query_to_people_query(params)
+            response_from_peoples = await get_all_peoples(params=peoples_params,db=db)
+            extra_optional = response_from_peoples.data
 
     if file_type is MelonCloudFileTypeEnum.PHOTOS:
         data = list(map(lambda x: tweet_photo_endpoint(x, params.quality), results))
-        result = media_result_packing(data=data,profile=profile)
+        result = media_result_packing(data=data, payload=extra_optional)
         return response(data=result, fabric=fabric)
     elif file_type is MelonCloudFileTypeEnum.VIDEOS:
         data = list(map(lambda x: tweet_video_endpoint(x), results))
-        result = media_result_packing(data=data,profile=profile)
+        result = media_result_packing(data=data, payload=extra_optional)
         return response(data=result, fabric=fabric)
     elif file_type is MelonCloudFileTypeEnum.ALL:
         data = list(map(lambda x: tweet_all_media_endpoint(x, params.quality), results))
-        result = media_result_packing(data=data,profile=profile)
+        result = media_result_packing(data=data, payload=extra_optional)
         return response(data=result, fabric=fabric)
     else:
         bad_request_exception()
@@ -498,7 +507,7 @@ def filtering_meloncloud_twitter_database(params: RequestTweetQueryModel, db):
     return database
 
 
-def filtering_meloncloud_twitter_database_for_media(params: RequestMediaQueryModel, db):
+def filtering_meloncloud_twitter_database_for_media(params: RequestMediaQueryModel, db, account):
     database = db if type(db) is DBQuery else db.query(MelonCloudTwitterDatabase)
 
     if params is None:
@@ -510,8 +519,7 @@ def filtering_meloncloud_twitter_database_for_media(params: RequestMediaQueryMod
         database = database.filter(MelonCloudTwitterDatabase.mentions.any(params.mention_id))
     if params.mention_name is not None:
         database = database.filter(MelonCloudTwitterDatabase.mentions.any(get_user_id(params.mention_name)))
-    if params.account is not None:
-        account = get_profile(params.account)
+    if account is not None:
         database = database.filter(MelonCloudTwitterDatabase.account_id.contains(account['id_str']))
     if params.event is not None:
         database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
@@ -653,11 +661,23 @@ def get_file_type(query: TweetMediaType) -> int:
     }[query]
 
 
-def media_result_packing(data, profile):
-    if profile is None:
+def media_result_packing(data, payload):
+    if payload is None:
         return data
     else:
         return {
-            "profile": profile,
+            "payload": payload,
             "media": data
         }
+
+
+def media_query_to_people_query(params: RequestMediaQueryModel) -> RequestPeopleQueryModel:
+    peoples_params = RequestPeopleQueryModel()
+    peoples_params.event = params.event
+    peoples_params.hashtag = params.hashtag
+    peoples_params.start_date = params.start_date
+    peoples_params.end_date = params.end_date
+    peoples_params.me_like = params.me_like
+    peoples_params.limit = 30
+    peoples_params.page = 0
+    return peoples_params

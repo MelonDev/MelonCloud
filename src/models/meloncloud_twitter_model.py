@@ -22,6 +22,7 @@ class TweetMediaType(str, Enum):
     VIDEO = "VIDEO"
     TEXT = "TEXT"
 
+
 class HashtagQueryDate(str, Enum):
     DAY = "DAY"
     WEEK = "WEEK"
@@ -30,6 +31,12 @@ class HashtagQueryDate(str, Enum):
     YEAR = "YEAR"
     ALL = "ALL"
     CUSTOM = "CUSTOM"
+
+
+class MediaExtraOptional(str, Enum):
+    PROFILE = "PROFILE"
+    PEOPLES = "PEOPLES"
+
 
 class ValidatorModel(BaseModel):
     token: str
@@ -64,6 +71,7 @@ class RequestPeopleQueryModel(BaseModel):
     infinite: bool = None
     sorting: SortingTweet = None
 
+
 class TweetQueryBaseModel(BaseModel):
     event: str = None
     account: str = None
@@ -78,13 +86,14 @@ class TweetQueryBaseModel(BaseModel):
     sorting: SortingTweet = None
     deleted: bool = None
 
+
 class RequestTweetQueryModel(TweetQueryBaseModel):
     hashtag: str = None
     infinite: bool = None
 
 
 class RequestHashtagQueryModel(TweetQueryBaseModel):
-    query : HashtagQueryDate = None
+    query: HashtagQueryDate = None
 
 
 def get_hashtag_dict(key, value):
@@ -94,13 +103,12 @@ def get_hashtag_dict(key, value):
     }
 
 
-
 class RequestMediaQueryModel(BaseModel):
     quality: ImageQualityEnum = None
     hashtag: str = None
     event: str = None
     account: str = None
-    with_profile: bool = None
+    extra_optional: MediaExtraOptional = None
     me_like: bool = None
     type: MelonCloudFileTypeEnum = None
     mention_id: str = None
