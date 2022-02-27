@@ -50,9 +50,9 @@ class ValidatorModel(BaseModel):
 
 
 class TweetAction(str, Enum):
-    LIKE = "Like"
-    SECRET_LIKE = "Secret like"
-    ONLY_MEDIA = "Only media"
+    LIKE = "LIKE"
+    SECRET_LIKE = "SECRET_LIKE"
+    ONLY_MEDIA = "ONLY_MEDIA"
 
 
 class RequestTweetModel(BaseModel):
