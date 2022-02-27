@@ -33,6 +33,12 @@ class HashtagQueryDate(str, Enum):
     CUSTOM = "CUSTOM"
 
 
+class BackupQueryDate(str, Enum):
+    MONTH = "MONTH"
+    YEAR = "YEAR"
+    CUSTOM = "CUSTOM"
+
+
 class MediaExtraOptional(str, Enum):
     PROFILE = "PROFILE"
     PEOPLES = "PEOPLES"
@@ -87,7 +93,7 @@ class TweetQueryBaseModel(ValidatorModel):
     deleted: bool = None
 
 
-class RequestTweetQueryModel(ValidatorModel):
+class RequestTweetQueryModel(TweetQueryBaseModel):
     hashtag: str = None
     infinite: bool = None
 
@@ -126,8 +132,8 @@ class RequestProfileModel(ValidatorModel):
     query: ProfileQueryEnum = None
     event: str = None
     hashtag: str = None
-    start_date: str = None
-    end_date: str = None
+    start_date: date = None
+    end_date: date = None
     me_like: bool = None
     sorting: SortingTweet = None
     limit: int = None
@@ -203,3 +209,9 @@ class MelonCloudTweetResponseModel:
     def __init__(self, tweet, media_urls):
         self.tweet = tweet
         self.media_urls = media_urls
+
+
+class MelonCloudBackupModel(BaseModel):
+    date_range: BackupQueryDate
+    start_date: date = None
+    end_date: date = None

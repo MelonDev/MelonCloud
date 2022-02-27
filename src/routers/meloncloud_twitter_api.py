@@ -1,3 +1,4 @@
+import calendar
 import math
 from collections import Counter
 
@@ -19,9 +20,11 @@ from src.enums.type_enum import MelonCloudFileTypeEnum
 from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, TweetMediaType, \
-    RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel
+    RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \
+    MelonCloudBackupModel
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import append_timezone, convert_datetime_to_string
+from src.tools.date_for_backup import today
 from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
 from src.tools.photos_endpoint import tweet_people_endpoint, tweet_photo_endpoint, tweet_video_endpoint, \
     tweet_all_media_endpoint
@@ -331,6 +334,16 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
             bad_request_exception(message="Couldn't find any applicable data")
     except Exception as e:
         bad_request_exception(message="Found an error: " + str(e))
+
+
+@router.get("/export", status_code=code.HTTP_200_OK)
+async def export_twitter_data(params: MelonCloudBackupModel = Depends(), db: Session = Depends(get_db)):
+    name = MelonCloudTwitterDatabase.__tablename__
+    date = today().strftime('%Y_%m_%d')
+
+    filename = name + "_" + date
+    print(filename)
+    return response("HELLO")
 
 
 async def processing_tweet(request: RequestAnalyzeModel, package, tweet_id: str, db: Session, enable_commit=True):
