@@ -66,8 +66,7 @@ class RequestPeopleQueryModel(BaseModel):
 
 class TweetQueryBaseModel(BaseModel):
     event: str = None
-    account_id: str = None
-    account_name: str = None
+    account: str = None
     me_like: bool = None
     type: TweetMediaType = None
     mention_id: str = None
@@ -100,8 +99,8 @@ class RequestMediaQueryModel(BaseModel):
     quality: ImageQualityEnum = None
     hashtag: str = None
     event: str = None
-    account_id: str = None
-    account_name: str = None
+    account: str = None
+    with_profile: bool = None
     me_like: bool = None
     type: MelonCloudFileTypeEnum = None
     mention_id: str = None
