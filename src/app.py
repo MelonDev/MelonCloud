@@ -56,7 +56,7 @@ def configure_static(app):
 
 def configure_sub_application(app):
     # app.mount("/api/v1", WSGIMiddleware(flask_app))
-    # app.mount("/api/v2/twitter", twitter_app)
+    app.mount("/api/v2/twitter", twitter_app)
     app.mount("/api/v3/twitter", meloncloud_twitter_app)
     app.mount("/api/v2/security/pwg_v2", pwg_app_v2)
     app.mount("/api/v2/buff", buff_app)
