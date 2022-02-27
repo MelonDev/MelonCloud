@@ -10,5 +10,11 @@ class ImageQualityEnum(str, Enum):
 
 
 class FileTypeEnum(str, Enum):
-    PHOTOS = 'VIDEOS'
-    VIDEOS = 'PHOTOS'
+    PHOTOS = 'PHOTOS'
+    VIDEOS = 'VIDEOS'
+
+
+class MelonCloudFileTypeEnum(str, Enum):
+    PHOTOS = 'PHOTOS'
+    VIDEOS = 'VIDEOS'
+    ALL = 'ALL'

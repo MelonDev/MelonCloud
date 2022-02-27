@@ -20,7 +20,9 @@ def append_timezone(target, timezone: str = 'Asia/Bangkok'):
     return target.astimezone(pytz.timezone(timezone))
 
 
-def convert_datetime_to_string(target, timezone: str = 'Asia/Bangkok'):
+def convert_datetime_to_string(target, timezone: str = 'Asia/Bangkok',disable_timezone=False):
+    if disable_timezone:
+        return target.strftime("%a %b %d %H:%M:%S %z %Y")
     return target.astimezone(pytz.timezone(timezone)).strftime("%a %b %d %H:%M:%S %z %Y")
 
 

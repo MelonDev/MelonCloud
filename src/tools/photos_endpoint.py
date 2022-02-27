@@ -29,12 +29,23 @@ def tweet_photo_url_endpoint(value, type: ImageQualityEnum) -> TweetMediaURLResp
 def tweet_photo_endpoint(row: Row, media_type: ImageQualityEnum) -> TweetMediaResponseModel:
     return TweetMediaResponseModel(id=_photo_key(row[0]), url=_photo_type_url(row[0], type=media_type), tweet_id=row[1],
                                    account_id=row[2], timestamp=row[3],
-                                   thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB))
+                                   thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB), type="PHOTO")
 
 
 def tweet_video_endpoint(row: Row) -> TweetMediaResponseModel:
     return TweetMediaResponseModel(id=row[1], url=row[0], tweet_id=row[1],
-                                   account_id=row[2], timestamp=row[3], thumbnail=row[4])
+                                   account_id=row[2], timestamp=row[3], thumbnail=row[4], type="VIDEO")
+
+
+def tweet_all_media_endpoint(row: Row, media_type: ImageQualityEnum) -> TweetMediaResponseModel:
+    if row[0] is not None:
+        return TweetMediaResponseModel(id=_photo_key(row[0]), url=_photo_type_url(row[0], type=media_type),
+                                       tweet_id=row[3],
+                                       account_id=row[4], timestamp=row[5],
+                                       thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB), type="PHOTO")
+    else:
+        return TweetMediaResponseModel(id=row[3], url=row[1], tweet_id=row[3],
+                                       account_id=row[4], timestamp=row[5], thumbnail=row[2], type="VIDEO")
 
 
 def people_endpoint(profile: TweetPeopleModel, count: int):

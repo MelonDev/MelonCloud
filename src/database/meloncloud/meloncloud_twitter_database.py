@@ -31,8 +31,6 @@ class MelonCloudTwitterDatabase(Base):
     deleted = Column(Boolean, default=False, nullable=True)
     memories = Column(Boolean, default=False, nullable=True)
 
-
-
     def __init__(self, id: str, tweeted_at: datetime, account_id: str):
         self.id = id
         self.tweeted_at = tweeted_at
@@ -70,8 +68,8 @@ class MelonCloudTwitterDatabase(Base):
     def serialize(self):
         return {
             'id': self.id,
-            'tweeted_at': convert_datetime_to_string(self.tweeted_at),
-            'stored_at': convert_datetime_to_string(self.stored_at),
+            'tweeted_at': convert_datetime_to_string(self.tweeted_at, disable_timezone=True),
+            'stored_at': convert_datetime_to_string(self.stored_at, disable_timezone=True),
             'message': self.message,
             'account_id': self.account_id,
             'hashtags': self.hashtags,
@@ -87,25 +85,27 @@ class MelonCloudTwitterDatabase(Base):
             'event': self.event,
             'memories': self.memories,
             'deleted': self.deleted
+
         }
 
-    @property
-    def export(self):
-        return {
-            'id': self.id,
-            'tweeted_at': convert_datetime_to_string_for_backup_mode(self.tweeted_at),
-            'stored_at': convert_datetime_to_string_for_backup_mode(self.stored_at),
-            'message': self.message,
-            'account_id': self.account,
-            'hashtags': list_to_set(self.hashtags),
-            'mentions': list_to_set(self.mentions),
-            'urls': list_to_set(self.urls),
-            'type': self.type,
-            'photo': list_to_set(self.photo),
-            'video': list_to_set(self.video),
-            'thumbnail': self.thumbnail,
-            'language': self.language,
-            'event': self.event,
-            'memories': self.memories,
-            'deleted': self.deleted
-        }
+
+@property
+def export(self):
+    return {
+        'id': self.id,
+        'tweeted_at': convert_datetime_to_string_for_backup_mode(self.tweeted_at),
+        'stored_at': convert_datetime_to_string_for_backup_mode(self.stored_at),
+        'message': self.message,
+        'account_id': self.account,
+        'hashtags': list_to_set(self.hashtags),
+        'mentions': list_to_set(self.mentions),
+        'urls': list_to_set(self.urls),
+        'type': self.type,
+        'photo': list_to_set(self.photo),
+        'video': list_to_set(self.video),
+        'thumbnail': self.thumbnail,
+        'language': self.language,
+        'event': self.event,
+        'memories': self.memories,
+        'deleted': self.deleted
+    }

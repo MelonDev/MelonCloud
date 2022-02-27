@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List
 
+from google.type.calendar_period_pb2 import QUARTER
 from pydantic.color import Color
 from pydantic.networks import HttpUrl
 from pydantic.types import SecretStr, PastDate, PositiveInt, date
@@ -12,14 +13,23 @@ from pydantic import BaseModel, validator, constr
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingEnum, SortingTweet
-from src.enums.type_enum import ImageQualityEnum, FileTypeEnum
+from src.enums.type_enum import ImageQualityEnum, FileTypeEnum, MelonCloudFileTypeEnum
 from src.tools.as_form import as_form
+
 
 class TweetMediaType(str, Enum):
     PHOTO = "PHOTO"
     VIDEO = "VIDEO"
     TEXT = "TEXT"
 
+class HashtagQueryDate(str, Enum):
+    DAY = "DAY"
+    WEEK = "WEEK"
+    MONTH = "MONTH"
+    QUARTER = "QUARTER"
+    YEAR = "YEAR"
+    ALL = "ALL"
+    CUSTOM = "CUSTOM"
 
 class ValidatorModel(BaseModel):
     token: str
@@ -37,9 +47,11 @@ class TweetAction(str, Enum):
     SECRET_LIKE = "Secret like"
     ONLY_MEDIA = "Only media"
 
+
 class RequestTweetModel(BaseModel):
     tweet_id: str
     raw: bool = None
+
 
 class RequestPeopleQueryModel(BaseModel):
     event: str = None
@@ -52,27 +64,54 @@ class RequestPeopleQueryModel(BaseModel):
     infinite: bool = None
     sorting: SortingTweet = None
 
-
-
-class RequestTweetQueryModel(BaseModel):
+class TweetQueryBaseModel(BaseModel):
     event: str = None
-    hashtag: str = None
     account_id: str = None
     account_name: str = None
     me_like: bool = None
-    type :TweetMediaType = None
+    type: TweetMediaType = None
     mention_id: str = None
     mention_name: str = None
     start_date: date = None
     end_date: date = None
     limit: PositiveInt = None
     page: PositiveInt = None
-    infinite: bool = None
     sorting: SortingTweet = None
     deleted: bool = None
 
-class RequestMediaQueryModel(RequestTweetQueryModel):
+class RequestTweetQueryModel(TweetQueryBaseModel):
+    hashtag: str = None
+    infinite: bool = None
+
+
+class RequestHashtagQueryModel(TweetQueryBaseModel):
+    query : HashtagQueryDate = None
+
+
+def get_hashtag_dict(key, value):
+    return {
+        'name': str(key),
+        'value': value
+    }
+
+
+
+class RequestMediaQueryModel(BaseModel):
     quality: ImageQualityEnum = None
+    hashtag: str = None
+    event: str = None
+    account_id: str = None
+    account_name: str = None
+    me_like: bool = None
+    type: MelonCloudFileTypeEnum = None
+    mention_id: str = None
+    mention_name: str = None
+    start_date: date = None
+    end_date: date = None
+    limit: PositiveInt = None
+    page: PositiveInt = None
+    sorting: SortingTweet = None
+    deleted: bool = None
 
 
 class RequestProfileModel(BaseModel):
