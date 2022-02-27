@@ -6,7 +6,7 @@ from pydantic.color import Color
 from pydantic.networks import HttpUrl
 from pydantic.types import SecretStr, PastDate, PositiveInt, date
 
-from environment import TWITTER_SECRET_PASSWORD
+from environment import TWITTER_SECRET_PASSWORD, TWITTER_VIEWER_PASSWORD
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator, constr
 
@@ -43,7 +43,7 @@ class ValidatorModel(BaseModel):
 
     @validator('token')
     def token_authorize(cls, value):
-        if TWITTER_SECRET_PASSWORD != value:
+        if not (TWITTER_SECRET_PASSWORD == value or TWITTER_VIEWER_PASSWORD == value):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="UNAUTHORIZED")
@@ -55,12 +55,12 @@ class TweetAction(str, Enum):
     ONLY_MEDIA = "ONLY_MEDIA"
 
 
-class RequestTweetModel(BaseModel):
+class RequestTweetModel(ValidatorModel):
     tweet_id: str
     raw: bool = None
 
 
-class RequestPeopleQueryModel(BaseModel):
+class RequestPeopleQueryModel(ValidatorModel):
     event: str = None
     hashtag: str = None
     start_date: date = None
@@ -72,7 +72,7 @@ class RequestPeopleQueryModel(BaseModel):
     sorting: SortingTweet = None
 
 
-class TweetQueryBaseModel(BaseModel):
+class TweetQueryBaseModel(ValidatorModel):
     event: str = None
     account: str = None
     me_like: bool = None
@@ -87,7 +87,7 @@ class TweetQueryBaseModel(BaseModel):
     deleted: bool = None
 
 
-class RequestTweetQueryModel(TweetQueryBaseModel):
+class RequestTweetQueryModel(ValidatorModel):
     hashtag: str = None
     infinite: bool = None
 
@@ -103,7 +103,7 @@ def get_hashtag_dict(key, value):
     }
 
 
-class RequestMediaQueryModel(BaseModel):
+class RequestMediaQueryModel(ValidatorModel):
     quality: ImageQualityEnum = None
     hashtag: str = None
     event: str = None
@@ -121,7 +121,7 @@ class RequestMediaQueryModel(BaseModel):
     deleted: bool = None
 
 
-class RequestProfileModel(BaseModel):
+class RequestProfileModel(ValidatorModel):
     account: str
     query: ProfileQueryEnum = None
     event: str = None

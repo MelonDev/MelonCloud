@@ -53,12 +53,6 @@ async def home(request: Request):
             "doc": "api/v2/security/pwg_v2/docs"
         },
         {
-            "name": "ทวิตเตอร์ตัวเก่า",
-            "image": "./static/templates/home/img/jeremy-bezanger-Jm1YUfYjpHI-unsplash-ConvertImage.jpg",
-            "page": "null",
-            "doc": "api/v2/twitter/docs"
-        },
-        {
             "name": "ทวิตเตอร์",
             "image": "./static/templates/home/img/jeremy-bezanger-Jm1YUfYjpHI-unsplash.jpg",
             "page": "null",

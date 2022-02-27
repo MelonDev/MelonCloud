@@ -19,7 +19,7 @@ from src.enums.type_enum import MelonCloudFileTypeEnum
 from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, TweetMediaType, \
-    RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional
+    RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import append_timezone, convert_datetime_to_string
 from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
@@ -32,12 +32,12 @@ router = APIRouter()
 
 
 @router.get("/")
-async def status_of_tweet_database(db: Session = Depends(get_db)):
+async def status_of_tweet_database(params: ValidatorModel = Depends(), db: Session = Depends(get_db)):
     return response(f"I have {db.query(MelonCloudTwitterDatabase).count()} tweets on my database")
 
 
 @router.get("/count")
-async def number_of_tweets(db: Session = Depends(get_db)):
+async def number_of_tweets(params: ValidatorModel = Depends(), db: Session = Depends(get_db)):
     count = db.query(MelonCloudTwitterDatabase).count()
     return response(count)
 
@@ -77,9 +77,8 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
         if params.extra_optional is MediaExtraOptional.PROFILE:
             extra_optional = get_meloncloud_tweet_profile_endpoint(account)
         if params.extra_optional is MediaExtraOptional.PEOPLES:
-
             peoples_params = media_query_to_people_query(params)
-            response_from_peoples = await get_all_peoples(params=peoples_params,db=db)
+            response_from_peoples = await get_all_peoples(params=peoples_params, db=db)
             extra_optional = response_from_peoples.data
 
     if file_type is MelonCloudFileTypeEnum.PHOTOS:
@@ -673,6 +672,7 @@ def media_result_packing(data, payload):
 
 def media_query_to_people_query(params: RequestMediaQueryModel) -> RequestPeopleQueryModel:
     peoples_params = RequestPeopleQueryModel()
+    peoples_params.token = params.token
     peoples_params.event = params.event
     peoples_params.hashtag = params.hashtag
     peoples_params.start_date = params.start_date
