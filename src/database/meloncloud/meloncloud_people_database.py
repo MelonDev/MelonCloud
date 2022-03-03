@@ -25,14 +25,12 @@ class MelonCloudPeopleDatabase(Base):
 
     characters = relationship("MelonCloudBeastCharacterDatabase", back_populates="owner")
 
-    def __init__(self, id: str):
-        self.id = id
-
-    def append_details(self, name: str = None, image_url: str = None, nationality: str = None, gender: str = None,
-                       weight: str = None, height: str = None, year_of_birth: str = None, partner: str = None,
-                       twitter_id: str = None, bilibili_id: str = None, furaffinity_id: str = None):
+    def __init__(self):
         self.id = uuid.uuid4()
 
+    def append_details(self, name: str = None, image_url: str = None, nationality: str = None, gender: str = None,
+                       weight: int = None, height: int = None, year_of_birth: int = None, partner: str = None,
+                       twitter_id: str = None, bilibili_id: str = None, furaffinity_id: str = None):
         self.name = name
         self.image_url = image_url
         self.nationality = nationality
@@ -44,8 +42,6 @@ class MelonCloudPeopleDatabase(Base):
         self.twitter_id = twitter_id
         self.bilibili_id = bilibili_id
         self.furaffinity_id = furaffinity_id
-
-
 
     @property
     def serialize(self):

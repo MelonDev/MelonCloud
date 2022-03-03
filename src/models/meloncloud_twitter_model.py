@@ -58,6 +58,32 @@ class MediaExtraOptional(str, Enum):
     PEOPLES = "PEOPLES"
 
 
+class PeopleGender(str, Enum):
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+
+
+class PeopleNationality(str, Enum):
+    THAI = "THAI"
+    JAPANESE = "JAPANESE"
+    CHINESE = "CHINESE"
+    SINGAPOREAN = "SINGAPOREAN"
+    MALAYSIAN = "MALAYSIAN"
+    INDONESIAN = "INDONESIAN"
+    TAIWANESE = "TAIWANESE"
+    KOREAN = "KOREAN"
+    AMERICAN = "AMERICAN"
+    CANADIAN = "CANADIAN"
+    MEXICAN = "MEXICAN"
+    GERMAN = "GERMAN"
+    ENGLISH = "ENGLISH"
+    FRENCH = "FRENCH"
+    SWEDES = "SWEDES"
+    AUSTRALIAN = "AUSTRALIAN"
+
+
+
+
 class ValidatorModel(BaseModel):
     token: str
 
@@ -67,6 +93,19 @@ class ValidatorModel(BaseModel):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="UNAUTHORIZED")
+
+
+@as_form
+class RequestPeopleDatabaseModel(BaseModel):
+    name: str = None
+    twitter_account: str
+    image_url: str = None
+    nationality: PeopleNationality = None
+    gender: PeopleGender = None
+    weight: int = None
+    height: int = None
+    year_of_birth: int = None
+    partner_account: str = None
 
 
 class TweetAction(str, Enum):
@@ -226,7 +265,7 @@ class MelonCloudTweetResponseModel:
 
 
 class MelonCloudBackupModel(ValidatorModel):
-    #database: DatabaseQueryName
+    # database: DatabaseQueryName
     date_range: BackupQueryDate = None
     start_date: date = None
     end_date: date = None

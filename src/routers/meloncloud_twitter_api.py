@@ -28,7 +28,7 @@ from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, TweetAction, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, TweetMediaType, \
     RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \
-    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName
+    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName, RequestPeopleDatabaseModel
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import append_timezone, convert_datetime_to_string, \
     convert_short_string_form_to_datetime
@@ -55,6 +55,31 @@ async def status_of_tweet_database(params: ValidatorModel = Depends(), db: Sessi
 async def number_of_tweets(params: ValidatorModel = Depends(), db: Session = Depends(get_db)):
     count = db.query(MelonCloudTwitterDatabase).count()
     return response(count)
+
+
+@router.post("/create", tags=['Peoples'])
+async def add_people(params: RequestPeopleDatabaseModel = Depends(RequestPeopleDatabaseModel.as_form),
+                     db: Session = Depends(get_db)):
+    account = None
+    partner = None
+    if params.twitter_account is not None:
+        profile = get_profile(params.twitter_account)
+        if profile is None:
+            bad_request_exception()
+        account = profile['id_str']
+    if params.partner_account is not None:
+        profile = get_profile(params.partner_account)
+        if profile is not None:
+            partner = profile['id_str']
+
+    if db.query(MelonCloudPeopleDatabase).filter(MelonCloudPeopleDatabase.twitter_id.contains(account)).count() > 0:
+        duplicate_on_database_exception()
+
+    people = MelonCloudPeopleDatabase()
+    people.append_details(name=params.name, twitter_id=account, partner=partner, image_url=params.image_url,
+                          nationality=params.nationality,gender=params.gender,weight=params.weight,height=params.height,year_of_birth=params.year_of_birth)
+
+    return response(people.serialize)
 
 
 @router.get("/media")
@@ -799,3 +824,9 @@ def get_database(db, name: DatabaseQueryName):
         DatabaseQueryName.MelonCloudBookPageDatabase: db.query(MelonCloudBookPageDatabase)
 
     }[name]
+
+
+def duplicate_on_database_exception(message=None):
+    raise HTTPException(
+        status_code=code.HTTP_302_FOUND,
+        detail=message if message is not None else "TWITTER USER IS EXISTS ON DATABASE")
