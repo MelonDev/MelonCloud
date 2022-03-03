@@ -82,6 +82,11 @@ class PeopleNationality(str, Enum):
     AUSTRALIAN = "AUSTRALIAN"
 
 
+class PeopleBlood(str, Enum):
+    A = "A"
+    B = "B"
+    AB = "AB"
+    O = "O"
 
 
 class ValidatorModel(BaseModel):
@@ -105,8 +110,9 @@ class RequestPeopleDatabaseModel(BaseModel):
     weight: int = None
     height: int = None
     year_of_birth: int = None
-    age :int = None
+    age: int = None
     partner_account: str = None
+    blood: PeopleBlood = None
 
 
 class TweetAction(str, Enum):

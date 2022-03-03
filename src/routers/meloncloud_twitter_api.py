@@ -71,24 +71,44 @@ async def add_people(params: RequestPeopleDatabaseModel = Depends(RequestPeopleD
         profile = get_profile(params.partner_account)
         if profile is not None:
             partner = profile['id_str']
-
-    if db.query(MelonCloudPeopleDatabase).filter(MelonCloudPeopleDatabase.twitter_id.contains(account)).count() > 0:
-        duplicate_on_database_exception()
-
-    if params.age is not None and params.year_of_birth is None:
-        now = dt.datetime.now()
-        year = int(now.year) - params.age
+    database = db.query(MelonCloudPeopleDatabase).filter(MelonCloudPeopleDatabase.twitter_id.contains(account))
+    if database.count() > 0:
+        profile = database.first()
+        if profile.blood is None and params.blood is not None:
+            profile.blood = params.blood
+        if profile.weight is None and params.weight is not None:
+            profile.weight = params.weight
+        if profile.height is None and params.height is not None:
+            profile.height = params.height
+        if profile.nationality is None and params.nationality is not None:
+            profile.nationality = params.nationality
+        if profile.year_of_birth is None:
+            if params.age is not None and params.year_of_birth is None:
+                now = dt.datetime.now()
+                year = int(now.year) - params.age
+            else:
+                year = params.year_of_birth
+            if year is not None:
+                profile.year_of_birth = params.year
+        db.add(profile)
+        db.commit()
+        return response(profile.serialize)
     else:
-        year = params.year_of_birth
 
-    people = MelonCloudPeopleDatabase()
-    people.append_details(name=params.name, twitter_id=account, partner=partner, image_url=params.image_url,
-                          nationality=params.nationality, gender=params.gender, weight=params.weight,
-                          height=params.height, year_of_birth=year)
+        if params.age is not None and params.year_of_birth is None:
+            now = dt.datetime.now()
+            year = int(now.year) - params.age
+        else:
+            year = params.year_of_birth
 
-    db.add(people)
-    db.commit()
-    return response(people.serialize)
+        people = MelonCloudPeopleDatabase()
+        people.append_details(name=params.name, twitter_id=account, partner=partner, image_url=params.image_url,
+                              nationality=params.nationality, gender=params.gender, weight=params.weight,
+                              height=params.height, year_of_birth=year)
+
+        db.add(people)
+        db.commit()
+        return response(people.serialize)
 
 
 @router.get("/media")
