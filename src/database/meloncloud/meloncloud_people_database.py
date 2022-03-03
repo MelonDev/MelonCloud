@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer
@@ -30,7 +32,7 @@ class MelonCloudPeopleDatabase(Base):
 
     def __init__(self):
         self.id = uuid.uuid4()
-        self.updated_at = current_datetime()
+        self.updated_at = datetime.datetime.now()
 
     def append_details(self, name: str = None, image_url: str = None, nationality: str = None, gender: str = None,
                        weight: int = None, height: int = None, year_of_birth: int = None, partner: str = None,
