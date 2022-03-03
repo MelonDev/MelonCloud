@@ -77,8 +77,11 @@ async def add_people(params: RequestPeopleDatabaseModel = Depends(RequestPeopleD
 
     people = MelonCloudPeopleDatabase()
     people.append_details(name=params.name, twitter_id=account, partner=partner, image_url=params.image_url,
-                          nationality=params.nationality,gender=params.gender,weight=params.weight,height=params.height,year_of_birth=params.year_of_birth)
+                          nationality=params.nationality, gender=params.gender, weight=params.weight,
+                          height=params.height, year_of_birth=params.year_of_birth)
 
+    db.add(people)
+    db.commit()
     return response(people.serialize)
 
 
