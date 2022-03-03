@@ -3,6 +3,10 @@ import datetime as dt
 import pytz
 
 
+def current_datetime():
+    return dt.datetime.now()
+
+
 def current_datetime_with_timezone():
     return append_timezone(dt.datetime.now())
 

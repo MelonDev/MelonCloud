@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from src.environment.database import Base
-from src.tools.converters.datetime_converter import current_datetime_with_timezone
+from src.tools.converters.datetime_converter import current_datetime_with_timezone, current_datetime
 
 
 class MelonCloudPeopleDatabase(Base):
@@ -30,7 +30,7 @@ class MelonCloudPeopleDatabase(Base):
 
     def __init__(self):
         self.id = uuid.uuid4()
-        self.updated_at = current_datetime_with_timezone()
+        self.updated_at = current_datetime()
 
     def append_details(self, name: str = None, image_url: str = None, nationality: str = None, gender: str = None,
                        weight: int = None, height: int = None, year_of_birth: int = None, partner: str = None,
