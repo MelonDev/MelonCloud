@@ -105,6 +105,7 @@ class RequestPeopleDatabaseModel(BaseModel):
     weight: int = None
     height: int = None
     year_of_birth: int = None
+    age :int = None
     partner_account: str = None
 
 

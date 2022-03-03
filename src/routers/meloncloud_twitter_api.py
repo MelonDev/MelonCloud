@@ -75,10 +75,16 @@ async def add_people(params: RequestPeopleDatabaseModel = Depends(RequestPeopleD
     if db.query(MelonCloudPeopleDatabase).filter(MelonCloudPeopleDatabase.twitter_id.contains(account)).count() > 0:
         duplicate_on_database_exception()
 
+    if params.age is not None and params.year_of_birth is None:
+        now = dt.datetime.now()
+        year = int(now.year) - params.age
+    else:
+        year = params.year_of_birth
+
     people = MelonCloudPeopleDatabase()
     people.append_details(name=params.name, twitter_id=account, partner=partner, image_url=params.image_url,
                           nationality=params.nationality, gender=params.gender, weight=params.weight,
-                          height=params.height, year_of_birth=params.year_of_birth)
+                          height=params.height, year_of_birth=year)
 
     db.add(people)
     db.commit()
