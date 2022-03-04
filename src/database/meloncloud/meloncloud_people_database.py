@@ -26,7 +26,7 @@ class MelonCloudPeopleDatabase(Base):
     height = Column(Integer, nullable=True)
     year_of_birth = Column(Integer, nullable=True)
     blood = Column(Text, nullable=True)
-    partner = Column(UUID(as_uuid=True), nullable=True)
+    partner = Column(Text, nullable=True)
 
     characters = relationship("MelonCloudBeastCharacterDatabase", back_populates="owner")
 
