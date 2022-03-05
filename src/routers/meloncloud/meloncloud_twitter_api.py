@@ -54,6 +54,7 @@ async def number_of_tweets(params: ValidatorModel = Depends(), db: Session = Dep
 async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
     limit = params.limit if params.limit is not None else 50
     page = params.page if params.page is not None else 0
+    print(vars(params))
 
     account = None
     extra_optional = None

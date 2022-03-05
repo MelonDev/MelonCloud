@@ -1,3 +1,4 @@
+from environment import TWITTER_VIEWER_PASSWORD
 from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
@@ -48,8 +49,7 @@ def packing_backup(data, filename):
 
 
 def media_query_to_people_query(params: RequestMediaQueryModel) -> RequestPeopleQueryModel:
-    peoples_params = RequestPeopleQueryModel()
-    peoples_params.token = params.token
+    peoples_params = RequestPeopleQueryModel(TWITTER_VIEWER_PASSWORD)
     peoples_params.event = params.event
     peoples_params.hashtag = params.hashtag
     peoples_params.start_date = params.start_date
