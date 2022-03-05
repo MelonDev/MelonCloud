@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.routers import meloncloud_book_api
+from src.routers.meloncloud import meloncloud_book_api
 from src.tools.configure_app import configure_cors, configure_timing
 
 app = FastAPI(
