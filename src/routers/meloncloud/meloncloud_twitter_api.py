@@ -153,7 +153,7 @@ async def get_all_tweets(params: RequestTweetQueryModel = Depends(),
 @router.get("/tweets/{tweet_id}", status_code=code.HTTP_200_OK)
 async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
     if bool(req.raw):
-        package = await get_status(req.tweet_id)
+        package = get_status(req.tweet_id)
         if package is None:
             not_found_exception()
 
@@ -166,11 +166,28 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         result = tweet.serialize
 
         account_raw = get_user_profile(tweet.account_id)
+
         if account_raw is not None:
             account = get_meloncloud_tweet_profile_endpoint(account_raw)
             result['account'] = account
         else:
             result['account'] = None
+
+        current_tweet = get_status(req.tweet_id)
+        if current_tweet is not None:
+            current = {
+                "retweet_count": current_tweet['retweet_count'],
+                "retweeted": current_tweet['retweeted'],
+                "favorite_count": current_tweet['favorite_count'],
+                "favorited": current_tweet['favorited'],
+                "created_at": current_tweet['created_at'],
+                # "source": filter_platforms_tweet(currentTweet['source'])
+            }
+            result['current'] = current
+        else:
+            result['current'] = None
+
+
 
         return response(result)
 
