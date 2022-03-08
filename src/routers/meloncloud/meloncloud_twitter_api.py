@@ -165,14 +165,6 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
 
         result = tweet.serialize
 
-        account_raw = get_user_profile(tweet.account_id)
-
-        if account_raw is not None:
-            account = get_meloncloud_tweet_profile_endpoint(account_raw)
-            result['account'] = account
-        else:
-            result['account'] = None
-
         current_tweet = get_status(req.tweet_id)
         if current_tweet is not None:
             current = {
@@ -184,10 +176,16 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
                 # "source": filter_platforms_tweet(currentTweet['source'])
             }
             result['current'] = current
+
+            if "user" in current_tweet:
+                account = get_meloncloud_tweet_profile_endpoint(current_tweet['user'])
+                result['account'] = account
+            else:
+                result['account'] = None
+
         else:
             result['current'] = None
-
-
+            result['account'] = None
 
         return response(result)
 
