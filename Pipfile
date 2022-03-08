@@ -39,6 +39,7 @@ google-cloud-storage = "*"
 firebase = "*"
 firebase-admin = "*"
 pyxtension = "*"
+googletrans = "==4.0.0rc1"
 
 [dev-packages]
 

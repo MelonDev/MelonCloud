@@ -33,6 +33,7 @@ from src.tools.date_for_backup import today, first_day_of_month_with_time, \
     first_day_of_previous_year_with_time, last_day_of_previous_year_with_time
 from src.tools.photos_endpoint import tweet_people_endpoint, tweet_photo_endpoint, tweet_video_endpoint, \
     tweet_all_media_endpoint
+from src.tools.translate_engine import translate
 from src.tools.tweet_profile_endpoint import get_meloncloud_tweet_profile_endpoint
 from src.tools.verify_hub import response
 
@@ -163,7 +164,15 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         if tweet is None:
             not_found_exception()
 
+        message = tweet.message
+        language = tweet.language
+
+
         result = tweet.serialize
+        trans = translate(src=language, text=message, dest=['en', 'th'])
+
+        if trans is not None:
+            result['translate'] = trans
 
         current_tweet = get_status(req.tweet_id)
         if current_tweet is not None:
