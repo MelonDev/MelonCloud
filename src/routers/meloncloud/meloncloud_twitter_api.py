@@ -9,7 +9,7 @@ from operator import is_not
 from functools import partial
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_meloncloud_tweet_model, get_status, \
-    get_dict_lookup_user
+    get_dict_lookup_user, get_user_profile
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
@@ -154,13 +154,25 @@ async def get_all_tweets(params: RequestTweetQueryModel = Depends(),
 async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(get_db)):
     if bool(req.raw):
         package = await get_status(req.tweet_id)
+        if package is None:
+            not_found_exception()
+
         return response(package)
     else:
         tweet = db.query(MelonCloudTwitterDatabase).get(req.tweet_id)
         if tweet is None:
             not_found_exception()
 
-        return response(tweet.serialize)
+        result = tweet.serialize
+
+        account_raw = get_user_profile(tweet.account_id)
+        if account_raw is not None:
+            account = get_meloncloud_tweet_profile_endpoint(account_raw)
+            result['account'] = account
+        else:
+            result['account'] = None
+
+        return response(result)
 
 
 @router.get("/peoples", status_code=code.HTTP_200_OK)

@@ -138,7 +138,6 @@ class RequestPeopleQueryModel(ValidatorModel):
     sorting: SortingTweet = None
 
     def __init__(self, token):
-        print(token)
         super().__init__(token=token)
 
 
