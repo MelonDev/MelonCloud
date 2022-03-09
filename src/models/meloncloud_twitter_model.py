@@ -123,6 +123,7 @@ class TweetAction(str, Enum):
 
 class RequestTweetModel(ValidatorModel):
     tweet_id: str
+    translate : bool = None
     raw: bool = None
 
 

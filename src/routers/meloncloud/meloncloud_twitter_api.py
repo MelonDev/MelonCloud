@@ -168,10 +168,11 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         language = tweet.language if tweet.language != "zh" else "zh-cn"
 
         result = tweet.serialize
-        trans = translate(src=language, text=message, dest=['en', 'th'])
-
-        if trans is not None:
-            result['translate'] = trans
+        result['translate'] = None
+        if req.translate is None or bool(req.translate):
+            trans = translate(src=language, text=message, dest=['en', 'th'])
+            if trans is not None:
+                result['translate'] = trans
 
         current_tweet = get_status(req.tweet_id)
         if current_tweet is not None:
