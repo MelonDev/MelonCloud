@@ -164,9 +164,8 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         if tweet is None:
             not_found_exception()
 
-        message = tweet.message
-        language = tweet.language
-
+        message = tweet.message if tweet.message.rfind("https://") == -1 else tweet.message.rsplit("https://", 1)[0]
+        language = tweet.language if tweet.language != "zh" else "zh-cn"
 
         result = tweet.serialize
         trans = translate(src=language, text=message, dest=['en', 'th'])
