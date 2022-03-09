@@ -169,7 +169,7 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
 
         result = tweet.serialize
         result['translate'] = None
-        if req.translate is None or bool(req.translate):
+        if (req.translate is None or bool(req.translate)) and language != "und":
             trans = translate(src=language, text=message, dest=['en', 'th'])
             if trans is not None:
                 result['translate'] = trans
