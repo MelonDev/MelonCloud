@@ -24,7 +24,7 @@ from src.routers.meloncloud.meloncloud_twitter_extension_function import packing
 from src.routers.meloncloud.meloncloud_twitter_filter_function import database_media_type_categorize, \
     filtering_meloncloud_twitter_database_for_media, filtering_meloncloud_twitter_database, append_limit_to_database, \
     filtering_people_database, filtering_profile_database, filtering_meloncloud_twitter_database_for_hashtags, \
-    database_for_backup
+    database_for_backup, filtering_people_for_rank_database
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import convert_datetime_to_string
 from src.tools.date_for_backup import today, first_day_of_month_with_time, \
@@ -88,8 +88,47 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
             extra_optional = get_meloncloud_tweet_profile_endpoint(account)
         if params.extra_optional is MediaExtraOptional.PEOPLES:
             peoples_params = media_query_to_people_query(params)
-            response_from_peoples = await get_all_peoples(params=peoples_params, db=db)
-            extra_optional = response_from_peoples.data
+
+            peoples_database = db.query(MelonCloudTwitterDatabase.account_id,
+                                        func.count(MelonCloudTwitterDatabase.account_id))
+            peoples_compute_database = filtering_people_for_rank_database(params=peoples_params, db=peoples_database)
+            peoples_count = peoples_compute_database.count()
+            peoples_raw = peoples_compute_database.all()
+            peoples_reverse = (
+                True if peoples_params.sorting is SortingTweet.DESC else False) if peoples_params.sorting is not None else True
+            peoples_data_sorted = sorted(peoples_raw, key=lambda kv: kv[1], reverse=peoples_reverse)
+            peoples_limit = len(peoples_data_sorted) if bool(peoples_params.infinite) else int(
+                peoples_params.limit if peoples_params.limit is not None else 50)
+            peoples_page = 0 if bool(peoples_params.infinite) else int(
+                peoples_params.page if peoples_params.page is not None else 0) * peoples_limit
+            peoples_real_page = int(peoples_params.page if peoples_params.page is not None else 0)
+
+            peoples_total_page = int(math.ceil(peoples_count / peoples_limit)) if peoples_count > 0 else 0
+            is_overflow(peoples_real_page, peoples_total_page)
+
+            peoples_data_list = peoples_data_sorted[peoples_page:peoples_page + peoples_limit]
+
+            if len(peoples_data_list) > 100:
+                peoples_list_chunks = chunks(peoples_data_list, int(math.ceil(len(peoples_data_list) / 100)))
+                peoples_list = {}
+                for i in peoples_list_chunks:
+                    peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), i)))
+                    peoples_list.update(peoples)
+                peoples_results = list(filter(partial(is_not, None),
+                                                   map(lambda x: tweet_people_endpoint(
+                                                       get_meloncloud_tweet_profile_endpoint(
+                                                           peoples_list.get(x[0], None)), x[1]),
+                                                       peoples_data_list)))
+
+            else:
+                peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), peoples_data_list)))
+                peoples_results = list(filter(partial(is_not, None),
+                                                   map(lambda x: tweet_people_endpoint(
+                                                       get_meloncloud_tweet_profile_endpoint(peoples.get(x[0], None)),
+                                                       x[1]),
+                                                       peoples_data_list)))
+
+            extra_optional = peoples_results
 
     if file_type is MelonCloudFileTypeEnum.PHOTOS:
         data = list(map(lambda x: tweet_photo_endpoint(x, params.quality), results))

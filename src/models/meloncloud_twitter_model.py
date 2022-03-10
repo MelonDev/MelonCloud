@@ -138,19 +138,17 @@ class RequestPeopleQueryModel(ValidatorModel):
     infinite: bool = None
     sorting: SortingTweet = None
 
-    def __init__(self, token: str, event: str = None, hashtag: str = None, start_date: date = None,
-                 end_date: date = None, me_like: bool = None, limit: PositiveInt = None,
-                 page: PositiveInt = None, infinite: bool = None, sorting: SortingTweet = None):
-        self.event = event
-        self.hashtag = hashtag
-        self.start_date = start_date
-        self.end_date = end_date
-        self.me_like = me_like
-        self.limit = limit
-        self.page = page
-        self.infinite = infinite
-        self.sorting = sorting
-        super().__init__(token=token)
+
+class RequestPeopleQueryForRankModel():
+    event: str = None
+    hashtag: str = None
+    start_date: date = None
+    end_date: date = None
+    me_like: bool = None
+    limit: PositiveInt = None
+    page: PositiveInt = None
+    infinite: bool = None
+    sorting: SortingTweet = None
 
 
 class TweetQueryBaseModel(ValidatorModel):

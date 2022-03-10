@@ -5,7 +5,7 @@ from src.engines.twitter_engines import get_user_id
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
 from src.models.meloncloud_twitter_model import RequestPeopleQueryModel, RequestProfileModel, RequestHashtagQueryModel, \
-    HashtagQueryDate, RequestTweetQueryModel, RequestMediaQueryModel
+    HashtagQueryDate, RequestTweetQueryModel, RequestMediaQueryModel, RequestPeopleQueryForRankModel
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception
 from src.routers.meloncloud.meloncloud_twitter_extension_function import get_database, get_profile
 from src.tools.converters.datetime_converter import append_timezone
@@ -48,6 +48,31 @@ def database_media_type_categorize(db, file_type: MelonCloudFileTypeEnum):
 
 
 def filtering_people_database(params: RequestPeopleQueryModel, db):
+    database = db if type(db) is DBQuery else db.query(MelonCloudTwitterDatabase.account,
+                                                       func.count(MelonCloudTwitterDatabase.account))
+
+    if params is None:
+        bad_request_exception()
+
+    database = database.group_by(MelonCloudTwitterDatabase.account_id)
+
+    if params.hashtag is not None:
+        database = database.filter(MelonCloudTwitterDatabase.hashtags.any(params.hashtag))
+    if params.event is not None:
+        database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
+    if params.me_like is not None:
+        database = database.filter(MelonCloudTwitterDatabase.memories.is_(params.me_like))
+    if params.start_date is not None:
+        ds = append_timezone(dt.datetime.strptime(f"{params.start_date} 00:00:00", "%Y-%m-%d %H:%M:%S"))
+        database = database.filter(MelonCloudTwitterDatabase.stored_at >= ds)
+    if params.end_date is not None:
+        de = append_timezone(dt.datetime.strptime(f"{params.end_date} 23:59:59", '%Y-%m-%d %H:%M:%S'))
+        database = database.filter(MelonCloudTwitterDatabase.stored_at <= de)
+
+    return database
+
+
+def filtering_people_for_rank_database(params: RequestPeopleQueryForRankModel, db):
     database = db if type(db) is DBQuery else db.query(MelonCloudTwitterDatabase.account,
                                                        func.count(MelonCloudTwitterDatabase.account))
 

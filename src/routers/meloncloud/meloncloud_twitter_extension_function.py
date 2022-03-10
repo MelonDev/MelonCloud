@@ -7,7 +7,7 @@ from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitte
 from src.engines.twitter_engines import get_user_profile, hasFavorited, like_tweet
 from src.enums.profile_enum import ProfileTypeEnum
 from src.models.meloncloud_twitter_model import DatabaseQueryName, TweetMediaType, HashtagQueryDate, \
-    RequestMediaQueryModel, RequestPeopleQueryModel, TweetAction, RequestAnalyzeModel
+    RequestMediaQueryModel, RequestPeopleQueryModel, TweetAction, RequestAnalyzeModel, RequestPeopleQueryForRankModel
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception
 from fastapi import Response
 import csv
@@ -48,8 +48,8 @@ def packing_backup(data, filename):
     return res
 
 
-def media_query_to_people_query(params: RequestMediaQueryModel) -> RequestPeopleQueryModel:
-    peoples_params = RequestPeopleQueryModel(TWITTER_VIEWER_PASSWORD)
+def media_query_to_people_query(params: RequestMediaQueryModel) -> RequestPeopleQueryForRankModel:
+    peoples_params = RequestPeopleQueryForRankModel()
     peoples_params.event = params.event
     peoples_params.hashtag = params.hashtag
     peoples_params.start_date = params.start_date
