@@ -16,7 +16,6 @@ def _video_key(value) -> str:
 
 def _photo_type_url(value, type: ImageQualityEnum) -> str:
     if "http://" in value:
-        print("FOUND")
         value = value.replace("http://", "https://")
     return value + ":" + (type if type is not None else ImageQualityEnum.ORIG).lower()
 
@@ -57,4 +56,4 @@ def people_endpoint(profile: TweetPeopleModel, count: int):
 def tweet_people_endpoint(profile: MelonCloudTweetPeopleModel, count: int):
     if profile is None or count is None:
         return None
-    return MelonCloudTweetPeopleResponseModel(profile=profile, count=count)
+    return MelonCloudTweetPeopleResponseModel(profile=profile.compact_serialize, count=count)

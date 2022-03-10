@@ -17,14 +17,16 @@ from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, \
     RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \
-    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName
+    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName, RequestMediaQueryFromAccountModel
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception, not_found_exception
 from src.routers.meloncloud.meloncloud_twitter_extension_function import packing_backup, get_profile, \
     is_overflow, media_query_to_people_query, media_result_packing, get_day, get_database_name, processing_tweet
 from src.routers.meloncloud.meloncloud_twitter_filter_function import database_media_type_categorize, \
     filtering_meloncloud_twitter_database_for_media, filtering_meloncloud_twitter_database, append_limit_to_database, \
     filtering_people_database, filtering_profile_database, filtering_meloncloud_twitter_database_for_hashtags, \
-    database_for_backup, filtering_people_for_rank_database, filtering_meloncloud_twitter_database_for_profile_hashtags
+    database_for_backup, filtering_people_for_rank_database, filtering_meloncloud_twitter_database_for_profile_hashtags, \
+    filtering_meloncloud_twitter_database_for_media_from_account, \
+    filtering_meloncloud_twitter_database_for_media_profile_hashtags
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import convert_datetime_to_string
 from src.tools.date_for_backup import today, first_day_of_month_with_time, \
@@ -55,7 +57,6 @@ async def number_of_tweets(params: ValidatorModel = Depends(), db: Session = Dep
 async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session = Depends(get_db)):
     limit = params.limit if params.limit is not None else 50
     page = params.page if params.page is not None else 0
-    print(vars(params))
 
     account = None
     extra_optional = None
@@ -65,6 +66,7 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
 
     file_type = MelonCloudFileTypeEnum.PHOTOS if params.type is None else params.type
     database = database_media_type_categorize(db=db, file_type=file_type)
+
     compute_database = filtering_meloncloud_twitter_database_for_media(params=params, db=database, account=account)
     count = compute_database.count()
     total_page = int(math.ceil(count / limit)) if count > 0 else 0
@@ -85,7 +87,10 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
 
     if params.extra_optional is not None:
         if params.extra_optional is MediaExtraOptional.PROFILE:
-            extra_optional = get_meloncloud_tweet_profile_endpoint(account)
+            if params.account is None:
+                bad_request_exception(message="Request optional profile but you can't sent account id")
+            else:
+                extra_optional = get_meloncloud_tweet_profile_endpoint(account).compact_serialize
         if params.extra_optional is MediaExtraOptional.PEOPLES:
             peoples_params = media_query_to_people_query(params)
 
@@ -142,6 +147,75 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
         data = list(map(lambda x: tweet_all_media_endpoint(x, params.quality), results))
         result = media_result_packing(data=data, payload=extra_optional)
         return response(data=result, fabric=fabric)
+    else:
+        bad_request_exception()
+
+
+@router.get("/media/{account}")
+async def get_media_from_account(params: RequestMediaQueryFromAccountModel = Depends(), db: Session = Depends(get_db)):
+    limit = params.limit if params.limit is not None else 50
+    page = params.page if params.page is not None else 0
+
+    account = get_profile(params.account)
+
+    results = {}
+
+    file_type = MelonCloudFileTypeEnum.PHOTOS if params.type is None else params.type
+    database = database_media_type_categorize(db=db, file_type=file_type)
+    compute_database = filtering_meloncloud_twitter_database_for_media_from_account(params=params, db=database,
+                                                                                    account=account, query=params.query)
+    count = compute_database.count()
+    total_page = int(math.ceil(count / limit)) if count > 0 else 0
+    is_overflow(page, total_page)
+
+    limit_database = compute_database.limit(limit).offset(int(page * limit))
+    data = limit_database.all()
+
+    fabric = {
+        "total_items": count,
+        "per_page": int(params.limit if params.limit is not None else 50),
+        "item_on_page": len(results),
+        "total_page": total_page,
+        "current_page": page,
+        "next_page": page + 1 if page < total_page - 1 else None,
+        "previous_page": page - 1 if page > 0 else None
+    }
+
+    profile = get_meloncloud_tweet_profile_endpoint(account)
+
+    if profile is not None:
+        print(account)
+        tweets_count = filtering_meloncloud_twitter_database_for_media_from_account(params=params, db=db,
+                                                                                    account=account,
+                                                                                    query=ProfileQueryEnum.TWEET).count()
+        mentions_count = filtering_meloncloud_twitter_database_for_media_from_account(params=params, db=db,
+                                                                                      account=account,
+                                                                                      query=ProfileQueryEnum.MENTION).count()
+
+        profile.set_optional_stats(tweets_count=tweets_count, mentions_count=mentions_count)
+        results["profile"] = profile.full_serialize
+
+    if bool(params.with_hashtags) and params.hashtag is None:
+        hashtags_database = db.query(func.unnest(MelonCloudTwitterDatabase.hashtags))
+        hashtags_compute_database = filtering_meloncloud_twitter_database_for_media_profile_hashtags(params=params,
+                                                                                               db=hashtags_database,
+                                                                                               account=account)
+        hashtags_raw_data = hashtags_compute_database.all()
+        hashtags_data = [str(i[0]) for i in hashtags_raw_data]
+        hashtags_data_dict = dict(Counter(hashtags_data))
+        hashtags_data_sorted = sorted(hashtags_data_dict.items(), key=lambda kv: kv[1], reverse=True)
+        hashtags_results = [get_hashtag_dict(name, count) for name, count in hashtags_data_sorted[0:0 + 30]]
+        results["hashtags"] = hashtags_results
+
+    if file_type is MelonCloudFileTypeEnum.PHOTOS:
+        results['media'] = list(map(lambda x: tweet_photo_endpoint(x, params.quality), data))
+        return response(data=results, fabric=fabric)
+    elif file_type is MelonCloudFileTypeEnum.VIDEOS:
+        results['media'] = list(map(lambda x: tweet_video_endpoint(x), data))
+        return response(data=results, fabric=fabric)
+    elif file_type is MelonCloudFileTypeEnum.ALL:
+        results['media'] = list(map(lambda x: tweet_all_media_endpoint(x, params.quality), data))
+        return response(data=results, fabric=fabric)
     else:
         bad_request_exception()
 
@@ -227,7 +301,7 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
 
             if "user" in current_tweet:
                 account = get_meloncloud_tweet_profile_endpoint(current_tweet['user'])
-                result['account'] = account
+                result['account'] = account.compact_serialize
             else:
                 result['account'] = None
 
@@ -245,6 +319,7 @@ async def get_all_peoples(params: RequestPeopleQueryModel = Depends(), db: Sessi
 
     database = db.query(MelonCloudTwitterDatabase.account_id,
                         func.count(MelonCloudTwitterDatabase.account_id))
+
     compute_database = filtering_people_database(params=params, db=database)
     count = compute_database.count()
     raw = compute_database.all()
@@ -306,7 +381,18 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
         result = {}
 
         if profile is not None:
-            result["profile"] = profile
+            tweets_count = filtering_profile_database(params=req,
+                                                      database=db.query(MelonCloudTwitterDatabase).filter(
+                                                          MelonCloudTwitterDatabase.account_id.contains(
+                                                              profile.id))).count()
+            mentions_count = filtering_profile_database(params=req,
+                                                        database=db.query(MelonCloudTwitterDatabase).filter(
+                                                            MelonCloudTwitterDatabase.mentions.any(
+                                                                profile.id))).count()
+
+            profile.set_optional_stats(tweets_count=tweets_count, mentions_count=mentions_count)
+
+            result["profile"] = profile.full_serialize
 
             count = 0
             page = req.page if req.page is not None else 0
@@ -342,8 +428,8 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
             if bool(req.with_hashtags) and req.hashtag is None:
                 hashtags_database = db.query(func.unnest(MelonCloudTwitterDatabase.hashtags))
                 hashtags_compute_database = filtering_meloncloud_twitter_database_for_profile_hashtags(params=req,
-                                                                                              db=hashtags_database,
-                                                                                              account=account)
+                                                                                                       db=hashtags_database,
+                                                                                                       account=account)
                 hashtags_raw_data = hashtags_compute_database.all()
                 hashtags_data = [str(i[0]) for i in hashtags_raw_data]
                 hashtags_data_dict = dict(Counter(hashtags_data))

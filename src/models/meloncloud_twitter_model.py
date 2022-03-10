@@ -200,10 +200,27 @@ class RequestMediaQueryModel(ValidatorModel):
     deleted: bool = None
 
 
+class RequestMediaQueryFromAccountModel(ValidatorModel):
+    account: str
+    quality: ImageQualityEnum = None
+    query: ProfileQueryEnum = None
+    with_hashtags: bool = None
+    hashtag: str = None
+    event: str = None
+    me_like: bool = None
+    type: MelonCloudFileTypeEnum = None
+    start_date: date = None
+    end_date: date = None
+    limit: PositiveInt = None
+    page: PositiveInt = None
+    sorting: SortingTweet = None
+    deleted: bool = None
+
+
 class RequestProfileModel(ValidatorModel):
     account: str
     query: ProfileQueryEnum = None
-    with_hashtags :bool = None
+    with_hashtags: bool = None
     event: str = None
     hashtag: str = None
     start_date: date = None
@@ -234,6 +251,9 @@ class MelonCloudTweetPeopleModel:
     favourites_count: int
     statuses_count: int
 
+    tweets_count: int = None
+    mentions_count: int = None
+
     def __init__(self, id, name, screen_name, protected: bool):
         self.id = id
         self.name = name
@@ -258,6 +278,50 @@ class MelonCloudTweetPeopleModel:
         self.profile_sidebar_fill_color = profile_sidebar_fill_color
         self.profile_sidebar_border_color = profile_sidebar_border_color
         self.profile_link_color = profile_link_color
+
+    def set_optional_stats(self, tweets_count, mentions_count):
+        self.tweets_count = tweets_count
+        self.mentions_count = mentions_count
+
+    @property
+    def full_serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'screen_name': self.screen_name,
+            'location': self.location,
+            'description': self.description,
+            'protected': self.protected,
+            'banner': self.profile_banner,
+            'image': self.profile_image,
+            'styles': {
+                'profile_text_color': self.profile_text_color,
+                'profile_sidebar_fill_color': self.profile_sidebar_fill_color,
+                'profile_sidebar_border_color': self.profile_sidebar_border_color,
+                'profile_link_color': self.profile_link_color
+            },
+            'stats': {
+                'followers': self.followers_count,
+                'friends': self.friends_count,
+                'favourites': self.favourites_count,
+                'statuses': self.statuses_count,
+                'tweets': self.tweets_count,
+                'mentions': self.mentions_count
+            },
+        }
+
+    @property
+    def compact_serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'screen_name': self.screen_name,
+            'location': self.location,
+            'description': self.description,
+            'protected': self.protected,
+            'banner': self.profile_banner,
+            'image': self.profile_image,
+        }
 
 
 class MelonCloudTweetPeopleResponseModel:
