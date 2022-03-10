@@ -203,6 +203,7 @@ class RequestMediaQueryModel(ValidatorModel):
 class RequestProfileModel(ValidatorModel):
     account: str
     query: ProfileQueryEnum = None
+    with_hashtags :bool = None
     event: str = None
     hashtag: str = None
     start_date: date = None

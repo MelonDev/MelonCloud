@@ -1,7 +1,8 @@
-from sqlalchemy import func, asc, desc
+from sqlalchemy import func, asc, desc, or_
 
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_user_id
+from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
 from src.models.meloncloud_twitter_model import RequestPeopleQueryModel, RequestProfileModel, RequestHashtagQueryModel, \
@@ -135,19 +136,16 @@ def filtering_meloncloud_twitter_database_for_hashtags(params: RequestHashtagQue
         database = database.filter(MelonCloudTwitterDatabase.mentions.any(get_user_id(params.mention_name)))
     if params.account is not None:
         account = get_profile(params.account)
-        database = database.filter(MelonCloudTwitterDatabase.account_id.contains(account.id_str))
+        database = database.filter(MelonCloudTwitterDatabase.account_id.contains(account['id_str']))
     if params.event is not None:
         database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
     if params.type is not None:
         database = database.filter(MelonCloudTwitterDatabase.type.contains(params.type))
     if params.me_like is not None:
-        print(database.count())
         database = database.filter(MelonCloudTwitterDatabase.memories.is_(params.me_like))
-        print(database.count())
 
     if params.deleted is not None:
         database = database.filter(MelonCloudTwitterDatabase.deleted.is_(params.deleted))
-    print(database.count())
 
     if params.query is HashtagQueryDate.CUSTOM:
         if params.start_date is not None:
@@ -160,6 +158,42 @@ def filtering_meloncloud_twitter_database_for_hashtags(params: RequestHashtagQue
         database = database.filter(
             MelonCloudTwitterDatabase.stored_at <= skip_datetime).filter(
             MelonCloudTwitterDatabase.stored_at >= back_to_datetime)
+
+    if params.sorting == SortingTweet.ASC:
+        database = database.order_by(asc(MelonCloudTwitterDatabase.stored_at))
+    else:
+        database = database.order_by(desc(MelonCloudTwitterDatabase.stored_at))
+
+    return database
+
+
+def filtering_meloncloud_twitter_database_for_profile_hashtags(params: RequestProfileModel, db,account):
+    database = db if type(db) is DBQuery else db.query(func.unnest(MelonCloudTwitterDatabase.hashtags))
+    if params is None:
+        bad_request_exception()
+
+    if params.query is ProfileQueryEnum.TWEET or params.query is None:
+        database = database.filter(MelonCloudTwitterDatabase.account_id.contains(account['id_str']))
+    if params.query is ProfileQueryEnum.MENTION:
+        database = database.filter(
+            MelonCloudTwitterDatabase.mentions.any(account['id_str']))
+    if params.query is ProfileQueryEnum.COMBINE:
+        database = database.filter(
+            or_(MelonCloudTwitterDatabase.account_id.contains(account['id_str']),
+                MelonCloudTwitterDatabase.mentions.any(account['id_str'])))
+
+    if params.event is not None:
+        database = database.filter(MelonCloudTwitterDatabase.event.contains(params.event))
+    if params.me_like is not None:
+        database = database.filter(MelonCloudTwitterDatabase.memories.is_(params.me_like))
+    if params.deleted is not None:
+        database = database.filter(MelonCloudTwitterDatabase.deleted.is_(params.deleted))
+    if params.start_date is not None:
+        ds = append_timezone(dt.datetime.strptime(f"{params.start_date} 00:00:00", "%Y-%m-%d %H:%M:%S"))
+        database = database.filter(MelonCloudTwitterDatabase.stored_at >= ds)
+    if params.end_date is not None:
+        de = append_timezone(dt.datetime.strptime(f"{params.end_date} 23:59:59", '%Y-%m-%d %H:%M:%S'))
+        database = database.filter(MelonCloudTwitterDatabase.stored_at <= de)
 
     if params.sorting == SortingTweet.ASC:
         database = database.order_by(asc(MelonCloudTwitterDatabase.stored_at))

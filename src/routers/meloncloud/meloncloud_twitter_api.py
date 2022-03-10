@@ -24,7 +24,7 @@ from src.routers.meloncloud.meloncloud_twitter_extension_function import packing
 from src.routers.meloncloud.meloncloud_twitter_filter_function import database_media_type_categorize, \
     filtering_meloncloud_twitter_database_for_media, filtering_meloncloud_twitter_database, append_limit_to_database, \
     filtering_people_database, filtering_profile_database, filtering_meloncloud_twitter_database_for_hashtags, \
-    database_for_backup, filtering_people_for_rank_database
+    database_for_backup, filtering_people_for_rank_database, filtering_meloncloud_twitter_database_for_profile_hashtags
 from src.tools.chunks import chunks
 from src.tools.converters.datetime_converter import convert_datetime_to_string
 from src.tools.date_for_backup import today, first_day_of_month_with_time, \
@@ -115,18 +115,18 @@ async def get_all_media(params: RequestMediaQueryModel = Depends(), db: Session 
                     peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), i)))
                     peoples_list.update(peoples)
                 peoples_results = list(filter(partial(is_not, None),
-                                                   map(lambda x: tweet_people_endpoint(
-                                                       get_meloncloud_tweet_profile_endpoint(
-                                                           peoples_list.get(x[0], None)), x[1]),
-                                                       peoples_data_list)))
+                                              map(lambda x: tweet_people_endpoint(
+                                                  get_meloncloud_tweet_profile_endpoint(
+                                                      peoples_list.get(x[0], None)), x[1]),
+                                                  peoples_data_list)))
 
             else:
                 peoples = get_dict_lookup_user(list(map(lambda x: str(x[0]), peoples_data_list)))
                 peoples_results = list(filter(partial(is_not, None),
-                                                   map(lambda x: tweet_people_endpoint(
-                                                       get_meloncloud_tweet_profile_endpoint(peoples.get(x[0], None)),
-                                                       x[1]),
-                                                       peoples_data_list)))
+                                              map(lambda x: tweet_people_endpoint(
+                                                  get_meloncloud_tweet_profile_endpoint(peoples.get(x[0], None)),
+                                                  x[1]),
+                                                  peoples_data_list)))
 
             extra_optional = peoples_results
 
@@ -338,6 +338,19 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
                 item_count = limit_database.count()
                 tweets = limit_database.all()
                 result["tweets"] = [i.serialize for i in tweets]
+
+            if bool(req.with_hashtags) and req.hashtag is None:
+                hashtags_database = db.query(func.unnest(MelonCloudTwitterDatabase.hashtags))
+                hashtags_compute_database = filtering_meloncloud_twitter_database_for_profile_hashtags(params=req,
+                                                                                              db=hashtags_database,
+                                                                                              account=account)
+                hashtags_raw_data = hashtags_compute_database.all()
+                hashtags_data = [str(i[0]) for i in hashtags_raw_data]
+                hashtags_data_dict = dict(Counter(hashtags_data))
+                hashtags_data_sorted = sorted(hashtags_data_dict.items(), key=lambda kv: kv[1], reverse=True)
+                hashtags_start_at = int(page) * limit
+                hashtags_results = [get_hashtag_dict(name, count) for name, count in hashtags_data_sorted[hashtags_start_at:hashtags_start_at + limit]]
+                result["hashtags"] = hashtags_results
 
             fabric = {
                 "total_items": count,
