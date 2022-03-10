@@ -348,8 +348,7 @@ async def get_people_detail(req: RequestProfileModel = Depends(), db: Session = 
                 hashtags_data = [str(i[0]) for i in hashtags_raw_data]
                 hashtags_data_dict = dict(Counter(hashtags_data))
                 hashtags_data_sorted = sorted(hashtags_data_dict.items(), key=lambda kv: kv[1], reverse=True)
-                hashtags_start_at = int(page) * limit
-                hashtags_results = [get_hashtag_dict(name, count) for name, count in hashtags_data_sorted[hashtags_start_at:hashtags_start_at + limit]]
+                hashtags_results = [get_hashtag_dict(name, count) for name, count in hashtags_data_sorted[0:0 + 30]]
                 result["hashtags"] = hashtags_results
 
             fabric = {
