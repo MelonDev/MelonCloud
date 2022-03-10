@@ -123,7 +123,7 @@ class TweetAction(str, Enum):
 
 class RequestTweetModel(ValidatorModel):
     tweet_id: str
-    translate : bool = None
+    translate: bool = None
     raw: bool = None
 
 
@@ -138,7 +138,18 @@ class RequestPeopleQueryModel(ValidatorModel):
     infinite: bool = None
     sorting: SortingTweet = None
 
-    
+    def __init__(self, token, event=None, hashtag=None, start_date=None, end_date=None, me_like=None, limit=None,
+                 page=None, infinite=None, sorting=None):
+        self.event = event
+        self.hashtag = hashtag
+        self.start_date = start_date
+        self.end_date = end_date
+        self.me_like = me_like
+        self.limit = limit
+        self.page = page
+        self.infinite = infinite
+        self.sorting = sorting
+        super().__init__(token=token)
 
 
 class TweetQueryBaseModel(ValidatorModel):
