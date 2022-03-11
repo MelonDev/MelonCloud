@@ -36,17 +36,15 @@ def append_limit_to_database(params, database):
 def database_media_type_categorize(db, file_type: MelonCloudFileTypeEnum):
     if file_type is MelonCloudFileTypeEnum.PHOTOS:
         return db.query(func.unnest(MelonCloudTwitterDatabase.photos), MelonCloudTwitterDatabase.id,
-                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
-                        MelonCloudTwitterDatabase.mentions)
+                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at)
     elif file_type is MelonCloudFileTypeEnum.VIDEOS:
         return db.query(func.unnest(MelonCloudTwitterDatabase.videos), MelonCloudTwitterDatabase.id,
                         MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
-                        MelonCloudTwitterDatabase.thumbnail, MelonCloudTwitterDatabase.mentions)
+                        MelonCloudTwitterDatabase.thumbnail)
     elif file_type is MelonCloudFileTypeEnum.ALL:
         return db.query(func.unnest(MelonCloudTwitterDatabase.photos), func.unnest(MelonCloudTwitterDatabase.videos),
                         MelonCloudTwitterDatabase.thumbnail, MelonCloudTwitterDatabase.id,
-                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
-                        MelonCloudTwitterDatabase.mentions)
+                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at)
     else:
         bad_request_exception()
 

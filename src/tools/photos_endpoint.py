@@ -25,26 +25,30 @@ def tweet_photo_url_endpoint(value, type: ImageQualityEnum) -> TweetMediaURLResp
                                       thumbnail=_photo_type_url(value, type=ImageQualityEnum.THUMB))
 
 
-def tweet_photo_endpoint(row: Row, media_type: ImageQualityEnum) -> TweetMediaResponseModel:
+def tweet_photo_endpoint(row: Row, media_type: ImageQualityEnum, account: str = None) -> TweetMediaResponseModel:
     return TweetMediaResponseModel(id=_photo_key(row[0]), url=_photo_type_url(row[0], type=media_type), tweet_id=row[1],
                                    account_id=row[2], timestamp=row[3],
-                                   thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB), type="PHOTO",source="OWNER" if row[4] is None else "MENTION")
+                                   thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB), type="PHOTO",
+                                   source=source(value=row[2], account=account))
 
 
-def tweet_video_endpoint(row: Row) -> TweetMediaResponseModel:
+def tweet_video_endpoint(row: Row, account: str = None) -> TweetMediaResponseModel:
     return TweetMediaResponseModel(id=row[1], url=row[0], tweet_id=row[1],
-                                   account_id=row[2], timestamp=row[3], thumbnail=row[4], type="VIDEO",source="OWNER" if row[5] is None else "MENTION")
+                                   account_id=row[2], timestamp=row[3], thumbnail=row[4], type="VIDEO",
+                                   source=source(value=row[2], account=account))
 
 
-def tweet_all_media_endpoint(row: Row, media_type: ImageQualityEnum) -> TweetMediaResponseModel:
+def tweet_all_media_endpoint(row: Row, media_type: ImageQualityEnum, account: str = None) -> TweetMediaResponseModel:
     if row[0] is not None:
         return TweetMediaResponseModel(id=_photo_key(row[0]), url=_photo_type_url(row[0], type=media_type),
                                        tweet_id=row[3],
                                        account_id=row[4], timestamp=row[5],
-                                       thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB), type="PHOTO",source="OWNER" if row[6] is None else "MENTION")
+                                       thumbnail=_photo_type_url(row[0], type=ImageQualityEnum.THUMB), type="PHOTO",
+                                       source=source(value=row[4], account=account))
     else:
         return TweetMediaResponseModel(id=row[3], url=row[1], tweet_id=row[3],
-                                       account_id=row[4], timestamp=row[5], thumbnail=row[2], type="VIDEO",source="OWNER" if row[6] is None else "MENTION")
+                                       account_id=row[4], timestamp=row[5], thumbnail=row[2], type="VIDEO",
+                                       source=source(value=row[4], account=account))
 
 
 def people_endpoint(profile: TweetPeopleModel, count: int):
@@ -57,3 +61,10 @@ def tweet_people_endpoint(profile: MelonCloudTweetPeopleModel, count: int):
     if profile is None or count is None:
         return None
     return MelonCloudTweetPeopleResponseModel(profile=profile.compact_serialize, count=count)
+
+
+def source(value, account: str):
+    if account is None:
+        return "OWNER"
+    else :
+        return "OWNER" if value == account else "MENTION"

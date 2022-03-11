@@ -184,7 +184,6 @@ async def get_media_from_account(params: RequestMediaQueryFromAccountModel = Dep
     profile = get_meloncloud_tweet_profile_endpoint(account)
 
     if profile is not None:
-        print(account)
         tweets_count = filtering_meloncloud_twitter_database_for_media_from_account(params=params, db=db,
                                                                                     account=account,
                                                                                     query=ProfileQueryEnum.TWEET).count()
@@ -198,8 +197,8 @@ async def get_media_from_account(params: RequestMediaQueryFromAccountModel = Dep
     if bool(params.with_hashtags) and params.hashtag is None:
         hashtags_database = db.query(func.unnest(MelonCloudTwitterDatabase.hashtags))
         hashtags_compute_database = filtering_meloncloud_twitter_database_for_media_profile_hashtags(params=params,
-                                                                                               db=hashtags_database,
-                                                                                               account=account)
+                                                                                                     db=hashtags_database,
+                                                                                                     account=account)
         hashtags_raw_data = hashtags_compute_database.all()
         hashtags_data = [str(i[0]) for i in hashtags_raw_data]
         hashtags_data_dict = dict(Counter(hashtags_data))
@@ -208,13 +207,14 @@ async def get_media_from_account(params: RequestMediaQueryFromAccountModel = Dep
         results["hashtags"] = hashtags_results
 
     if file_type is MelonCloudFileTypeEnum.PHOTOS:
-        results['media'] = list(map(lambda x: tweet_photo_endpoint(x, params.quality), data))
+        results['media'] = list(map(lambda x: tweet_photo_endpoint(x, params.quality, account=params.account), data))
         return response(data=results, fabric=fabric)
     elif file_type is MelonCloudFileTypeEnum.VIDEOS:
-        results['media'] = list(map(lambda x: tweet_video_endpoint(x), data))
+        results['media'] = list(map(lambda x: tweet_video_endpoint(x, account=params.account), data))
         return response(data=results, fabric=fabric)
     elif file_type is MelonCloudFileTypeEnum.ALL:
-        results['media'] = list(map(lambda x: tweet_all_media_endpoint(x, params.quality), data))
+        results['media'] = list(
+            map(lambda x: tweet_all_media_endpoint(x, params.quality, account=params.account), data))
         return response(data=results, fabric=fabric)
     else:
         bad_request_exception()
