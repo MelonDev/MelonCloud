@@ -45,13 +45,15 @@ class TweetMediaResponseModel(TweetMediaURLResponseModel):
     account_id: str
     timestamp: str
     type: str
+    source :str
 
-    def __init__(self, id, url, tweet_id, account_id, timestamp, thumbnail,type):
+    def __init__(self, id, url, tweet_id, account_id, timestamp, thumbnail,type,source):
         super().__init__(id, url, thumbnail)
         self.tweet_id = tweet_id
         self.account_id = account_id
         self.timestamp = timestamp
         self.type = type
+        self.source = source
 
 
 class TweetPeopleModel:

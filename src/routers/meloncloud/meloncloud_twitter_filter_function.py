@@ -36,15 +36,17 @@ def append_limit_to_database(params, database):
 def database_media_type_categorize(db, file_type: MelonCloudFileTypeEnum):
     if file_type is MelonCloudFileTypeEnum.PHOTOS:
         return db.query(func.unnest(MelonCloudTwitterDatabase.photos), MelonCloudTwitterDatabase.id,
-                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at)
+                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
+                        MelonCloudTwitterDatabase.mentions)
     elif file_type is MelonCloudFileTypeEnum.VIDEOS:
         return db.query(func.unnest(MelonCloudTwitterDatabase.videos), MelonCloudTwitterDatabase.id,
                         MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
-                        MelonCloudTwitterDatabase.thumbnail)
+                        MelonCloudTwitterDatabase.thumbnail, MelonCloudTwitterDatabase.mentions)
     elif file_type is MelonCloudFileTypeEnum.ALL:
         return db.query(func.unnest(MelonCloudTwitterDatabase.photos), func.unnest(MelonCloudTwitterDatabase.videos),
                         MelonCloudTwitterDatabase.thumbnail, MelonCloudTwitterDatabase.id,
-                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at)
+                        MelonCloudTwitterDatabase.account_id, MelonCloudTwitterDatabase.stored_at,
+                        MelonCloudTwitterDatabase.mentions)
     else:
         bad_request_exception()
 
@@ -203,7 +205,9 @@ def filtering_meloncloud_twitter_database_for_profile_hashtags(params: RequestPr
 
     return database
 
-def filtering_meloncloud_twitter_database_for_media_profile_hashtags(params: RequestMediaQueryFromAccountModel, db, account):
+
+def filtering_meloncloud_twitter_database_for_media_profile_hashtags(params: RequestMediaQueryFromAccountModel, db,
+                                                                     account):
     database = db if type(db) is DBQuery else db.query(func.unnest(MelonCloudTwitterDatabase.hashtags))
     if params is None:
         bad_request_exception()
@@ -316,7 +320,7 @@ def filtering_meloncloud_twitter_database_for_media(params: RequestMediaQueryMod
 
 
 def filtering_meloncloud_twitter_database_for_media_from_account(params: RequestMediaQueryFromAccountModel, db,
-                                                                 account,query :ProfileQueryEnum):
+                                                                 account, query: ProfileQueryEnum):
     database = db if type(db) is DBQuery else db.query(MelonCloudTwitterDatabase)
 
     if params is None:
