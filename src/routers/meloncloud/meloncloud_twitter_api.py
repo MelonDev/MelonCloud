@@ -461,25 +461,31 @@ def get_hashtags(params: RequestHashtagQueryModel = Depends(),
 
     current_datetime = dt.datetime.now()
     compound_days = get_day(params.query if params.query is not None else HashtagQueryDate.ALL)
-    skip_day = dt.timedelta(days=int(page * compound_days))
+    #skip_day = dt.timedelta(days=int(page * compound_days))
     desired_datetime = dt.timedelta(days=compound_days)
-    skip_datetime = current_datetime - skip_day
-    back_to_datetime = (skip_datetime - desired_datetime).replace(hour=0,
+    #skip_datetime = current_datetime - desired_datetime
+    back_to_datetime = (current_datetime - desired_datetime).replace(hour=0,
                                                                   minute=0,
                                                                   second=0,
                                                                   microsecond=0)
-
+    print(current_datetime)
+    print(back_to_datetime)
     compute_database = filtering_meloncloud_twitter_database_for_hashtags(params=params, db=database,
-                                                                          skip_datetime=skip_datetime,
+                                                                          skip_datetime=current_datetime,
                                                                           back_to_datetime=back_to_datetime)
-    count = compute_database.count()
-    total_page = int(math.ceil(count / limit)) if count > 0 else 0
-    is_overflow(page, total_page)
+
 
     raw_data = compute_database.all()
     data = [str(i[0]) for i in raw_data]
     data_dict = dict(Counter(data))
     data_sorted = sorted(data_dict.items(), key=lambda kv: kv[1], reverse=True)
+    print(f"LEN: {len(data_sorted)}",)
+    count = len(data_sorted)
+    total_page = int(math.ceil(count / limit)) if count > 0 else 0
+    print(page)
+    print(total_page)
+    is_overflow(page, total_page)
+
     start_at = int(page) * limit
     results = [get_hashtag_dict(name, count) for name, count in data_sorted[start_at:start_at + limit]]
 
@@ -492,7 +498,7 @@ def get_hashtags(params: RequestHashtagQueryModel = Depends(),
         "next_page": page + 1 if page < total_page - 1 else None,
         "previous_page": page - 1 if page > 0 else None,
         "time_range": {
-            "start": convert_datetime_to_string(skip_datetime, disable_timezone=True),
+            "start": convert_datetime_to_string(current_datetime, disable_timezone=True),
             "end": convert_datetime_to_string(back_to_datetime, disable_timezone=True)
         }
     }

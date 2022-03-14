@@ -4,7 +4,7 @@ from typing import List
 from google.type.calendar_period_pb2 import QUARTER
 from pydantic.color import Color
 from pydantic.networks import HttpUrl
-from pydantic.types import SecretStr, PastDate, PositiveInt, date
+from pydantic.types import SecretStr, PastDate, PositiveInt, date, NonNegativeInt
 
 from environment import TWITTER_SECRET_PASSWORD, TWITTER_VIEWER_PASSWORD
 from fastapi import HTTPException, status
@@ -133,8 +133,8 @@ class RequestPeopleQueryModel(ValidatorModel):
     start_date: date = None
     end_date: date = None
     me_like: bool = None
-    limit: PositiveInt = None
-    page: PositiveInt = None
+    limit: NonNegativeInt = None
+    page: NonNegativeInt = None
     infinite: bool = None
     sorting: SortingTweet = None
 
@@ -145,8 +145,8 @@ class RequestPeopleQueryForRankModel():
     start_date: date = None
     end_date: date = None
     me_like: bool = None
-    limit: PositiveInt = None
-    page: PositiveInt = None
+    limit: NonNegativeInt = None
+    page: NonNegativeInt = None
     infinite: bool = None
     sorting: SortingTweet = None
 
@@ -160,8 +160,8 @@ class TweetQueryBaseModel(ValidatorModel):
     mention_name: str = None
     start_date: date = None
     end_date: date = None
-    limit: PositiveInt = None
-    page: PositiveInt = None
+    limit: NonNegativeInt = None
+    page: NonNegativeInt = None
     sorting: SortingTweet = None
     deleted: bool = None
 
@@ -194,8 +194,8 @@ class RequestMediaQueryModel(ValidatorModel):
     mention_name: str = None
     start_date: date = None
     end_date: date = None
-    limit: PositiveInt = None
-    page: PositiveInt = None
+    limit: NonNegativeInt = None
+    page: NonNegativeInt = None
     sorting: SortingTweet = None
     deleted: bool = None
 
@@ -211,8 +211,8 @@ class RequestMediaQueryFromAccountModel(ValidatorModel):
     type: MelonCloudFileTypeEnum = None
     start_date: date = None
     end_date: date = None
-    limit: PositiveInt = None
-    page: PositiveInt = None
+    limit: NonNegativeInt = None
+    page: NonNegativeInt = None
     sorting: SortingTweet = None
     deleted: bool = None
 
@@ -227,8 +227,8 @@ class RequestProfileModel(ValidatorModel):
     end_date: date = None
     me_like: bool = None
     sorting: SortingTweet = None
-    limit: int = None
-    page: int = None
+    limit: NonNegativeInt = None
+    page: NonNegativeInt = None
     infinite: bool = None
     deleted: bool = None
 
