@@ -52,7 +52,7 @@ async def home(request: Request):
         {
             "name": "ทวิตเตอร์",
             "image": "./static/templates/home/img/jeremy-bezanger-Jm1YUfYjpHI-unsplash.jpg",
-            "page": "null",
+            "page": "meloncloud-twitter",
             "doc": "api/v3/twitter/docs"
         },
         {
@@ -94,6 +94,11 @@ async def book_logout(request: Request, Authorize: AuthJWT = Depends()):
     response = RedirectResponse('/meloncloud-book', status_code=302)
     response.delete_cookie(key='access_token_cookie')
     return response
+
+
+@router.get("/meloncloud-twitter", include_in_schema=False)
+async def twitter(request: Request):
+    return RedirectResponse(url='https://meloncloud-d2fb8.web.app')
 
 
 @router.get("/meloncloud-book", include_in_schema=False)
