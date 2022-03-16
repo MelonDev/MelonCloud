@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
 from sqlalchemy.sql.expression import func, select
 
-from environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY
+from environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY, MELONCLOUD_BOOK_API_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
 from src.environment.database import get_db
@@ -21,7 +21,7 @@ from src.environment.mock_meloncloud_book import data as mock_data
 from src.models.meloncloud_book_model import RequestBookQueryModel, MelonCloudBookSettings, MelonCloudBookTokenModel, \
     MelonCloudBookLoginForm
 from src.models.response_model import ResponseModel, ResponsePageModel
-from src.tools.verify_hub import verify_return
+from src.tools.verify_hub import verify_return, response
 from fastapi.encoders import jsonable_encoder
 
 
@@ -42,6 +42,11 @@ def get_password_hash(password):
 
 
 router = APIRouter()
+
+
+@router.get("/hash", include_in_schema=True)
+async def hash(password: str):
+    return response(get_password_hash(password))
 
 
 @router.get("/", include_in_schema=True)
@@ -109,6 +114,14 @@ async def login(form: MelonCloudBookLoginForm = Depends(MelonCloudBookLoginForm.
 
     return await verify_return(data=ResponseModel(
         MelonCloudBookTokenModel(access_token=access_token)))
+
+
+@router.post("/api_authorize", include_in_schema=True, tags=['Authentication'])
+async def api_authorize(form: MelonCloudBookLoginForm = Depends(MelonCloudBookLoginForm.as_form),
+                Authorize: AuthJWT = Depends()):
+    access_token = await api_authorizing(form.password, Authorize)
+
+    return response(MelonCloudBookTokenModel(access_token=access_token))
 
 
 @router.delete('/logout', include_in_schema=True, tags=['Authentication'])
@@ -211,6 +224,17 @@ async def authorizing(password: str, Authorize: AuthJWT):
 
     access_token = Authorize.create_access_token(subject=str(SECRET_KEY), expires_time=expires)
 
+    Authorize.set_access_cookies(access_token)
+    return access_token
+
+
+async def api_authorizing(password: str, Authorize: AuthJWT):
+    if MELONCLOUD_BOOK_API_KEY is None:
+        return None
+    if not verify_password(plain_password=password, hashed_password=MELONCLOUD_BOOK_API_KEY):
+        return None
+    expires = timedelta(days=7)
+    access_token = Authorize.create_access_token(subject=str(SECRET_KEY), expires_time=expires)
     Authorize.set_access_cookies(access_token)
     return access_token
 
