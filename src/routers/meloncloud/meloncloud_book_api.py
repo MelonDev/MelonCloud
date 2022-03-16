@@ -80,7 +80,8 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
         if current_count > 0:
             total_page = math.ceil(total_count / current_count)
     return await verify_return(
-        data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,limit=params.limit))
+        data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,
+                               limit=params.limit if params.limit is not None else 20))
 
 
 @router.get("/upload", include_in_schema=False)
@@ -118,7 +119,7 @@ async def login(form: MelonCloudBookLoginForm = Depends(MelonCloudBookLoginForm.
 
 @router.post("/api_authorize", include_in_schema=True, tags=['Authentication'])
 async def api_authorize(form: MelonCloudBookLoginForm = Depends(MelonCloudBookLoginForm.as_form),
-                Authorize: AuthJWT = Depends()):
+                        Authorize: AuthJWT = Depends()):
     access_token = await api_authorizing(form.password, Authorize)
 
     return response(MelonCloudBookTokenModel(access_token=access_token))
