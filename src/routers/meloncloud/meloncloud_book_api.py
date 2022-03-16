@@ -80,7 +80,7 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
         if current_count > 0:
             total_page = math.ceil(total_count / current_count)
     return await verify_return(
-        data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page))
+        data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,limit=params.limit))
 
 
 @router.get("/upload", include_in_schema=False)
