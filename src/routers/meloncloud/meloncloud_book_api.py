@@ -21,6 +21,7 @@ from src.environment.mock_meloncloud_book import data as mock_data
 from src.models.meloncloud_book_model import RequestBookQueryModel, MelonCloudBookSettings, MelonCloudBookTokenModel, \
     MelonCloudBookLoginForm
 from src.models.response_model import ResponseModel, ResponsePageModel
+from src.routers.meloncloud.meloncloud_twitter_extension_function import is_overflow
 from src.tools.verify_hub import verify_return, response
 from fastapi.encoders import jsonable_encoder
 
@@ -55,7 +56,7 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
     return await query_books(db=db, params=params, Authorize=Authorize)
 
 
-@router.get("/bypass/", include_in_schema=False)
+@router.get("/bypass/", include_in_schema=True)
 async def books_bypass(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
                        db: Session = Depends(get_db)):
     return await query_books(db=db, params=params)
@@ -67,31 +68,41 @@ async def query_books(db, params, Authorize=None):
 
     database = db.query(MelonCloudBookDatabase)
 
-    total_page = None
-    current_count = None
+    limit = params.limit if params.limit is not None else 50
+    page = params.page if params.page is not None else 0
 
     if params.id is not None:
         book = database.get(params.id)
         if book is not None:
             result = book.serialize
-            result['pages'] = [i.serialize for i in book.pages]
+            page = [i.serialize for i in book.pages]
+            result['pages'] = page
+            return response(data=result)
         else:
             result = None
             not_found_exception()
 
     else:
         compute_database = apply_database_for_book_filters(params=params, db=database)
+        total_count = compute_database.count()
+        total_page = int(math.ceil(total_count / limit)) if total_count > 0 else 0
+        is_overflow(page, total_page)
         limit_database = apply_limit_to_database(params=params, database=compute_database)
         results = limit_database.all()
         result = [i.serialize for i in results]
-
-        total_count = compute_database.count()
         current_count = limit_database.count()
-        total_page = 1
-        if current_count > 0:
-            total_page = math.ceil(total_count / current_count)
-    return ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,
-                                      limit=params.limit if params.limit is not None else 20)
+
+        fabric = {
+            "total_items": total_count,
+            "per_page": limit,
+            "item_on_page": current_count,
+            "total_page": total_page,
+            "current_page": page,
+            "next_page": page + 1 if page < total_page - 1 else None,
+            "previous_page": page - 1 if page > 0 else None
+        }
+
+        return response(data=result, fabric=fabric)
 
 
 @router.get("/upload", include_in_schema=False)
@@ -176,8 +187,8 @@ def apply_database_for_book_filters(params: RequestBookQueryModel, db):
 
 def apply_limit_to_database(params: RequestBookQueryModel, database):
     if not bool(params.infinite):
-        page = params.page - 1 if params.page is not None else 0
-        limit = params.limit if params.limit is not None else 20
+        page = params.page if params.page is not None else 0
+        limit = params.limit if params.limit is not None else 50
         database = database.limit(limit).offset(int(page * limit))
     return database
 
