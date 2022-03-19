@@ -90,8 +90,8 @@ async def query_books(db, params, Authorize=None):
         total_page = 1
         if current_count > 0:
             total_page = math.ceil(total_count / current_count)
-    return response(ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,
-                                      limit=params.limit if params.limit is not None else 20))
+    return ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,
+                                      limit=params.limit if params.limit is not None else 20)
 
 
 @router.get("/upload", include_in_schema=False)
