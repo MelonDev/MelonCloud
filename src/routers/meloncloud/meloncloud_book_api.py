@@ -44,7 +44,7 @@ def get_password_hash(password):
 router = APIRouter()
 
 
-@router.get("/hash", include_in_schema=True)
+@router.get("/hash", include_in_schema=False)
 async def hash(password: str):
     return response(get_password_hash(password))
 
@@ -52,7 +52,18 @@ async def hash(password: str):
 @router.get("/", include_in_schema=True)
 async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
                 db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
+    return await query_books(db=db, params=params, Authorize=Authorize)
+
+
+@router.get("/bypass/", include_in_schema=False)
+async def books_bypass(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = Depends(),
+                       db: Session = Depends(get_db)):
+    return await query_books(db=db, params=params)
+
+
+async def query_books(db, params, Authorize=None):
+    if Authorize is not None:
+        await check_authorize(Authorize)
 
     database = db.query(MelonCloudBookDatabase)
 
@@ -79,9 +90,8 @@ async def books(params: RequestBookQueryModel = Depends(), Authorize: AuthJWT = 
         total_page = 1
         if current_count > 0:
             total_page = math.ceil(total_count / current_count)
-    return await verify_return(
-        data=ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,
-                               limit=params.limit if params.limit is not None else 20))
+    return response(ResponsePageModel(data=result, rows=current_count, page=params.page, total_page=total_page,
+                                      limit=params.limit if params.limit is not None else 20))
 
 
 @router.get("/upload", include_in_schema=False)
