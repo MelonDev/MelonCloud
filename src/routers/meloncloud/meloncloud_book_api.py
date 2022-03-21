@@ -105,7 +105,7 @@ async def query_books(db, params, Authorize=None):
         return response(data=result, fabric=fabric)
 
 
-@router.get("/upload", include_in_schema=False)
+@router.get("/upload", include_in_schema=True)
 async def upload(db: Session = Depends(get_db)):
     data = mock_data
     for _, value in data.items():
@@ -116,7 +116,9 @@ async def upload(db: Session = Depends(get_db)):
         number = 0
         for p in pages:
             number += 1
-            page = MelonCloudBookPageDatabase(book_id=book.id, url=p['url'], extension=p["type"], name=p['file_name'],
+            print(p)
+            page = MelonCloudBookPageDatabase(book_id=book.id, url=p['url'], preview=p['preview'], extension=p["type"],
+                                              name=p['file_name'],
                                               number=number)
 
             if book.cover_url is None:
@@ -185,10 +187,10 @@ def apply_database_for_book_filters(params: RequestBookQueryModel, db):
     return database
 
 
-def apply_limit_to_database(params: RequestBookQueryModel, database):
+def apply_limit_to_database(params: RequestBookQueryModel, database, is_web: bool = False):
     if not bool(params.infinite):
-        page = params.page if params.page is not None else 0
-        limit = params.limit if params.limit is not None else 50
+        page = (params.page - 1 if is_web else params.page) if params.page is not None else 0
+        limit = params.limit if params.limit is not None else (20 if is_web else 50)
         database = database.limit(limit).offset(int(page * limit))
     return database
 
@@ -279,7 +281,7 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
 
     else:
         compute_database = apply_database_for_book_filters(params=params, db=database)
-        limit_database = apply_limit_to_database(params=params, database=compute_database)
+        limit_database = apply_limit_to_database(params=params, database=compute_database, is_web=True)
         results = limit_database.all()
         result = [i.serialize for i in results]
 
@@ -289,6 +291,7 @@ async def load_book(params: RequestBookQueryModel = Depends(), Authorize: AuthJW
         total_page = 1
 
         if params.infinite is None:
+
             if current_count > 0 and (current_count <= (params.limit if params.limit is not None else 20)):
                 total_page = math.ceil(total_count / (params.limit if params.limit is not None else 20))
             elif current_count == 0 and total_count > (params.limit if params.limit is not None else 20):

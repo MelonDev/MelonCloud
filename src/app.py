@@ -113,15 +113,15 @@ async def wakeup():
 
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    MelonCloudTwitterDatabase.__table__.create(engine)
-    MelonCloudPeopleDatabase.__table__.create(engine)
-    MelonCloudBeastCharacterDatabase.__table__.create(engine)
+    # MelonCloudTwitterDatabase.__table__.create(engine)
+    # MelonCloudPeopleDatabase.__table__.create(engine)
+    # MelonCloudBeastCharacterDatabase.__table__.create(engine)
     # FarmDatabase.__table__.create(engine)
     # BuffDatabase.__table__.create(engine)
     # BuffActivityLogDatabase.__table__.create(engine)
     # BuffNotifyDatabase.__table__.create(engine)
     # MelonCloudBookDatabase.__table__.create(engine)
-    #MelonCloudBookPageDatabase.__table__.create(engine)
+    # MelonCloudBookPageDatabase.__table__.create(engine)
 
     return "Database Created!"
 
