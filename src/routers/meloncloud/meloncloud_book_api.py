@@ -105,14 +105,15 @@ async def query_books(db, params, Authorize=None):
         return response(data=result, fabric=fabric)
 
 
-@router.get("/upload", include_in_schema=True)
+@router.get("/upload", include_in_schema=False)
 async def upload(db: Session = Depends(get_db)):
     data = mock_data
     for _, value in data.items():
         info = value['info']
         pages = value['pages']
         book = MelonCloudBookDatabase(name=info['name'], category="HENTAI", language=info['language'],
-                                      artist=info['artist'], group=info['group'])
+                                      artist=info['artist'], group=info['group'],cover_url=info['cover']['url'])
+        db.add(book)
         number = 0
         for p in pages:
             number += 1
@@ -120,10 +121,11 @@ async def upload(db: Session = Depends(get_db)):
             page = MelonCloudBookPageDatabase(book_id=book.id, url=p['url'], preview=p['preview'], extension=p["type"],
                                               name=p['file_name'],
                                               number=number)
-
+            '''
             if book.cover_url is None:
                 book.cover_url = page.url
                 db.add(book)
+                '''
 
             db.add(page)
     db.commit()
