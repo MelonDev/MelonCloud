@@ -564,7 +564,7 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
 @router.post("/action", summary="ชื่นชอบทวีต",
              status_code=code.HTTP_201_CREATED)
 async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppActionModel.as_form),
-               db: Session = Depends(get_db)):
+                 db: Session = Depends(get_db)):
     try:
         favorited = await hasFavorited(params.tweetid)
         if is_action(params.action, TweetAction.LIKE) and not favorited:
@@ -572,11 +572,14 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
 
         item = db.query(MelonCloudTwitterDatabase).get(params.tweetid)
 
-        package = await get_meloncloud_tweet_model(params.tweetid)
-        tweet = package.tweet
-
         if item is not None:
-            await send_url_to_meloncloud_onedrive(package.media_urls)
+            media = []
+            if item.photos is not None:
+                media = media + item.photos
+            if item.videos is not None:
+                media = media + item.videos
+
+            await send_url_to_meloncloud_onedrive(media)
             item.memories = True
             if is_action(params.action, TweetAction.LIKE) or is_action(params.action, TweetAction.SECRET_LIKE):
                 item.event = "ME LIKE"
@@ -584,12 +587,13 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
             db.commit()
             tweet = item
         else:
+            package = await get_meloncloud_tweet_model(params.tweetid)
+            tweet = package.tweet
             tweet.event = 'ME LIKE'
             tweet.memories = True
             await send_url_to_meloncloud_onedrive(package.media_urls)
             db.add(package.tweet)
             db.commit()
-
 
         message = tweet.message if tweet.message.rfind("https://") == -1 else \
             tweet.message.rsplit("https://", 1)[0]
