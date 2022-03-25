@@ -32,6 +32,7 @@ async def send_url_to_onedrive(medias):
 
 
 async def send_url_to_meloncloud_onedrive(medias):
+    print(medias)
     onedrive_url = f'https://maker.ifttt.com/trigger/save_file_to_onedrive/with/key/{IFTTT_SECRET_KEY}'
 
     now = dt.datetime.now()

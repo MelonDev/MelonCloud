@@ -570,6 +570,7 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
         await like_tweet(params.tweetid)
 
     item = db.query(MelonCloudTwitterDatabase).get(params.tweetid)
+    package = await get_meloncloud_tweet_model(params.tweetid)
 
     if item is not None:
         media = []
@@ -578,7 +579,7 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
         if item.videos is not None:
             media = media + item.videos
 
-        await send_url_to_meloncloud_onedrive(media)
+        await send_url_to_meloncloud_onedrive(package.media_urls)
         item.memories = True
         if is_action(params.action, TweetAction.LIKE) or is_action(params.action, TweetAction.SECRET_LIKE):
             item.event = "ME LIKE"
@@ -586,7 +587,6 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
         db.commit()
         tweet = item
     else:
-        package = await get_meloncloud_tweet_model(params.tweetid)
         tweet = package.tweet
         tweet.event = 'ME LIKE'
         tweet.memories = True
