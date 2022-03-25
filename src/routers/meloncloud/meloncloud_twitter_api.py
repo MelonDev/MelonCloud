@@ -1,3 +1,4 @@
+import datetime
 import math
 from collections import Counter
 
@@ -578,11 +579,13 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
             tweet = item
         else:
             tweet = package.tweet
+        tweet.stored_at = datetime.datetime.now()
 
         tweet.event = 'ME LIKE'
         tweet.memories = True
         db.add(tweet)
         db.commit()
+
 
         await send_url_to_meloncloud_onedrive(package.media_urls)
 
