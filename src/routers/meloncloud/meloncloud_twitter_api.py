@@ -631,6 +631,7 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
         return response(result)
 
     except Exception as e:
+        print(e)
         bad_request_exception(message="Found an error: " + str(e))
 
 
