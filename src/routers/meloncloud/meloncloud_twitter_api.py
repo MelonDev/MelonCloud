@@ -565,60 +565,64 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
              status_code=code.HTTP_201_CREATED)
 async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppActionModel.as_form),
                  db: Session = Depends(get_db)):
-    favorited = await hasFavorited(params.tweetid)
-    if is_action(params.action, TweetAction.LIKE) and not favorited:
-        await like_tweet(params.tweetid)
+    try:
 
-    item = db.query(MelonCloudTwitterDatabase).get(params.tweetid)
-    package = await get_meloncloud_tweet_model(params.tweetid)
+        favorited = await hasFavorited(params.tweetid)
+        if is_action(params.action, TweetAction.LIKE) and not favorited:
+            await like_tweet(params.tweetid)
 
-    if item is not None:
-        tweet = item
-    else:
-        tweet = package.tweet
+        item = db.query(MelonCloudTwitterDatabase).get(params.tweetid)
+        package = await get_meloncloud_tweet_model(params.tweetid)
 
-    tweet.event = 'ME LIKE'
-    tweet.memories = True
-    db.add(tweet)
-    db.commit()
-
-    await send_url_to_meloncloud_onedrive(package.media_urls)
-
-
-    message = tweet.message if tweet.message.rfind("https://") == -1 else \
-        tweet.message.rsplit("https://", 1)[0]
-    language = tweet.language if tweet.language != "zh" else "zh-cn"
-
-    result = tweet.serialize
-    result['translate'] = None
-    if (params.translate is None or bool(params.translate)) and language != "und":
-        trans = translate(src=language, text=message, dest=['en', 'th'])
-        if trans is not None:
-            result['translate'] = trans
-
-    current_tweet = get_status(params.tweetid)
-    if current_tweet is not None:
-        current = {
-            "retweet_count": current_tweet['retweet_count'],
-            "retweeted": current_tweet['retweeted'],
-            "favorite_count": current_tweet['favorite_count'],
-            "favorited": current_tweet['favorited'],
-            "created_at": current_tweet['created_at'],
-            # "source": filter_platforms_tweet(currentTweet['source'])
-        }
-        result['current'] = current
-
-        if "user" in current_tweet:
-            account = get_meloncloud_tweet_profile_endpoint(current_tweet['user'])
-            result['account'] = account.compact_serialize
+        if item is not None:
+            tweet = item
         else:
+            tweet = package.tweet
+
+        tweet.event = 'ME LIKE'
+        tweet.memories = True
+        db.add(tweet)
+        db.commit()
+
+        await send_url_to_meloncloud_onedrive(package.media_urls)
+
+
+        message = tweet.message if tweet.message.rfind("https://") == -1 else \
+            tweet.message.rsplit("https://", 1)[0]
+        language = tweet.language if tweet.language != "zh" else "zh-cn"
+
+        result = tweet.serialize
+        result['translate'] = None
+        if (params.translate is None or bool(params.translate)) and language != "und":
+            trans = translate(src=language, text=message, dest=['en', 'th'])
+            if trans is not None:
+                result['translate'] = trans
+
+        current_tweet = get_status(params.tweetid)
+        if current_tweet is not None:
+            current = {
+                "retweet_count": current_tweet['retweet_count'],
+                "retweeted": current_tweet['retweeted'],
+                "favorite_count": current_tweet['favorite_count'],
+                "favorited": current_tweet['favorited'],
+                "created_at": current_tweet['created_at'],
+                # "source": filter_platforms_tweet(currentTweet['source'])
+            }
+            result['current'] = current
+
+            if "user" in current_tweet:
+                account = get_meloncloud_tweet_profile_endpoint(current_tweet['user'])
+                result['account'] = account.compact_serialize
+            else:
+                result['account'] = None
+
+        else:
+            result['current'] = None
             result['account'] = None
 
-    else:
-        result['current'] = None
-        result['account'] = None
-
-    return response(result)
+        return response(result)
+    except Exception as e:
+        bad_request_exception(message="Found an error: " + str(e))
 
 
 @router.get("/export", status_code=code.HTTP_200_OK)
