@@ -341,6 +341,12 @@ class RequestAnalyzeModel(ValidatorModel):
     translate: bool = None
     action: TweetAction = None
 
+@as_form
+class RequestTweetAppActionModel(ValidatorModel):
+    tweetid: str
+    translate: bool = None
+    action: TweetAction = None
+
 
 class MelonCloudTweetResponseModel:
     tweet: MelonCloudTwitterDatabase

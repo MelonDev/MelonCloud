@@ -9,7 +9,7 @@ from operator import is_not
 from functools import partial
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_meloncloud_tweet_model, get_status, \
-    get_dict_lookup_user, get_user_profile
+    get_dict_lookup_user, get_user_profile, hasFavorited, like_tweet
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
@@ -17,10 +17,12 @@ from src.environment.database import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, \
     RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \
-    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName, RequestMediaQueryFromAccountModel
+    MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName, RequestMediaQueryFromAccountModel, \
+    RequestTweetAppActionModel, TweetAction
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception, not_found_exception
 from src.routers.meloncloud.meloncloud_twitter_extension_function import packing_backup, get_profile, \
-    is_overflow, media_query_to_people_query, media_result_packing, get_day, get_database_name, processing_tweet
+    is_overflow, media_query_to_people_query, media_result_packing, get_day, get_database_name, processing_tweet, \
+    is_action
 from src.routers.meloncloud.meloncloud_twitter_filter_function import database_media_type_categorize, \
     filtering_meloncloud_twitter_database_for_media, filtering_meloncloud_twitter_database, append_limit_to_database, \
     filtering_people_database, filtering_profile_database, filtering_meloncloud_twitter_database_for_hashtags, \
@@ -33,6 +35,7 @@ from src.tools.date_for_backup import today, first_day_of_month_with_time, \
     last_day_of_month_with_time, first_day_of_previous_month_with_time, last_day_of_previous_month_with_time, \
     first_day_of_year_with_time, last_day_of_year_with_time, \
     first_day_of_previous_year_with_time, last_day_of_previous_year_with_time
+from src.tools.onedrive_adapter import send_url_to_meloncloud_onedrive
 from src.tools.photos_endpoint import tweet_people_endpoint, tweet_photo_endpoint, tweet_video_endpoint, \
     tweet_all_media_endpoint
 from src.tools.translate_engine import translate
@@ -461,25 +464,24 @@ def get_hashtags(params: RequestHashtagQueryModel = Depends(),
 
     current_datetime = dt.datetime.now()
     compound_days = get_day(params.query if params.query is not None else HashtagQueryDate.ALL)
-    #skip_day = dt.timedelta(days=int(page * compound_days))
+    # skip_day = dt.timedelta(days=int(page * compound_days))
     desired_datetime = dt.timedelta(days=compound_days)
-    #skip_datetime = current_datetime - desired_datetime
+    # skip_datetime = current_datetime - desired_datetime
     back_to_datetime = (current_datetime - desired_datetime).replace(hour=0,
-                                                                  minute=0,
-                                                                  second=0,
-                                                                  microsecond=0)
+                                                                     minute=0,
+                                                                     second=0,
+                                                                     microsecond=0)
     print(current_datetime)
     print(back_to_datetime)
     compute_database = filtering_meloncloud_twitter_database_for_hashtags(params=params, db=database,
                                                                           skip_datetime=current_datetime,
                                                                           back_to_datetime=back_to_datetime)
 
-
     raw_data = compute_database.all()
     data = [str(i[0]) for i in raw_data]
     data_dict = dict(Counter(data))
     data_sorted = sorted(data_dict.items(), key=lambda kv: kv[1], reverse=True)
-    print(f"LEN: {len(data_sorted)}",)
+    print(f"LEN: {len(data_sorted)}", )
     count = len(data_sorted)
     total_page = int(math.ceil(count / limit)) if count > 0 else 0
     print(page)
@@ -515,10 +517,10 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
             package = await get_meloncloud_tweet_model(tweet_id)
             await processing_tweet(request=request, package=package, tweet_id=tweet_id, db=db)
 
-            if bool(request.from_app) :
+            if bool(request.from_app):
                 tweet = package.tweet
                 message = tweet.message if tweet.message.rfind("https://") == -1 else \
-                tweet.message.rsplit("https://", 1)[0]
+                    tweet.message.rsplit("https://", 1)[0]
                 language = tweet.language if tweet.language != "zh" else "zh-cn"
 
                 result = tweet.serialize
@@ -551,10 +553,79 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
                     result['account'] = None
 
                 return response(result)
-            else :
+            else:
                 return response(package.tweet.serialize)
         else:
             bad_request_exception(message="Couldn't find any applicable data")
+    except Exception as e:
+        bad_request_exception(message="Found an error: " + str(e))
+
+
+@router.post("/action", summary="ชื่นชอบทวีต",
+             status_code=code.HTTP_201_CREATED)
+async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppActionModel.as_form),
+               db: Session = Depends(get_db)):
+    try:
+        favorited = await hasFavorited(params.tweetid)
+        if is_action(params.action, TweetAction.LIKE) and not favorited:
+            await like_tweet(params.tweetid)
+
+        item = db.query(MelonCloudTwitterDatabase).get(params.tweetid)
+
+        package = await get_meloncloud_tweet_model(params.tweetid)
+        tweet = package.tweet
+
+        if item is not None:
+            await send_url_to_meloncloud_onedrive(package.media_urls)
+            item.memories = True
+            if is_action(params.action, TweetAction.LIKE) or is_action(params.action, TweetAction.SECRET_LIKE):
+                item.event = "ME LIKE"
+            db.add(item)
+            db.commit()
+            tweet = item
+        else:
+            tweet.event = 'ME LIKE'
+            tweet.memories = True
+            await send_url_to_meloncloud_onedrive(package.media_urls)
+            db.add(package.tweet)
+            db.commit()
+
+
+        message = tweet.message if tweet.message.rfind("https://") == -1 else \
+            tweet.message.rsplit("https://", 1)[0]
+        language = tweet.language if tweet.language != "zh" else "zh-cn"
+
+        result = tweet.serialize
+        result['translate'] = None
+        if (params.translate is None or bool(params.translate)) and language != "und":
+            trans = translate(src=language, text=message, dest=['en', 'th'])
+            if trans is not None:
+                result['translate'] = trans
+
+        current_tweet = get_status(params.tweetid)
+        if current_tweet is not None:
+            current = {
+                "retweet_count": current_tweet['retweet_count'],
+                "retweeted": current_tweet['retweeted'],
+                "favorite_count": current_tweet['favorite_count'],
+                "favorited": current_tweet['favorited'],
+                "created_at": current_tweet['created_at'],
+                # "source": filter_platforms_tweet(currentTweet['source'])
+            }
+            result['current'] = current
+
+            if "user" in current_tweet:
+                account = get_meloncloud_tweet_profile_endpoint(current_tweet['user'])
+                result['account'] = account.compact_serialize
+            else:
+                result['account'] = None
+
+        else:
+            result['current'] = None
+            result['account'] = None
+
+        return response(result)
+
     except Exception as e:
         bad_request_exception(message="Found an error: " + str(e))
 
