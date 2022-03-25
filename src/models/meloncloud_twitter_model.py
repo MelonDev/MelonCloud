@@ -337,6 +337,8 @@ class MelonCloudTweetPeopleResponseModel:
 class RequestAnalyzeModel(ValidatorModel):
     tag: str
     url: str
+    from_app :bool = None
+    translate: bool = None
     action: TweetAction = None
 
 

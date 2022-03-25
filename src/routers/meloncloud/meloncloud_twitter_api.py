@@ -514,7 +514,45 @@ async def analyzing_tweet(request: RequestAnalyzeModel = Depends(RequestAnalyzeM
         if tweet_id is not None:
             package = await get_meloncloud_tweet_model(tweet_id)
             await processing_tweet(request=request, package=package, tweet_id=tweet_id, db=db)
-            return response(package.tweet.serialize)
+
+            if bool(request.from_app) :
+                tweet = package.tweet
+                message = tweet.message if tweet.message.rfind("https://") == -1 else \
+                tweet.message.rsplit("https://", 1)[0]
+                language = tweet.language if tweet.language != "zh" else "zh-cn"
+
+                result = tweet.serialize
+                result['translate'] = None
+                if (request.translate is None or bool(request.translate)) and language != "und":
+                    trans = translate(src=language, text=message, dest=['en', 'th'])
+                    if trans is not None:
+                        result['translate'] = trans
+
+                current_tweet = get_status(tweet_id)
+                if current_tweet is not None:
+                    current = {
+                        "retweet_count": current_tweet['retweet_count'],
+                        "retweeted": current_tweet['retweeted'],
+                        "favorite_count": current_tweet['favorite_count'],
+                        "favorited": current_tweet['favorited'],
+                        "created_at": current_tweet['created_at'],
+                        # "source": filter_platforms_tweet(currentTweet['source'])
+                    }
+                    result['current'] = current
+
+                    if "user" in current_tweet:
+                        account = get_meloncloud_tweet_profile_endpoint(current_tweet['user'])
+                        result['account'] = account.compact_serialize
+                    else:
+                        result['account'] = None
+
+                else:
+                    result['current'] = None
+                    result['account'] = None
+
+                return response(result)
+            else :
+                return response(package.tweet.serialize)
         else:
             bad_request_exception(message="Couldn't find any applicable data")
     except Exception as e:
