@@ -18,6 +18,8 @@ from src.apps.v2.pwg_app import app as pwg_app_v2
 from src.apps.v2.meloncloud_book_app import app as meloncloud_book_app
 from src.apps.v2.database_backup_hub_app import app as database_backup_hub_app
 from src.apps.v3.meloncloud_twitter_app import app as meloncloud_twitter_app
+from src.apps.v2.crypto_portfolios_app import app as crypto_portfolios_app
+
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
@@ -25,6 +27,7 @@ from src.database.buff_management.farm_database import FarmDatabase
 from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
+from src.database.meloncloud.meloncloud_crypto_portfolios import MelonCloudCryptoPortfolios
 from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.environment.database import engine
@@ -62,6 +65,7 @@ def configure_sub_application(app):
     app.mount("/api/v2/buff", buff_app)
     app.mount("/api/v2/meloncloud-book", meloncloud_book_app)
     app.mount("/api/v2/database-backup", database_backup_hub_app)
+    app.mount("/api/v2/crypto", crypto_portfolios_app)
 
 
 def init_app():
@@ -122,6 +126,7 @@ async def create_database():
     # BuffNotifyDatabase.__table__.create(engine)
     # MelonCloudBookDatabase.__table__.create(engine)
     # MelonCloudBookPageDatabase.__table__.create(engine)
+    # MelonCloudCryptoPortfolios.__table__.create(engine)
 
     return "Database Created!"
 

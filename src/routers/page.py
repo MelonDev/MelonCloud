@@ -78,6 +78,12 @@ async def home(request: Request):
             "image": "./static/templates/home/img/markus-winkler-cV9-hOgoaok-unsplash.jpg",
             "page": "null",
             "doc": "api/v2/database-backup/docs"
+        },
+        {
+            "name": "เงินดิจิตอล",
+            "image": "./static/templates/home/img/dmitry-demidko-OG3A-ilG8AY-unsplash.jpg",
+            "page": "null",
+            "doc": "api/v2/crypto/docs"
         }
     ]
     return templates.TemplateResponse("home/home.html",
