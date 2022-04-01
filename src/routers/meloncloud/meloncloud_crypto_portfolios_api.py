@@ -103,7 +103,7 @@ async def portfolio(db: Session = Depends(get_db)):
 
         total_percent_change += percent_change
 
-    portfolios = sorted(portfolios.items(), key=lambda x: x[1]['summary']['balance'], reverse=True)
+    portfolios = OrderedDict(sorted(portfolios.items(), key=lambda x: x[1]['summary']['balance'], reverse=True))
     coins = OrderedDict(sorted(coins.items(), key=lambda x: getitem(x[1], 'balance_baht'), reverse=True))
     for c, v in coins.items():
         status = "Neutral"
@@ -114,7 +114,7 @@ async def portfolio(db: Session = Depends(get_db)):
 
         percent = percent_of(total_balance, v['balance_baht'])
         percent_balance_change = percent_of(total_balance_change, v['balance_change'])
-        weight = percent_balance_change / percent
+        weight = percent_balance_change / abs(percent)
         v['percent'] = percent
         v['weight'] = weight
         v['status'] = status
