@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 
 from environment import TWITTER_SECRET_PASSWORD
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
+from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.database.twitter_observer_database import TwitterObserverDatabase
 from fastapi.responses import StreamingResponse
@@ -31,7 +32,8 @@ from src.models.twitter_model import RequestAnalyzeModel, RequestTweetQueryModel
     RequestIdentityModel, RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, TweetProfileResponseModel, \
     RequestDirectAnalyzeModel, TwitterValidatorModel
 from src.engines.twitter_engines import get_tweet_id_from_link, get_tweet_model, get_user_id, like_tweet, \
-    hasFavorited, get_user_profile, get_lookup_user, get_dict_lookup_user, get_status, search_tweets, get_favorites
+    hasFavorited, get_user_profile, get_lookup_user, get_dict_lookup_user, get_status, search_tweets, get_favorites, \
+    get_dict_lookup_statuses
 from src.tools.generators.database_export_generator import export_database
 from src.tools.onedrive_adapter import send_url_to_onedrive
 from src.tools.photos_endpoint import tweet_photo_endpoint, tweet_video_endpoint, people_endpoint
@@ -505,3 +507,20 @@ def is_url(url):
         return all([result.scheme, result.netloc])
     except ValueError:
         return False
+
+
+def check_tweet_has_deleted(db):
+    tweets = db.query(MelonCloudTwitterDatabase).order_by(func.random()).limit(100).all()
+    data = get_dict_lookup_statuses([i.id for i in tweets])
+
+    isChanged = False
+
+    for tweet in tweets:
+        deleted = tweet.id not in data
+        if tweet.deleted != deleted:
+            tweet.deleted = deleted
+            db.add(tweet)
+            isChanged = True
+
+    if isChanged:
+        db.commit()

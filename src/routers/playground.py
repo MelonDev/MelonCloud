@@ -174,7 +174,7 @@ async def poc_twitter(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/automatic-check-tweet-has-deleted", include_in_schema=True)
 async def automatic_check_tweet_has_deleted(request: Request, db: Session = Depends(get_db)):
-    tweets = db.query(MelonDevTwitterDatabase).order_by(func.random()).limit(100).all()
+    tweets = db.query(MelonCloudTwitterDatabase).order_by(func.random()).limit(100).all()
     data = get_dict_lookup_statuses([i.id for i in tweets])
 
     for tweet in tweets:

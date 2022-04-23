@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from flask import Flask, escape, request
@@ -9,6 +9,7 @@ from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.responses import RedirectResponse
 # from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
 from src.apps.v1.flask_app import app as flask_app
 from src.apps.v2.twitter_app import app as twitter_app
@@ -30,13 +31,14 @@ from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBook
 from src.database.meloncloud.meloncloud_crypto_portfolios import MelonCloudCryptoPortfolios
 from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
-from src.environment.database import engine
+from src.environment.database import engine, get_db
 
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
 from src.routers.poc.jwt import jwt_poc
 from src.routers.poc.oauth import oauth_poc
 from src.routers.security import password_generator_api as pwg_api
+from src.routers.twitter_api import check_tweet_has_deleted
 from src.tools.configure_app import configure_timing, configure_cors
 
 
@@ -111,7 +113,8 @@ async def connect():
 
 
 @app.get("/wakeup", include_in_schema=False)
-async def wakeup():
+async def wakeup(db: Session = Depends(get_db)):
+    check_tweet_has_deleted(db)
     return "I'm Waked!"
 
 
