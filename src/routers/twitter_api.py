@@ -510,7 +510,7 @@ def is_url(url):
 
 
 def check_tweet_has_deleted(db):
-    tweets = db.query(MelonCloudTwitterDatabase).order_by(func.random()).limit(100).all()
+    tweets = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.deleted.is_(False)).order_by(func.random()).limit(100).all()
     data = get_dict_lookup_statuses([i.id for i in tweets])
 
     isChanged = False
