@@ -517,10 +517,13 @@ def check_tweet_has_deleted(db):
 
     for tweet in tweets:
         deleted = tweet.id not in data
-        if tweet.deleted != deleted:
+        if not tweet.memories and deleted:
+            print(tweet.id)
+            db.delete(tweet)
+            isChanged = True
+        elif tweet.deleted != deleted:
             tweet.deleted = deleted
             db.add(tweet)
             isChanged = True
-
     if isChanged:
         db.commit()
