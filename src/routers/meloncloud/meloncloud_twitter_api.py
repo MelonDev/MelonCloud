@@ -286,11 +286,14 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         message = message.replace("　", " ")
         message = re.sub(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-]) ?", '', message, flags=re.MULTILINE)
         message = re.sub(r"(#(?:[^\x00-\x7F]|\w)+)", '', message, flags=re.MULTILINE)
+        message = message.strip()
 
         #message = tweet.message if tweet.message.rfind("https://") == -1 else tweet.message.rsplit("https://", 1)[0]
         language = tweet.language if tweet.language != "zh" else "zh-cn"
 
         result = tweet.serialize
+        result['message'] = message
+
         result['translate'] = None
         if req.translate is None or bool(req.translate):
             if language != "und":
