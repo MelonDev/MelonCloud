@@ -35,10 +35,10 @@ from src.environment.database import engine, get_db
 
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
+from src.routers.meloncloud.meloncloud_twitter_api import check_tweet_has_deleted
 from src.routers.poc.jwt import jwt_poc
 from src.routers.poc.oauth import oauth_poc
 from src.routers.security import password_generator_api as pwg_api
-from src.routers.twitter_api import check_tweet_has_deleted
 from src.tools.configure_app import configure_timing, configure_cors
 
 

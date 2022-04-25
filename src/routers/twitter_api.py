@@ -507,23 +507,3 @@ def is_url(url):
         return all([result.scheme, result.netloc])
     except ValueError:
         return False
-
-
-def check_tweet_has_deleted(db):
-    tweets = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.deleted.is_(False)).order_by(func.random()).limit(100).all()
-    data = get_dict_lookup_statuses([i.id for i in tweets])
-
-    isChanged = False
-
-    for tweet in tweets:
-        deleted = tweet.id not in data
-        if not tweet.memories and deleted:
-            print(tweet.id)
-            db.delete(tweet)
-            isChanged = True
-        elif tweet.deleted != deleted:
-            tweet.deleted = deleted
-            db.add(tweet)
-            isChanged = True
-    if isChanged:
-        db.commit()

@@ -1,6 +1,7 @@
 import datetime
 import math
 from collections import Counter
+import re
 
 from fastapi import APIRouter, Depends, status as code
 from sqlalchemy import func, or_
@@ -10,7 +11,7 @@ from operator import is_not
 from functools import partial
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_meloncloud_tweet_model, get_status, \
-    get_dict_lookup_user, get_user_profile, hasFavorited, like_tweet
+    get_dict_lookup_user, get_user_profile, hasFavorited, like_tweet, get_dict_lookup_statuses
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
@@ -281,15 +282,25 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
         if tweet is None:
             not_found_exception()
 
-        message = tweet.message if tweet.message.rfind("https://") == -1 else tweet.message.rsplit("https://", 1)[0]
+        message = tweet.message
+        message = message.replace("　", " ")
+        message = re.sub(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-]) ?", '', message, flags=re.MULTILINE)
+        message = re.sub(r"(#(?:[^\x00-\x7F]|\w)+)", '', message, flags=re.MULTILINE)
+
+        #message = tweet.message if tweet.message.rfind("https://") == -1 else tweet.message.rsplit("https://", 1)[0]
         language = tweet.language if tweet.language != "zh" else "zh-cn"
 
         result = tweet.serialize
         result['translate'] = None
-        if (req.translate is None or bool(req.translate)) and language != "und":
-            trans = translate(src=language, text=message, dest=['en', 'th'])
-            if trans is not None:
-                result['translate'] = trans
+        if req.translate is None or bool(req.translate):
+            if language != "und":
+                trans = translate(src=language, text=message, dest=['en', 'th'])
+                if trans is not None:
+                    result['translate'] = trans
+                else:
+                    result['translate'][language] = message
+            else:
+                result['translate']['und'] = message
 
         current_tweet = get_status(req.tweet_id)
         if current_tweet is not None:
@@ -586,9 +597,7 @@ async def action(params: RequestTweetAppActionModel = Depends(RequestTweetAppAct
         db.add(tweet)
         db.commit()
 
-
         await send_url_to_meloncloud_onedrive(package.media_urls)
-
 
         message = tweet.message if tweet.message.rfind("https://") == -1 else \
             tweet.message.rsplit("https://", 1)[0]
@@ -678,3 +687,22 @@ async def export_twitter_data(params: MelonCloudBackupModel = Depends(), db: Ses
             filename = f"{name}_{ds.strftime('%Y_%m_%d')}_to_{de.strftime('%Y_%m_%d')}"
 
     return packing_backup(data=data, filename=filename)
+
+def check_tweet_has_deleted(db):
+    tweets = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.deleted.is_(False)).order_by(func.random()).limit(100).all()
+    data = get_dict_lookup_statuses([i.id for i in tweets])
+
+    isChanged = False
+
+    for tweet in tweets:
+        deleted = tweet.id not in data
+        if not tweet.memories and deleted:
+            print(tweet.id)
+            db.delete(tweet)
+            isChanged = True
+        elif tweet.deleted != deleted:
+            tweet.deleted = deleted
+            db.add(tweet)
+            isChanged = True
+    if isChanged:
+        db.commit()
