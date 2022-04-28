@@ -96,6 +96,7 @@ def export_header_property(session):
 def compose_response(output, session, filename=None):
     output.seek(0)
     response = Response(content=output.read(), media_type="text/csv")
+    print(f"attachment; filename={filename if filename is not None else get_filename(session)}.csv")
     response.headers[
         "Content-Disposition"
     ] = f"attachment; filename={filename if filename is not None else get_filename(session)}.csv"

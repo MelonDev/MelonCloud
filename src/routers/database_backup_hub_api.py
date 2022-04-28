@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from environment import IFTTT_SECRET_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
+from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.environment.database import get_db
 from src.tools.db_exporter import export_twitter_month_on_year, export
@@ -20,7 +21,7 @@ async def trigger():
     path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
 
     items = [
-        MelonDevTwitterDatabase,
+        MelonCloudTwitterDatabase,
         MelonCloudBookDatabase,
         MelonCloudBookPageDatabase
     ]
@@ -31,6 +32,16 @@ async def trigger():
         await call_backup_api({"name": name, "url": url, 'folder': date})
     return "TRIGGERED!"
 
+@router.get("/twitter-backup-trigger", include_in_schema=True)
+async def trigger():
+    path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
+    name = f"all_{MelonCloudTwitterDatabase.__tablename__}"
+    url = f"{path}{name.lower()}"
+    date = str(datetime.datetime.now().strftime('%d %b %Y'))
+    await call_weekly_backup_api({"name": name, "url": url, 'folder': date})
+
+    return "TRIGGERED!"
+
 
 async def call_backup_api(payload):
     webhook_name = "auto_database_backup"
@@ -38,9 +49,21 @@ async def call_backup_api(payload):
     await client.post(webhook_url, json=payload)
 
 
-@router.get("/melondev_twitter_database", include_in_schema=True)
+async def call_weekly_backup_api(payload):
+    print(payload)
+    webhook_name = "weekly_database_backup"
+    webhook_url = f"https://maker.ifttt.com/trigger/{webhook_name}/json/with/key/{IFTTT_SECRET_KEY}"
+    await client.post(webhook_url, json=payload)
+
+
+@router.get("/meloncloud_twitter_database", include_in_schema=True)
 async def melondev_twitter_database(request: Request, db: Session = Depends(get_db)):
-    return export_twitter_month_on_year(db=db, session=MelonDevTwitterDatabase)
+    return export_twitter_month_on_year(db=db, session=MelonCloudTwitterDatabase)
+
+
+@router.get("/all_meloncloud_twitter_database", include_in_schema=True)
+async def all_melondev_twitter_database(request: Request, db: Session = Depends(get_db)):
+    return export(db=db, session=MelonCloudTwitterDatabase)
 
 
 @router.get("/meloncloud_book_database", include_in_schema=True)
