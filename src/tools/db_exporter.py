@@ -16,7 +16,7 @@ def export_year(db, session, year: int = None, filename=None):
     year = ifNone(year, current_year())
     until_datetime = last_day_of_month(year, 12)
     since_datetime = prefix_datetime(year, 1)
-    data = db.query(session).filter(session.addedAt <= until_datetime).filter(session.addedAt >= since_datetime).all()
+    data = db.query(session).filter(session.stored_at <= until_datetime).filter(session.stored_at >= since_datetime).all()
     return compose_response(output=writer_data(data=data), session=session, filename=filename)
 
 
@@ -26,7 +26,7 @@ def export_month_on_year(db, session, year: int = None, month: int = None, day: 
 
     until_datetime = last_day_of_month(year, month)
     since_datetime = prefix_datetime(year, month)
-    data = db.query(session).filter(session.addedAt <= until_datetime).filter(session.addedAt >= since_datetime).all()
+    data = db.query(session).filter(session.stored_at <= until_datetime).filter(session.stored_at >= since_datetime).all()
     return compose_response(output=writer_data(data=data), session=session, filename=filename)
 
 
@@ -44,7 +44,7 @@ def export_twitter_month_on_year(db, session, year: int = None, month: int = Non
 
     until_datetime = last_day_of_month(year, month)
     since_datetime = prefix_datetime(year, month)
-    data = db.query(session).filter(session.addedAt <= until_datetime).filter(session.addedAt >= since_datetime).all()
+    data = db.query(session).filter(session.stored_at <= until_datetime).filter(session.stored_at >= since_datetime).all()
     return compose_response(output=writer_data(data=data), session=session, filename=filename)
 
 

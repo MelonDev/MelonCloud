@@ -37,7 +37,7 @@ async def trigger():
 async def monthly_trigger():
     path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
     name = f"{MelonCloudTwitterDatabase.__tablename__}"
-    url = f"{path}{name.lower()}"
+    url = f"{path}fully_{name.lower()}"
     date = str(datetime.datetime.now().strftime('%d %b %Y'))
     await call_fully_backup_api({"name": name, "url": url, 'xfol': "Monthly", 'folder': date})
 
@@ -48,7 +48,7 @@ async def monthly_trigger():
 async def weekly_trigger():
     path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
     name = f"{MelonCloudTwitterDatabase.__tablename__}"
-    url = f"{path}{name.lower()}"
+    url = f"{path}fully_{name.lower()}"
     date = str(datetime.datetime.now().strftime('%d %b %Y'))
     await call_fully_backup_api({"name": name, "url": url, 'xfol': "Weekly", 'folder': date})
 
