@@ -32,13 +32,25 @@ async def trigger():
         await call_backup_api({"name": name, "url": url, 'folder': date})
     return "TRIGGERED!"
 
-@router.get("/twitter-backup-trigger", include_in_schema=True)
-async def trigger():
+
+@router.get("/monthly-twitter-backup-trigger", include_in_schema=True)
+async def monthly_trigger():
     path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
     name = f"{MelonCloudTwitterDatabase.__tablename__}"
     url = f"{path}{name.lower()}"
     date = str(datetime.datetime.now().strftime('%d %b %Y'))
-    await call_weekly_backup_api({"name": name, "url": url, 'folder': date})
+    await call_fully_backup_api({"name": name, "url": url, 'xfol': "Monthly", 'folder': date})
+
+    return "TRIGGERED!"
+
+
+@router.get("/weekly-twitter-backup-trigger", include_in_schema=True)
+async def weekly_trigger():
+    path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
+    name = f"{MelonCloudTwitterDatabase.__tablename__}"
+    url = f"{path}{name.lower()}"
+    date = str(datetime.datetime.now().strftime('%d %b %Y'))
+    await call_fully_backup_api({"name": name, "url": url, 'xfol': "Weekly", 'folder': date})
 
     return "TRIGGERED!"
 
@@ -49,8 +61,8 @@ async def call_backup_api(payload):
     await client.post(webhook_url, json=payload)
 
 
-async def call_weekly_backup_api(payload):
-    webhook_name = "weekly_database_backup"
+async def call_fully_backup_api(payload):
+    webhook_name = "fully_database_backup"
     webhook_url = f"https://maker.ifttt.com/trigger/{webhook_name}/json/with/key/{IFTTT_SECRET_KEY}"
     await client.post(webhook_url, json=payload)
 
