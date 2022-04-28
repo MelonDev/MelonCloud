@@ -38,7 +38,7 @@ async def monthly_trigger():
     path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
     name = f"{MelonCloudTwitterDatabase.__tablename__}"
     url = f"{path}fully_{name.lower()}"
-    date = str(datetime.datetime.now().strftime('%d %b %Y'))
+    date = str(datetime.datetime.now().strftime('%B %Y'))
     await call_fully_backup_api({"name": name, "url": url, 'xfol': "Monthly", 'folder': date})
 
     return "TRIGGERED!"
