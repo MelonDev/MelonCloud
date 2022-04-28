@@ -35,7 +35,7 @@ async def trigger():
 @router.get("/twitter-backup-trigger", include_in_schema=True)
 async def trigger():
     path = "https://meloncloud.herokuapp.com/api/v2/database-backup/"
-    name = f"all_{MelonCloudTwitterDatabase.__tablename__}"
+    name = f"{MelonCloudTwitterDatabase.__tablename__}"
     url = f"{path}{name.lower()}"
     date = str(datetime.datetime.now().strftime('%d %b %Y'))
     await call_weekly_backup_api({"name": name, "url": url, 'folder': date})
@@ -50,7 +50,6 @@ async def call_backup_api(payload):
 
 
 async def call_weekly_backup_api(payload):
-    print(payload)
     webhook_name = "weekly_database_backup"
     webhook_url = f"https://maker.ifttt.com/trigger/{webhook_name}/json/with/key/{IFTTT_SECRET_KEY}"
     await client.post(webhook_url, json=payload)
@@ -61,8 +60,8 @@ async def melondev_twitter_database(request: Request, db: Session = Depends(get_
     return export_twitter_month_on_year(db=db, session=MelonCloudTwitterDatabase)
 
 
-@router.get("/all_meloncloud_twitter_database", include_in_schema=True)
-async def all_melondev_twitter_database(request: Request, db: Session = Depends(get_db)):
+@router.get("/fully_meloncloud_twitter_database", include_in_schema=True)
+async def fully_melondev_twitter_database(request: Request, db: Session = Depends(get_db)):
     return export(db=db, session=MelonCloudTwitterDatabase)
 
 
