@@ -5,8 +5,10 @@ from sqlalchemy.orm import relationship
 from src.environment.database import Base
 from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Integer
 
+from src.environment.database_config import MelonCloudDatabase
 
-class MelonCloudBookPageDatabase(Base):
+
+class MelonCloudBookPageDatabase(MelonCloudDatabase):
     __tablename__ = "MelonCloud_Book_Page_Database"
     __bind_key__ = 'meloncloud'
 

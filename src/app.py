@@ -28,7 +28,7 @@ from src.database.buff_management.farm_database import FarmDatabase
 from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
-from src.database.meloncloud.meloncloud_crypto_portfolios import MelonCloudCryptoPortfolios
+from src.database.meloncloud.meloncloud_crypto_portfolios_database import MelonCloudCryptoPortfoliosDatabase
 from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.environment.database import engine, get_db
@@ -121,15 +121,15 @@ async def wakeup(db: Session = Depends(get_db)):
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
     # MelonCloudTwitterDatabase.__table__.create(engine)
-    #MelonCloudPeopleDatabase.__table__.create(engine)
-    #MelonCloudBeastCharacterDatabase.__table__.create(engine)
+    # MelonCloudPeopleDatabase.__table__.create(engine)
+    # MelonCloudBeastCharacterDatabase.__table__.create(engine)
     # FarmDatabase.__table__.create(engine)
     # BuffDatabase.__table__.create(engine)
     # BuffActivityLogDatabase.__table__.create(engine)
     # BuffNotifyDatabase.__table__.create(engine)
-    #MelonCloudBookDatabase.__table__.create(engine)
-    #MelonCloudBookPageDatabase.__table__.create(engine)
-    #MelonCloudCryptoPortfolios.__table__.create(engine)
+    # MelonCloudBookDatabase.__table__.create(engine)
+    # MelonCloudBookPageDatabase.__table__.create(engine)
+    # MelonCloudCryptoPortfoliosDatabase.__table__.create(engine)
 
     return "Database Created!"
 

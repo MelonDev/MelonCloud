@@ -5,9 +5,11 @@ from sqlalchemy.orm import relationship
 from src.environment.database import Base
 from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Integer, Float
 
+from src.environment.database_config import MelonCloudDatabase
 
-class MelonCloudCryptoPortfolios(Base):
-    __tablename__ = "MelonCloud_Crypto_Portfolios"
+
+class MelonCloudCryptoPortfoliosDatabase(MelonCloudDatabase):
+    __tablename__ = "MelonCloud_Crypto_Portfolios_Database"
     __bind_key__ = 'meloncloud'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, nullable=False)

@@ -13,7 +13,7 @@ from operator import itemgetter
 
 import requests as req_outside
 
-from src.database.meloncloud.meloncloud_crypto_portfolios import MelonCloudCryptoPortfolios
+from src.database.meloncloud.meloncloud_crypto_portfolios_database import MelonCloudCryptoPortfoliosDatabase
 from src.environment.database import get_db
 from src.routers.twitter_api import bad_request_exception
 from src.tools.verify_hub import response
@@ -35,7 +35,7 @@ async def price(db: Session = Depends(get_db)):
 
 @router.get("/portfolio")
 async def portfolio(db: Session = Depends(get_db)):
-    database = db.query(MelonCloudCryptoPortfolios)
+    database = db.query(MelonCloudCryptoPortfoliosDatabase)
     data = get_data()
 
     portfolios = {}

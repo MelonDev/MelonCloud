@@ -5,12 +5,13 @@ from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ARRAY, 
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
 
+from src.environment.database_config import MelonCloudDatabase
 from src.tools.converters.datetime_converter import current_datetime_with_timezone, \
     convert_datetime_to_string_for_backup_mode
 from src.tools.converters.list_converter import list_to_set
 
 
-class MelonCloudBookDatabase(Base):
+class MelonCloudBookDatabase(MelonCloudDatabase):
     __tablename__ = "MelonCloud_Book_Database"
     __bind_key__ = 'meloncloud'
 

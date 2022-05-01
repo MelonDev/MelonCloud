@@ -7,9 +7,10 @@ from typing import List
 from sqlalchemy.orm import relationship
 
 from src.environment.database import Base
+from src.environment.database_config import MelonCloudDatabase
 
 
-class MelonCloudBeastCharacterDatabase(Base):
+class MelonCloudBeastCharacterDatabase(MelonCloudDatabase):
     __tablename__ = "MelonCloud_Beast_Character_Database"
     __bind_key__ = 'meloncloud'
 

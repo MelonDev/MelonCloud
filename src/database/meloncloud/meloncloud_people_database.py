@@ -6,10 +6,11 @@ from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from src.environment.database import Base
+from src.environment.database_config import MelonCloudDatabase
 from src.tools.converters.datetime_converter import current_datetime_with_timezone, current_datetime
 
 
-class MelonCloudPeopleDatabase(Base):
+class MelonCloudPeopleDatabase(MelonCloudDatabase):
     __tablename__ = "MelonCloud_People_Database"
     __bind_key__ = 'meloncloud'
 
