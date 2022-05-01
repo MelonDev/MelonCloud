@@ -11,7 +11,7 @@ from src.tools.converters.datetime_converter import current_datetime_with_timezo
 
 class MelonCloudPeopleDatabase(Base):
     __tablename__ = "MelonCloud_People_Database"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'meloncloud'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False)

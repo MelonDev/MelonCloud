@@ -8,7 +8,7 @@ from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Inte
 
 class MelonCloudCryptoPortfolios(Base):
     __tablename__ = "MelonCloud_Crypto_Portfolios"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'meloncloud'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, nullable=False)
     coin_name = Column(Text, nullable=False)

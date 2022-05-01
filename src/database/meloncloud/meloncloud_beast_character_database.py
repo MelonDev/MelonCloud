@@ -11,7 +11,7 @@ from src.environment.database import Base
 
 class MelonCloudBeastCharacterDatabase(Base):
     __tablename__ = "MelonCloud_Beast_Character_Database"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'meloncloud'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, nullable=False)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("MelonCloud_People_Database.id"), nullable=False)

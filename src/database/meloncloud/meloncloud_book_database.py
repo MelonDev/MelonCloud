@@ -12,7 +12,7 @@ from src.tools.converters.list_converter import list_to_set
 
 class MelonCloudBookDatabase(Base):
     __tablename__ = "MelonCloud_Book_Database"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'meloncloud'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
     name = Column(Text, nullable=False)

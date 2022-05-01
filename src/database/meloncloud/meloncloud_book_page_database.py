@@ -8,7 +8,7 @@ from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Inte
 
 class MelonCloudBookPageDatabase(Base):
     __tablename__ = "MelonCloud_Book_Page_Database"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'meloncloud'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
     book_id = Column(UUID(as_uuid=True), ForeignKey("MelonCloud_Book_Database.id"), nullable=False)
