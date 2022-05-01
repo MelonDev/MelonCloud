@@ -120,7 +120,7 @@ async def wakeup(db: Session = Depends(get_db)):
 
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    # MelonCloudTwitterDatabase.__table__.create(engine)
+    MelonCloudTwitterDatabase.__table__.create(engine)
     # MelonCloudPeopleDatabase.__table__.create(engine)
     # MelonCloudBeastCharacterDatabase.__table__.create(engine)
     # FarmDatabase.__table__.create(engine)

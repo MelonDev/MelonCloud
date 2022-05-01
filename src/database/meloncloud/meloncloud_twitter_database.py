@@ -12,7 +12,7 @@ from src.tools.converters.list_converter import list_to_set
 
 class MelonCloudTwitterDatabase(Base):
     __tablename__ = "MelonCloud_Twitter_Database"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'meloncloud'
 
     id = Column(Text, primary_key=True, unique=True, nullable=False)
     tweeted_at = Column(DateTime(timezone=True), nullable=False)
