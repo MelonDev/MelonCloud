@@ -53,7 +53,7 @@ jobs:
           zip -r9 ../../../../api.zip .
 
       - name: Add App to Zipfile
-        run: zip -g api.zip -r .
+        run: zip -g ./api.zip -r src
 
       - name: Upload zip file artifact
         uses: actions/upload-artifact@v2
