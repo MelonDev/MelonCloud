@@ -1,5 +1,5 @@
 from mangum import Mangum
 
-from src.app import app
+from src.app import app as fastapi
 
-handler = Mangum(app=app)
+handler = Mangum(app=fastapi)
