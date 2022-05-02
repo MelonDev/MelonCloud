@@ -1,9 +1,7 @@
-import datetime
-
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, validator
 from fastapi import HTTPException, status
 
-from environment import TWITTER_REFRESH_SECRET_PASSWORD
+from src.environment import TWITTER_REFRESH_SECRET_PASSWORD
 
 
 class AccessTwitterValidatorModel(BaseModel):

@@ -4,8 +4,8 @@ from sqlalchemy import Column, String, DateTime, Boolean, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from typing import List
 
-from src.environment.database import Base
-from src.environment.database_config import MelonCloudDatabase
+from src.environments.database import Base
+from src.environments.database_config import MelonCloudDatabase
 from src.tools.converters.datetime_converter import current_datetime_with_timezone, convert_datetime_to_string, \
     convert_datetime_to_string_for_backup_mode
 from src.tools.converters.list_converter import list_to_set

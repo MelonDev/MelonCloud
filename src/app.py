@@ -32,9 +32,9 @@ from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBook
 from src.database.meloncloud.meloncloud_crypto_portfolios_database import MelonCloudCryptoPortfoliosDatabase
 from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
-from src.environment.database_config import get_db, meloncloud_engine, buff_management_engine
+from src.environments.database_config import get_db, meloncloud_engine, buff_management_engine
 
-from src.environment.share_environment import SRC_DIR
+from src.environments.share_environment import SRC_DIR
 from src.routers import user, page, playground
 from src.routers.meloncloud.meloncloud_twitter_api import check_tweet_has_deleted
 from src.routers.poc.jwt import jwt_poc

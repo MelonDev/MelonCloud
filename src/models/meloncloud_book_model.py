@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from environment import OPENSSL_SECRET_KEY
+from src.environment import OPENSSL_SECRET_KEY
 from src.tools.as_form import as_form
 
 

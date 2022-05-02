@@ -1,4 +1,3 @@
-from environment import TWITTER_VIEWER_PASSWORD
 from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
@@ -7,7 +6,7 @@ from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitte
 from src.engines.twitter_engines import get_user_profile, hasFavorited, like_tweet
 from src.enums.profile_enum import ProfileTypeEnum
 from src.models.meloncloud_twitter_model import DatabaseQueryName, TweetMediaType, HashtagQueryDate, \
-    RequestMediaQueryModel, RequestPeopleQueryModel, TweetAction, RequestAnalyzeModel, RequestPeopleQueryForRankModel
+    RequestMediaQueryModel, TweetAction, RequestAnalyzeModel, RequestPeopleQueryForRankModel
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception
 from fastapi import Response
 import csv

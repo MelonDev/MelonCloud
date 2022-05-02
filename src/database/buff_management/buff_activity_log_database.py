@@ -2,13 +2,13 @@ import json
 
 from sqlalchemy.orm import relationship
 
-from src.environment.database import Base
+from src.environments.database import Base
 from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
-from src.environment.database_config import BuffManagementDatabase
+from src.environments.database_config import BuffManagementDatabase
 from src.tools.converters.datetime_converter import current_datetime_with_timezone, convert_datetime_to_string, \
     convert_date_to_string
 

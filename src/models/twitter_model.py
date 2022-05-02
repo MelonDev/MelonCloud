@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator
 
-from environment import TWITTER_SECRET_PASSWORD
+from src.environment import TWITTER_SECRET_PASSWORD
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.type_enum import FileTypeEnum, ImageQualityEnum

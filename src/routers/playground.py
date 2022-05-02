@@ -19,8 +19,8 @@ from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitte
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.engines.twitter_engines import test_client_mode, get_status, has_deleted, get_lookup_statuses, \
     get_dict_lookup_statuses, get_meloncloud_tweet_model, TweetMediaType
-from src.environment.database_config import get_db
-from src.environment.firebase_enviroment import create_credentials_file, firebase_storage_url
+from src.environments.database_config import get_db
+from src.environments.firebase_enviroment import create_credentials_file, firebase_storage_url
 from src.models.response_model import ResponseModel
 from src.models.twitter_model import TwitterValidatorModel
 

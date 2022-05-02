@@ -1,8 +1,7 @@
 import datetime as dt
 import httpx
-from fastapi import requests
 
-from environment import IFTTT_SECRET_KEY
+from src.environment import IFTTT_SECRET_KEY
 from src.engines.twitter_engines import TweetMediaType
 
 client = httpx.AsyncClient()

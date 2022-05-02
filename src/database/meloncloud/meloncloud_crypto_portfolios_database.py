@@ -2,10 +2,10 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from src.environment.database import Base
+from src.environments.database import Base
 from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Integer, Float
 
-from src.environment.database_config import MelonCloudDatabase
+from src.environments.database_config import MelonCloudDatabase
 
 
 class MelonCloudCryptoPortfoliosDatabase(MelonCloudDatabase):

@@ -1,12 +1,11 @@
 import datetime
-import json
 from enum import Enum
 from typing import List
 
 import tweepy
 from fastapi import HTTPException, status as code
 
-from environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY_V2, \
+from src.environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY_V2, \
     CONSUMER_SECRET_V2, ACCESS_TOKEN_V2, ACCESS_TOKEN_SECRET_V2, BEARER_TOKEN_V2
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
@@ -14,7 +13,6 @@ from src.enums.profile_enum import ProfileTypeEnum
 from src.models.meloncloud_twitter_model import MelonCloudTweetResponseModel
 from src.models.twitter_model import TweetResponseModel
 from src.tools.converters.datetime_converter import convert_string_to_datetime
-from src.tools.json_tool import to_json_object, has_key
 
 
 def authentication():

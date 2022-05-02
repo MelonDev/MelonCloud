@@ -1,2 +1,2 @@
 .env
-src/environment/database_address
+src/environments/database_address

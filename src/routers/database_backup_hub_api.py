@@ -1,14 +1,13 @@
 import datetime
 
-from fastapi import APIRouter, Depends, status as code, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from environment import IFTTT_SECRET_KEY
+from src.environment import IFTTT_SECRET_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
-from src.database.melondev_twitter_database import MelonDevTwitterDatabase
-from src.environment.database_config import get_db
+from src.environments.database_config import get_db
 from src.tools.db_exporter import export_twitter_month_on_year, export
 import httpx
 

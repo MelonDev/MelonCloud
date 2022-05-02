@@ -2,11 +2,10 @@ import datetime
 from enum import Enum
 from uuid import UUID
 
-from oauthlib.oauth2.rfc6749.grant_types import refresh_token
 from pydantic import BaseModel
 from typing import List
 
-from environment import OPENSSL_SECRET_KEY
+from src.environment import OPENSSL_SECRET_KEY
 from src.tools.as_form import as_form
 from src.tools.generators.enum_generator import make_enum
 

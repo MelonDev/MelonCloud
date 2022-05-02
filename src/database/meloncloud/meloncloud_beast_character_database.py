@@ -6,8 +6,7 @@ from typing import List
 
 from sqlalchemy.orm import relationship
 
-from src.environment.database import Base
-from src.environment.database_config import MelonCloudDatabase
+from src.environments.database_config import MelonCloudDatabase
 
 
 class MelonCloudBeastCharacterDatabase(MelonCloudDatabase):

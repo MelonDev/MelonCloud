@@ -13,7 +13,7 @@ from src.database.buff_management.buff_activity_log_database import BuffActivity
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
 from src.database.buff_management.buff_farm_database import BuffFarmDatabase
-from src.environment.database_config import get_db
+from src.environments.database_config import get_db
 import datetime
 
 from src.models.buff_model import BuffSettings, RegisterFarmForm, BuffAuthenticatedResponseModel, BuffLoginForm, \

@@ -1,29 +1,25 @@
 import math
-import uuid
 from datetime import timedelta
 
 import fastapi_jwt_auth.exceptions
 
-from fastapi import APIRouter, Depends, status as code, HTTPException, Request, Response
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, status as code, HTTPException
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
-from sqlalchemy.sql.expression import func, select
+from sqlalchemy.sql.expression import func
 
-from environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY, MELONCLOUD_BOOK_API_KEY
+from src.environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY, MELONCLOUD_BOOK_API_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
-from src.environment.database_config import get_db
-from src.environment.mock_meloncloud_book import data as mock_data
+from src.environments.database_config import get_db
+from src.environments.mock_meloncloud_book import data as mock_data
 from src.models.meloncloud_book_model import RequestBookQueryModel, MelonCloudBookSettings, MelonCloudBookTokenModel, \
     MelonCloudBookLoginForm
 from src.models.response_model import ResponseModel, ResponsePageModel
 from src.routers.meloncloud.meloncloud_twitter_extension_function import is_overflow
 from src.tools.verify_hub import verify_return, response
-from fastapi.encoders import jsonable_encoder
 
 
 @AuthJWT.load_config

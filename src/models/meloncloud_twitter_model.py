@@ -1,21 +1,16 @@
 from enum import Enum
 from typing import List
 
-from google.type.calendar_period_pb2 import QUARTER
-from pydantic.color import Color
-from pydantic.networks import HttpUrl
-from pydantic.types import SecretStr, PastDate, PositiveInt, date, NonNegativeInt
+from pydantic.types import date, NonNegativeInt
 
-from environment import TWITTER_SECRET_PASSWORD, TWITTER_VIEWER_PASSWORD
+from src.environment import TWITTER_SECRET_PASSWORD, TWITTER_VIEWER_PASSWORD
 from fastapi import HTTPException, status
-from pydantic import BaseModel, validator, constr
+from pydantic import BaseModel, validator
 
-from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
-from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.enums.profile_enum import ProfileQueryEnum
-from src.enums.sorting_enum import SortingEnum, SortingTweet
-from src.enums.type_enum import ImageQualityEnum, FileTypeEnum, MelonCloudFileTypeEnum
+from src.enums.sorting_enum import SortingTweet
+from src.enums.type_enum import ImageQualityEnum, MelonCloudFileTypeEnum
 from src.tools.as_form import as_form
 
 

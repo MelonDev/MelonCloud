@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
-from src.environment.database_config import get_db
-from src.environment.share_environment import templates
+from src.environments.database_config import get_db
+from src.environments.share_environment import templates
 from src.models.meloncloud_book_model import RequestBookQueryModel
 from src.routers.meloncloud.meloncloud_book_api import request_is_authorized, authorizing, load_book
 from src.tools.generators.random_password_generator import RandomPasswordGenerator
