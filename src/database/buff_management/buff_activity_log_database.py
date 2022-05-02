@@ -2,7 +2,6 @@ import json
 
 from sqlalchemy.orm import relationship
 
-from src.environments.database import Base
 from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID

@@ -2,7 +2,6 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from src.environments.database import Base
 from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey, Integer
 
 from src.environments.database_config import MelonCloudDatabase

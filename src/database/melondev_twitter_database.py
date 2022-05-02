@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DateTime, Boolean, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 
-from src.environments.database import Base
+from src.environments.database_config import MelonCloudDatabase
 from src.tools.converters.datetime_converter import convert_datetime_to_string, \
     convert_datetime_to_string_for_backup_mode
 from src.tools.converters.list_converter import list_to_set
@@ -13,7 +13,7 @@ def dump_datetime(value):
     return [value.strftime("%Y-%m-%d")]
 
 
-class MelonDevTwitterDatabase(Base):
+class MelonDevTwitterDatabase(MelonCloudDatabase):
     __tablename__ = "MelonDev_Twitter_Database"
     __bind_key__ = 'pasaad'
 

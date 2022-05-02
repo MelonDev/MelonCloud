@@ -5,7 +5,6 @@ import uuid
 from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
-from src.environments.database import Base
 from src.environments.database_config import MelonCloudDatabase
 from src.tools.converters.datetime_converter import current_datetime_with_timezone, current_datetime
 
