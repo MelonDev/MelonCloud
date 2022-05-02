@@ -10,20 +10,18 @@ class MelonCloudDatabase:
 
 
 @as_declarative()
-class ModelDB2:
+class BuffManagementDatabase:
     pass
 
 
 meloncloud_engine = create_engine(config('MELONCLOUD_DATABASE', default=None))
-# engine2 = create_engine('postgresql://dev@postgres:5432/db2')
+buff_management_engine = create_engine(config('BUFF_MANAGEMENT_DATABASE', default=None))
 
 DBSession = sessionmaker(...)
-DBSession.configure(binds={MelonCloudDatabase: meloncloud_engine})
+DBSession.configure(binds={MelonCloudDatabase: meloncloud_engine, BuffManagementDatabase: buff_management_engine})
 
 
-# DBSession.configure(binds={ModelDB1: engine1, ModelDB2: engine2})
-
-def get_session():
+def get_db():
     db = DBSession()
     try:
         yield db

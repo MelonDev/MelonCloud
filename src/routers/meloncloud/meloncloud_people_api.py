@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
+from src.environment.database_config import get_db
 from src.models.meloncloud_twitter_model import RequestPeopleDatabaseModel
 from fastapi import APIRouter, Depends, HTTPException, status as code, Response
 from sqlalchemy import desc, asc, func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
-from src.environment.database import get_db
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception
 from src.routers.meloncloud.meloncloud_twitter_extension_function import get_profile
 import datetime as dt

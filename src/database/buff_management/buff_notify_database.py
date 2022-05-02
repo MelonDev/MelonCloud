@@ -6,12 +6,13 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
+from src.environment.database_config import BuffManagementDatabase
 from src.tools.converters.datetime_converter import current_datetime_with_timezone, convert_datetime_to_string
 
 
-class BuffNotifyDatabase(Base):
+class BuffNotifyDatabase(BuffManagementDatabase):
     __tablename__ = "Buff_Notify_Database"
-    __bind_key__ = 'pasaad'
+    __bind_key__ = 'buff_management'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
     activity_id = Column(UUID(as_uuid=True), ForeignKey('Buff_Activity_Log_Database.id'), nullable=False)

@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
-from src.database.buff_management.farm_database import FarmDatabase
-from src.environment.database import get_db
+from src.database.buff_management.buff_farm_database import BuffFarmDatabase
+from src.environment.database_config import get_db
 import datetime
 
 from src.models.buff_model import BuffSettings, RegisterFarmForm, BuffAuthenticatedResponseModel, BuffLoginForm, \
@@ -68,8 +68,8 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), A
     if isDuplicate(db, form.email):
         duplicate_on_database_exception()
 
-    farm = FarmDatabase(name=form.farm_name, email=form.email, first_name=form.first_name, last_name=form.last_name,
-                        address=form.address, password=get_password_hash(form.password))
+    farm = BuffFarmDatabase(name=form.farm_name, email=form.email, first_name=form.first_name, last_name=form.last_name,
+                            address=form.address, password=get_password_hash(form.password))
 
     access_token = Authorize.create_access_token(subject=str(farm.id))
     refresh_token = Authorize.create_refresh_token(subject=str(farm.id))
@@ -1065,10 +1065,10 @@ async def check_authorize(Authorize: AuthJWT):
 
 
 def isDuplicate(db, email: str) -> bool:
-    database = db.query(FarmDatabase)
+    database = db.query(BuffFarmDatabase)
 
     if email is not None:
-        database = database.filter(FarmDatabase.email.contains(email))
+        database = database.filter(BuffFarmDatabase.email.contains(email))
         if database.count() == 0:
             return False
 
@@ -1076,10 +1076,10 @@ def isDuplicate(db, email: str) -> bool:
 
 
 def get_farm_from_email(db, email: str):
-    database = db.query(FarmDatabase)
+    database = db.query(BuffFarmDatabase)
 
     if email is not None:
-        database = database.filter(FarmDatabase.email.contains(email))
+        database = database.filter(BuffFarmDatabase.email.contains(email))
         farm = database.first()
         return farm
 
@@ -1087,7 +1087,7 @@ def get_farm_from_email(db, email: str):
 
 
 def get_farm_from_id(db, id: str):
-    database = db.query(FarmDatabase)
+    database = db.query(BuffFarmDatabase)
 
     if id is not None:
         farm = database.get(id)

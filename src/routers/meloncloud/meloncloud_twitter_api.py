@@ -15,7 +15,7 @@ from src.engines.twitter_engines import get_tweet_id_from_link, get_meloncloud_t
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
-from src.environment.database import get_db
+from src.environment.database_config import get_db
 from src.models.meloncloud_twitter_model import RequestAnalyzeModel, RequestTweetQueryModel, \
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, \
     RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \

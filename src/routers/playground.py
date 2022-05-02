@@ -14,12 +14,12 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.database.buff_management.buff_database import BuffDatabase
-from src.database.buff_management.farm_database import FarmDatabase
+from src.database.buff_management.buff_farm_database import BuffFarmDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.engines.twitter_engines import test_client_mode, get_status, has_deleted, get_lookup_statuses, \
     get_dict_lookup_statuses, get_meloncloud_tweet_model, TweetMediaType
-from src.environment.database import get_db
+from src.environment.database_config import get_db
 from src.environment.firebase_enviroment import create_credentials_file, firebase_storage_url
 from src.models.response_model import ResponseModel
 from src.models.twitter_model import TwitterValidatorModel
@@ -127,7 +127,7 @@ async def get_model(name_model: NameEnumModel, num: make_enum("Table", [("HELLO"
 
 @router.get("/test-buff", include_in_schema=True)
 async def test_buff(request: Request, db: Session = Depends(get_db)):
-    farms = db.query(FarmDatabase).filter(FarmDatabase.buffs.any(BuffDatabase.gender == "FEMALE")).all()
+    farms = db.query(BuffFarmDatabase).filter(BuffFarmDatabase.buffs.any(BuffDatabase.gender == "FEMALE")).all()
     result = [farm.test for farm in farms]
     return await verify_return(ResponseModel(data=result))
 

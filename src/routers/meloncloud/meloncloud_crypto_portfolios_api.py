@@ -14,7 +14,7 @@ from operator import itemgetter
 import requests as req_outside
 
 from src.database.meloncloud.meloncloud_crypto_portfolios_database import MelonCloudCryptoPortfoliosDatabase
-from src.environment.database import get_db
+from src.environment.database_config import get_db
 from src.routers.twitter_api import bad_request_exception
 from src.tools.verify_hub import response
 

@@ -9,6 +9,7 @@ from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.responses import RedirectResponse
 # from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
+from mangum import Mangum
 from sqlalchemy.orm import Session
 
 from src.apps.v1.flask_app import app as flask_app
@@ -24,14 +25,14 @@ from src.apps.v2.crypto_portfolios_app import app as crypto_portfolios_app
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
-from src.database.buff_management.farm_database import FarmDatabase
+from src.database.buff_management.buff_farm_database import BuffFarmDatabase
 from src.database.meloncloud.meloncloud_beast_character_database import MelonCloudBeastCharacterDatabase
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
 from src.database.meloncloud.meloncloud_crypto_portfolios_database import MelonCloudCryptoPortfoliosDatabase
 from src.database.meloncloud.meloncloud_people_database import MelonCloudPeopleDatabase
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
-from src.environment.database import engine, get_db
+from src.environment.database_config import get_db, meloncloud_engine, buff_management_engine
 
 from src.environment.share_environment import SRC_DIR
 from src.routers import user, page, playground
@@ -120,19 +121,21 @@ async def wakeup(db: Session = Depends(get_db)):
 
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    # MelonCloudTwitterDatabase.__table__.create(engine)
-    # MelonCloudPeopleDatabase.__table__.create(engine)
-    # MelonCloudBeastCharacterDatabase.__table__.create(engine)
-    # FarmDatabase.__table__.create(engine)
-    # BuffDatabase.__table__.create(engine)
-    # BuffActivityLogDatabase.__table__.create(engine)
-    # BuffNotifyDatabase.__table__.create(engine)
-    # MelonCloudBookDatabase.__table__.create(engine)
-    # MelonCloudBookPageDatabase.__table__.create(engine)
-    # MelonCloudCryptoPortfoliosDatabase.__table__.create(engine)
+    MelonCloudTwitterDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudPeopleDatabase.__table__.create(meloncloud_engine)
+    #MelonCloudBeastCharacterDatabase.__table__.create(meloncloud_engine)
+    # BuffFarmDatabase.__table__.create(buff_management_engine)
+    #BuffDatabase.__table__.create(buff_management_engine)
+    #BuffActivityLogDatabase.__table__.create(buff_management_engine)
+    #BuffNotifyDatabase.__table__.create(buff_management_engine)
+    # MelonCloudBookDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudBookPageDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudCryptoPortfoliosDatabase.__table__.create(meloncloud_engine)
 
     return "Database Created!"
 
 
 if __name__ == "__main__":
     uvicorn.run("app:app")
+
+handler = Mangum(app=app)

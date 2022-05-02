@@ -16,7 +16,7 @@ from sqlalchemy.sql.expression import func, select
 from environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY, MELONCLOUD_BOOK_API_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
 from src.database.meloncloud.meloncloud_book_page_database import MelonCloudBookPageDatabase
-from src.environment.database import get_db
+from src.environment.database_config import get_db
 from src.environment.mock_meloncloud_book import data as mock_data
 from src.models.meloncloud_book_model import RequestBookQueryModel, MelonCloudBookSettings, MelonCloudBookTokenModel, \
     MelonCloudBookLoginForm

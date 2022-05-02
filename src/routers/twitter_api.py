@@ -25,7 +25,7 @@ import io
 from src.enums.profile_enum import ProfileQueryEnum, ProfileTypeEnum
 from src.enums.sorting_enum import SortingEnum
 from src.enums.type_enum import FileTypeEnum
-from src.environment.database import get_db
+from src.environment.database_config import get_db
 from src.models.access_model import AccessTwitterValidatorModel
 from src.models.response_model import ResponseModel
 from src.models.twitter_model import RequestAnalyzeModel, RequestTweetQueryModel, RequestMediaQueryModel, \
