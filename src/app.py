@@ -89,8 +89,7 @@ def init_app():
 
 app = init_app()
 
-handler = Mangum(app=app)
-
+handler = Mangum(app, lifespan="off")
 
 
 @app.exception_handler(AuthJWTException)
