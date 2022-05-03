@@ -42,6 +42,8 @@ jobs:
       - name: Install dependencies
         run: pip3 install -r requirements.txt
 
+      - name: Install AWS Psycopg2
+        run: pip3 install aws-psycopg2
 
       # Build the app
       - name: Build
