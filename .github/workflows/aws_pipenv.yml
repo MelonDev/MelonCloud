@@ -41,7 +41,7 @@ jobs:
         run: pipenv run pip download -d ./vendor -r foo.txt
 
       - name: Archive (with zip) the "./vendor" directory into "api.zip"
-        run: pipenv run python -m zipfile -c ../../../../api.zip ./vendor/
+        run: cd ./vendor && pipenv run python -m zipfile -c ../api.zip .
 
       - name: Add App to Zipfile
         run: zip -g ./api.zip -r src
