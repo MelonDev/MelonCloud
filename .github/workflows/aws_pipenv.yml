@@ -1,0 +1,52 @@
+name: AWS PIPENV CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  continuous-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python all python version
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          architecture: x64
+
+      - name: Install Pipenv
+        run: python -m pip install --upgrade pipenv wheel
+
+      - id: cache-pipenv
+        uses: actions/cache@v1
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        run: pipenv install --deploy --dev
+
+      - name: Creates foo.txt that lists all your dependencies
+        run: pipenv lock -r > foo.txt
+
+
+      - name: Download libraries into "./vendor"
+        run: pipenv run pip download -d ./vendor -r foo.txt
+
+      - name: Archive (with zip) the "./vendor" directory into "vendor.zip"
+      run: pipenv run python -m zipfile -c api.zip ./vendor/
+
+      - name: Add App to Zipfile
+        run: zip -g ./api.zip -r src
+
+      - name: Upload zip file artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: api
+          path: api.zip
