@@ -40,8 +40,8 @@ jobs:
       - name: Download libraries into "./vendor"
         run: pipenv run pip download -d ./vendor -r foo.txt
 
-      - name: Archive (with zip) the "./vendor" directory into "vendor.zip"
-        run: pipenv run python -m zipfile -c api.zip ./vendor/
+      - name: Archive (with zip) the "./vendor" directory into "api.zip"
+        run: pipenv run python -m zipfile -c ../../../../api.zip ./vendor/
 
       - name: Add App to Zipfile
         run: zip -g ./api.zip -r src
