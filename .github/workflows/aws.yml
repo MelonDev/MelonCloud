@@ -34,16 +34,13 @@ jobs:
 
       - name: Activate and Install Depencies into Virtual env
         run: python -m venv venv && source venv/bin/activate &&
-          pip3 install -r requirements.txt && pip3 install aws-psycopg2
+          pip3 install -r requirements.txt
         if: steps.cache-venv.outputs.cache-hit != 'true'
 
 
       # Install all the app dependencies
       - name: Install dependencies
         run: pip3 install -r requirements.txt
-
-      - name: Install AWS Psycopg2
-        run: pip3 install aws-psycopg2
 
       # Build the app
       - name: Build
