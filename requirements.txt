@@ -9,9 +9,9 @@
 alembic==1.7.7
 alog==0.9.13
 anyio==3.5.0; python_full_version >= '3.6.2'
-app==0.0.1
 asgiref==3.5.1; python_version >= '3.7'
 aws-psycopg2==1.2.1
+backports.zoneinfo==0.2.1; python_version < '3.9'
 bcolors==1.0.4
 bcrypt==3.2.2
 cachecontrol==0.12.11; python_version >= '3.6'
@@ -21,16 +21,11 @@ cffi==1.15.0
 chardet==3.0.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 charset-normalizer==2.0.12; python_version >= '3'
 click==8.1.3; python_version >= '3.7'
-data==0.4
-decorator==5.1.1; python_version >= '3.5'
 ecdsa==0.17.0; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 fastapi-jwt-auth==0.5.0
 fastapi==0.75.2
 firebase-admin==5.2.0
 firebase==3.0.1
-flask==2.1.2
-funcsigs==1.0.2
-furl==2.1.3
 google-api-core[grpc]==2.7.3; platform_python_implementation != 'PyPy'
 google-api-python-client==2.46.0; python_version >= '3.6'
 google-auth-httplib2==0.1.0
@@ -56,28 +51,19 @@ httptools==0.4.0
 httpx==0.13.3
 hyperframe==5.2.0
 idna==2.10; python_version >= '3'
-importlib-metadata==4.11.3; python_version < '3.10'
-itsdangerous==2.1.2; python_version >= '3.7'
+importlib-metadata==4.11.3; python_version < '3.9'
+importlib-resources==5.7.1; python_version < '3.9'
 jinja2==3.1.2
-length==1.0.1
-logging-tree==1.9
-logx==0.1.1579232358
 mako==1.2.0; python_version >= '3.7'
 mangum==0.15.0
-markdown==3.3.6; python_version >= '3.6'
 markupsafe==2.1.1; python_version >= '3.7'
-migra==3.0.1647431138; python_version >= '3.7' and python_version < '4'
 msgpack==1.0.3
 oauth==1.0.1
 oauthlib==3.2.0; python_version >= '3.6'
-orderedmultidict==1.0.1
-packaging==21.3; python_version >= '3.6'
 passlib==1.7.4
-pendulum==2.1.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 proto-plus==1.20.3; python_version >= '3.6'
 protobuf==3.20.1; python_version >= '3.7'
 psutil==5.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
-psycopg2-binary==2.9.3; python_version >= '3.6'
 psycopg2==2.9.3
 psycopg==3.0.12
 pyasn1-modules==0.2.8
@@ -87,29 +73,23 @@ pycrypto==2.6.1
 pydantic==1.9.0; python_version >= '3'
 pyjwt==1.7.1; python_full_version >= '3.6.0'
 pyparsing==3.0.8; python_version >= '3.1'
-python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 python-decouple==3.6
 python-dotenv==0.20.0
 python-jose==3.3.0
 python-multipart==0.0.5
 pytz==2022.1
-pytzdata==2020.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pyxtension==1.13.16
 pyyaml==6.0; python_full_version >= '3.6.0'
 requests-oauthlib==1.3.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 requests==2.27.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
-results==0.1.1588569394
 reverse==0.1.0
 rfc3986==1.5.0
 rsa==4.8; python_version >= '3.6'
-schemainspect==3.1.1648463413; python_version >= '3.7' and python_version < '4'
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 sniffio==1.2.0; python_version >= '3.5'
 sqlalchemy==1.4.36
-sqlbag==0.1.1617247075
 starlette==0.17.1; python_version >= '3.6'
 stress==1.0.0
-tabulate==0.8.9
 tblib==1.7.0; python_version >= '3'
 thumbnail==1.5
 timestamp==0.0.1
@@ -118,11 +98,10 @@ tqdm==4.64.0; python_version >= '3'
 tweepy==4.8.0
 typing-extensions==4.2.0; python_version >= '3.7'
 uritemplate==4.1.1; python_version >= '3.6'
-urllib3==1.26.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
+urllib3==1.26.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4.0'
 uvicorn[standard]==0.17.6
 uvloop==0.16.0
 watchgod==0.8.2
 websockets==10.3
-werkzeug==2.1.2; python_version >= '3.7'
 white==0.1.2
-zipp==3.8.0; python_version >= '3.7'
+zipp==3.8.0; python_version < '3.10'

@@ -4,7 +4,6 @@ import uvicorn
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from flask import Flask, escape, request
 from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.responses import RedirectResponse
 # from fastapi_jwt_auth.exceptions import AuthJWTException
@@ -12,7 +11,6 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 from sqlalchemy.orm import Session
 
-from src.apps.v1.flask_app import app as flask_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.buff_app import app as buff_app
@@ -61,7 +59,6 @@ def configure_static(app):
 
 
 def configure_sub_application(app):
-    # app.mount("/api/v1", WSGIMiddleware(flask_app))
     app.mount("/api/v2/twitter", twitter_app)
     app.mount("/api/v3/twitter", meloncloud_twitter_app)
     app.mount("/api/v2/security/pwg_v2", pwg_app_v2)
