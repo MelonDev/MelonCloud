@@ -11,6 +11,7 @@ alog==0.9.13
 anyio==3.5.0; python_full_version >= '3.6.2'
 app==0.0.1
 asgiref==3.5.1; python_version >= '3.7'
+aws-psycopg2==1.2.1
 bcolors==1.0.4
 bcrypt==3.2.2
 cachecontrol==0.12.11; python_version >= '3.6'

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "df09d83bbc0c7f593eeb25636aecdf79c9f2a5b9d08da3933202ebd345564376"
+            "sha256": "a675b92453822412aeff751108722a0466bf281b109ee3ac83ba620b1ae131f9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -54,6 +54,14 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==3.5.1"
+        },
+        "aws-psycopg2": {
+            "hashes": [
+                "sha256:0f8511e8ea52d009fd77a413cb6856cf1d902ef253d8676a999d1ec5bad7bfb1",
+                "sha256:f5eb05b280b2aa374080bf650972b8a9383d08e96a2e48b5a1ac3f55d6e5fdc6"
+            ],
+            "index": "pypi",
+            "version": "==1.2.1"
         },
         "bcolors": {
             "hashes": [
