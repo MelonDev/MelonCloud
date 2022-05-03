@@ -2,13 +2,14 @@ import math
 from datetime import timedelta
 
 import fastapi_jwt_auth.exceptions
+from sqlalchemy import func, asc, desc, or_
+
 
 from fastapi import APIRouter, Depends, status as code, HTTPException
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query as DBQuery
-from sqlalchemy.sql.expression import func
 
 from src.environment import MELONCLOUD_BOOK_VERIFY_KEY, SECRET_KEY, MELONCLOUD_BOOK_API_KEY
 from src.database.meloncloud.meloncloud_book_database import MelonCloudBookDatabase
@@ -181,6 +182,9 @@ def apply_database_for_book_filters(params: RequestBookQueryModel, db):
     if params.random is not None and params.infinite is not None:
         if params.random and params.infinite:
             database = database.order_by(func.random())
+    else:
+        database = database.order_by(asc(MelonCloudBookDatabase.created_at))
+
 
     return database
 
