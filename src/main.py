@@ -4,16 +4,13 @@ import uvicorn
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from flask import Flask, escape, request
-from fastapi.middleware.wsgi import WSGIMiddleware
+
 from fastapi.responses import RedirectResponse
 # from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
 from mangum import Mangum
 from sqlalchemy.orm import Session
 
-from src.apps.v1.flask_app import app as flask_app
-from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.buff_app import app as buff_app
 from src.apps.v2.pwg_app import app as pwg_app_v2
@@ -39,7 +36,6 @@ from src.routers import user, page, playground
 from src.routers.meloncloud.meloncloud_twitter_api import check_tweet_has_deleted
 from src.routers.poc.jwt import jwt_poc
 from src.routers.poc.oauth import oauth_poc
-from src.routers.security import password_generator_api as pwg_api
 from src.tools.configure_app import configure_timing, configure_cors
 
 
