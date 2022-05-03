@@ -3,7 +3,7 @@ name: AWS PIPENV CI/CD Pipeline
 on:
   push:
     branches:
-      - master
+      - stopped
 
 
 jobs:
