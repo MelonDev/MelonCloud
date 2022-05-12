@@ -24,12 +24,12 @@ class BuffDatabase(BuffManagementDatabase):
     birth_date = Column(DateTime(timezone=True), nullable=False)
     father_id = Column(UUID(as_uuid=True), nullable=True)
     mother_id = Column(UUID(as_uuid=True), nullable=True)
-    farm_id = Column(UUID(as_uuid=True), ForeignKey("Farm_Database.id"), nullable=False)
+    farm_id = Column(UUID(as_uuid=True), ForeignKey("Buff_Farm_Database.id"), nullable=False)
     gender = Column(Text, nullable=False)
     source = Column(Text, nullable=True)
     image_url = Column(Text, nullable=True)
 
-    farm = relationship("FarmDatabase", back_populates="buffs")
+    farm = relationship("BuffFarmDatabase", back_populates="buffs")
     activity = relationship("BuffActivityLogDatabase", back_populates="buff")
 
     def __init__(self, name, tag, gender, birth_date, farm_id):

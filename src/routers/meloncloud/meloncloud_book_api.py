@@ -73,6 +73,7 @@ async def query_books(db, params, Authorize=None):
         if book is not None:
             result = book.serialize
             page = [i.serialize for i in book.pages]
+            page = sorted(page, key=lambda d: int(d['number']))
             result['pages'] = page
             return response(data=result)
         else:

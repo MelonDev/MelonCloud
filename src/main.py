@@ -18,6 +18,8 @@ from src.apps.v2.meloncloud_book_app import app as meloncloud_book_app
 from src.apps.v2.database_backup_hub_app import app as database_backup_hub_app
 from src.apps.v3.meloncloud_twitter_app import app as meloncloud_twitter_app
 from src.apps.v2.crypto_portfolios_app import app as crypto_portfolios_app
+from src.apps.v2.azure_poc_app import app as azure_poc_app
+
 
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
@@ -64,6 +66,8 @@ def configure_sub_application(app):
     app.mount("/api/v2/meloncloud-book", meloncloud_book_app)
     app.mount("/api/v2/database-backup", database_backup_hub_app)
     app.mount("/api/v2/crypto", crypto_portfolios_app)
+    app.mount("/api/v2/azure", azure_poc_app)
+
 
 
 def init_app():

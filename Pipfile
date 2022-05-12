@@ -36,6 +36,7 @@ firebase-admin = "*"
 pyxtension = "*"
 googletrans = "==4.0.0rc1"
 mangum = "*"
+fastapi-microsoft-identity = "*"
 
 [dev-packages]
 

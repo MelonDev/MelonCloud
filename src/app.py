@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 from sqlalchemy.orm import Session
 
+from src.apps.v2.azure_poc_app import app as azure_poc_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.twitter_app import app as twitter_app
 from src.apps.v2.buff_app import app as buff_app
@@ -54,6 +55,7 @@ def include_router(app):
     app.include_router(user.router, prefix="/user", tags=["users"])
 
 
+
 def configure_static(app):
     app.mount("/static", StaticFiles(directory=str(Path(SRC_DIR, 'static'))), name="static")
 
@@ -66,6 +68,8 @@ def configure_sub_application(app):
     app.mount("/api/v2/meloncloud-book", meloncloud_book_app)
     app.mount("/api/v2/database-backup", database_backup_hub_app)
     app.mount("/api/v2/crypto", crypto_portfolios_app)
+    app.mount("/api/v2/azure", azure_poc_app)
+
 
 
 def init_app():
