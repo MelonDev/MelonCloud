@@ -103,7 +103,7 @@ async def query_books(db, params, Authorize=None):
         return response(data=result, fabric=fabric)
 
 
-@router.get("/upload", include_in_schema=False)
+@router.get("/upload", include_in_schema=True)
 async def upload(db: Session = Depends(get_db)):
     data = mock_data
     for _, value in data.items():
@@ -184,7 +184,7 @@ def apply_database_for_book_filters(params: RequestBookQueryModel, db):
         if params.random and params.infinite:
             database = database.order_by(func.random())
     else:
-        database = database.order_by(asc(MelonCloudBookDatabase.created_at))
+        database = database.order_by(desc(MelonCloudBookDatabase.created_at))
 
 
     return database
