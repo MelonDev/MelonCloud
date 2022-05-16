@@ -61,6 +61,6 @@ class MelonCloudBookDatabase(MelonCloudDatabase):
             "language": self.language,
             "artist": self.artist,
             "group": self.group,
-            "cover": self.cover_url,
+            "cover_url": self.cover_url,
             "tags": list_to_set(self.tags)
         }
