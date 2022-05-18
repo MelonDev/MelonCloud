@@ -20,7 +20,6 @@ from src.apps.v3.meloncloud_twitter_app import app as meloncloud_twitter_app
 from src.apps.v2.crypto_portfolios_app import app as crypto_portfolios_app
 from src.apps.v2.azure_poc_app import app as azure_poc_app
 
-
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
@@ -35,7 +34,7 @@ from src.environments.database_config import get_db, meloncloud_engine, buff_man
 
 from src.environments.share_environment import SRC_DIR
 from src.routers import user, page, playground
-from src.routers.meloncloud.meloncloud_twitter_api import check_tweet_has_deleted
+from src.routers.meloncloud.meloncloud_twitter_api import check_tweet_has_deleted, tweet_database_fullfilled
 from src.routers.poc.jwt import jwt_poc
 from src.routers.poc.oauth import oauth_poc
 from src.tools.configure_app import configure_timing, configure_cors
@@ -67,7 +66,6 @@ def configure_sub_application(app):
     app.mount("/api/v2/database-backup", database_backup_hub_app)
     app.mount("/api/v2/crypto", crypto_portfolios_app)
     app.mount("/api/v2/azure", azure_poc_app)
-
 
 
 def init_app():
@@ -120,18 +118,24 @@ async def wakeup(db: Session = Depends(get_db)):
     return "I'm Waked!"
 
 
+@app.get("/clearing-error-of-tringers", include_in_schema=False)
+async def check_error_of_tringers(db: Session = Depends(get_db)):
+    result = await tweet_database_fullfilled(db)
+    return f"Checked! I found {result} tweets not exist on the database"
+
+
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    #MelonCloudTwitterDatabase.__table__.create(meloncloud_engine)
-    #MelonCloudPeopleDatabase.__table__.create(meloncloud_engine)
-    #MelonCloudBeastCharacterDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudTwitterDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudPeopleDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudBeastCharacterDatabase.__table__.create(meloncloud_engine)
     # BuffFarmDatabase.__table__.create(buff_management_engine)
     # BuffDatabase.__table__.create(buff_management_engine)
     # BuffActivityLogDatabase.__table__.create(buff_management_engine)
     # BuffNotifyDatabase.__table__.create(buff_management_engine)
-    #MelonCloudBookDatabase.__table__.create(meloncloud_engine)
-    #MelonCloudBookPageDatabase.__table__.create(meloncloud_engine)
-    #MelonCloudCryptoPortfoliosDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudBookDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudBookPageDatabase.__table__.create(meloncloud_engine)
+    # MelonCloudCryptoPortfoliosDatabase.__table__.create(meloncloud_engine)
 
     return "Database Created!"
 

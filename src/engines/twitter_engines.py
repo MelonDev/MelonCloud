@@ -6,7 +6,7 @@ import tweepy
 from fastapi import HTTPException, status as code
 
 from src.environment import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY_V2, \
-    CONSUMER_SECRET_V2, ACCESS_TOKEN_V2, ACCESS_TOKEN_SECRET_V2, BEARER_TOKEN_V2
+    CONSUMER_SECRET_V2, ACCESS_TOKEN_V2, ACCESS_TOKEN_SECRET_V2, BEARER_TOKEN_V2, TWITTER_USER_ID
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.database.melondev_twitter_database import MelonDevTwitterDatabase
 from src.enums.profile_enum import ProfileTypeEnum
@@ -95,7 +95,6 @@ def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.USER_ID):
 
 
 
-
 def get_lookup_user(ids: list):
     try:
         data = access().lookup_users(user_id=ids)
@@ -173,6 +172,14 @@ def search_tweets(keyword: str, since_id: str = None):
     except tweepy.errors.TweepyException:
         return None
 
+
+def get_my_favorites():
+    try:
+        data = access().get_favorites(count=200,user_id=TWITTER_USER_ID)
+
+        return data
+    except tweepy.errors.TweepyException:
+        return None
 
 def get_favorites(since_id: str = None):
     try:

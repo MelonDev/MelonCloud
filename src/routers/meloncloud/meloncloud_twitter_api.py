@@ -11,7 +11,7 @@ from operator import is_not
 from functools import partial
 from src.database.meloncloud.meloncloud_twitter_database import MelonCloudTwitterDatabase
 from src.engines.twitter_engines import get_tweet_id_from_link, get_meloncloud_tweet_model, get_status, \
-    get_dict_lookup_user, get_user_profile, hasFavorited, like_tweet, get_dict_lookup_statuses
+    get_dict_lookup_user, get_user_profile, hasFavorited, like_tweet, get_dict_lookup_statuses, get_my_favorites
 from src.enums.profile_enum import ProfileQueryEnum
 from src.enums.sorting_enum import SortingTweet
 from src.enums.type_enum import MelonCloudFileTypeEnum
@@ -284,11 +284,12 @@ async def get_tweet(req: RequestTweetModel = Depends(), db: Session = Depends(ge
 
         message = tweet.message
         message = message.replace("　", " ")
-        message = re.sub(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-]) ?", '', message, flags=re.MULTILINE)
+        message = re.sub(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-]) ?", '',
+                         message, flags=re.MULTILINE)
         message = re.sub(r"(#(?:[^\x00-\x7F]|\w)+)", '', message, flags=re.MULTILINE)
         message = message.strip()
 
-        #message = tweet.message if tweet.message.rfind("https://") == -1 else tweet.message.rsplit("https://", 1)[0]
+        # message = tweet.message if tweet.message.rfind("https://") == -1 else tweet.message.rsplit("https://", 1)[0]
         language = tweet.language if tweet.language != "zh" else "zh-cn"
 
         result = tweet.serialize
@@ -694,8 +695,44 @@ async def export_twitter_data(params: MelonCloudBackupModel = Depends(), db: Ses
 
     return packing_backup(data=data, filename=filename)
 
+
+async def tweet_database_fullfilled(db):
+    filtered_list = get_not_exists_tweets(db)
+    enable_commit = len(filtered_list) > 0
+
+    for data in filtered_list:
+        package = await get_meloncloud_tweet_model(id=None, data=data)
+
+        package.tweet.event = "ME LIKE"
+        package.tweet.memories = True
+        await send_url_to_meloncloud_onedrive(package.media_urls)
+        db.add(package.tweet)
+
+    if enable_commit:
+        db.commit()
+    return len(filtered_list)
+
+
+def get_not_exists_tweets(db):
+    data = get_my_favorites()
+    value = list(map(lambda x: x._json, data))
+
+    favorited_list = [x['id_str'] for x in value]
+
+    database = db.query(MelonCloudTwitterDatabase.id)
+    database = database.filter(MelonCloudTwitterDatabase.id.in_(favorited_list))
+
+    database_list = [str(i[0]) for i in database.all()]
+
+    filtered_list = list(set(favorited_list) - set(database_list))
+
+    results = [x for x in value if x['id_str'] in filtered_list]
+    return results
+
+
 def check_tweet_has_deleted(db):
-    tweets = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.deleted.is_(False)).order_by(func.random()).limit(100).all()
+    tweets = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.deleted.is_(False)).order_by(
+        func.random()).limit(100).all()
     data = get_dict_lookup_statuses([i.id for i in tweets])
 
     isChanged = False
