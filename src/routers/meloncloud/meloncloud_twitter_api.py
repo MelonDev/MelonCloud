@@ -701,7 +701,6 @@ async def tweet_database_fullfilled(db):
     enable_commit = len(filtered_list) > 0
 
     for data in filtered_list:
-        print(data)
 
         tweet = db.query(MelonCloudTwitterDatabase).get(data['id_str'])
 
