@@ -20,7 +20,7 @@ from src.models.meloncloud_twitter_model import RequestAnalyzeModel, RequestTwee
     RequestTweetModel, RequestPeopleQueryModel, RequestProfileModel, RequestMediaQueryModel, \
     RequestHashtagQueryModel, HashtagQueryDate, get_hashtag_dict, MediaExtraOptional, ValidatorModel, \
     MelonCloudBackupModel, BackupQueryDate, DatabaseQueryName, RequestMediaQueryFromAccountModel, \
-    RequestTweetAppActionModel, TweetAction
+    RequestTweetAppActionModel, TweetAction, TweetMediaType
 from src.routers.meloncloud.meloncloud_error_response import bad_request_exception, not_found_exception
 from src.routers.meloncloud.meloncloud_twitter_extension_function import packing_backup, get_profile, \
     is_overflow, media_query_to_people_query, media_result_packing, get_day, get_database_name, processing_tweet, \
@@ -701,12 +701,36 @@ async def tweet_database_fullfilled(db):
     enable_commit = len(filtered_list) > 0
 
     for data in filtered_list:
-        package = await get_meloncloud_tweet_model(id=None, data=data)
+        print(data)
 
-        package.tweet.event = "ME LIKE"
-        package.tweet.memories = True
-        await send_url_to_meloncloud_onedrive(package.media_urls)
-        db.add(package.tweet)
+        tweet = db.query(MelonCloudTwitterDatabase).get(data['id_str'])
+
+        if tweet is not None:
+            tweet.event = "ME LIKE"
+            tweet.memories = True
+
+            medias = []
+            for i in tweet.photos:
+                medias.append({
+                    "name": "",
+                    "url": i,
+                    "type": TweetMediaType.PHOTO
+                })
+            for i in tweet.videos:
+                medias.append({
+                    "name": "",
+                    "url": i,
+                    "type": TweetMediaType.VIDEO
+                })
+            await send_url_to_meloncloud_onedrive(medias)
+            db.add(tweet)
+        else:
+            package = await get_meloncloud_tweet_model(id=None, data=data)
+
+            package.tweet.event = "ME LIKE"
+            package.tweet.memories = True
+            await send_url_to_meloncloud_onedrive(package.media_urls)
+            db.add(package.tweet)
 
     if enable_commit:
         db.commit()
