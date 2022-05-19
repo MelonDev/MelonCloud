@@ -709,18 +709,20 @@ async def tweet_database_fullfilled(db):
             tweet.memories = True
 
             medias = []
-            for i in tweet.photos:
-                medias.append({
-                    "name": "",
-                    "url": i,
-                    "type": TweetMediaType.PHOTO
-                })
-            for i in tweet.videos:
-                medias.append({
-                    "name": "",
-                    "url": i,
-                    "type": TweetMediaType.VIDEO
-                })
+            if tweet.photos is not None:
+                for i in tweet.photos:
+                    medias.append({
+                        "name": "",
+                        "url": i,
+                        "type": TweetMediaType.PHOTO
+                    })
+            if tweet.videos is not None
+                for i in tweet.videos:
+                    medias.append({
+                        "name": "",
+                        "url": i,
+                        "type": TweetMediaType.VIDEO
+                    })
             await send_url_to_meloncloud_onedrive(medias)
             db.add(tweet)
         else:
