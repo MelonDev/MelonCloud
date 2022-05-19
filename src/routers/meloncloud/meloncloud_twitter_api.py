@@ -716,7 +716,7 @@ async def tweet_database_fullfilled(db):
                         "url": i,
                         "type": TweetMediaType.PHOTO
                     })
-            if tweet.videos is not None
+            if tweet.videos is not None:
                 for i in tweet.videos:
                     medias.append({
                         "name": "",
@@ -746,6 +746,7 @@ def get_not_exists_tweets(db):
 
     database = db.query(MelonCloudTwitterDatabase.id)
     database = database.filter(MelonCloudTwitterDatabase.memories.is_(True))
+    print(database.count())
     database = database.filter(MelonCloudTwitterDatabase.id.in_(favorited_list))
 
     database_list = [str(i[0]) for i in database.all()]
