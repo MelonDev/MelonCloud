@@ -743,10 +743,10 @@ def get_not_exists_tweets(db):
     value = list(map(lambda x: x._json, data))
 
     favorited_list = [x['id_str'] for x in value]
+    print(favorited_list)
 
     database = db.query(MelonCloudTwitterDatabase.id)
     database = database.filter(MelonCloudTwitterDatabase.memories.is_(True))
-    print(database.count())
     database = database.filter(MelonCloudTwitterDatabase.id.in_(favorited_list))
 
     database_list = [str(i[0]) for i in database.all()]

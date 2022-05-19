@@ -31,7 +31,6 @@ async def send_url_to_onedrive(medias):
 
 
 async def send_url_to_meloncloud_onedrive(medias):
-    print(medias)
     onedrive_url = f'https://maker.ifttt.com/trigger/save_file_to_onedrive/with/key/{IFTTT_SECRET_KEY}'
 
     now = dt.datetime.now()
@@ -47,4 +46,5 @@ async def send_url_to_meloncloud_onedrive(medias):
         type_media_with_year = f"{type_media}/{year}"
 
         onedrive_data = {'value1': name_media, 'value2': type_media_with_year, 'value3': url_media}
+        print(onedrive_data)
         await client.post(onedrive_url, json=onedrive_data)
