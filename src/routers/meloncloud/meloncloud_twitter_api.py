@@ -711,15 +711,20 @@ async def tweet_database_fullfilled(db):
             medias = []
             if tweet.photos is not None:
                 for i in tweet.photos:
+                    name = str(i[len("https://pbs.twimg.com/media/"):len(i)-len(".jpg")])
+
                     medias.append({
-                        "name": "",
+                        "name": name,
                         "url": i,
                         "type": TweetMediaType.PHOTO
                     })
             if tweet.videos is not None:
+
                 for i in tweet.videos:
+                    name = i[i.rfind("/")+1:i.rfind(".mp4")]
+
                     medias.append({
-                        "name": "",
+                        "name": name,
                         "url": i,
                         "type": TweetMediaType.VIDEO
                     })
