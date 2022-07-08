@@ -126,7 +126,7 @@ async def check_error_of_tringers(db: Session = Depends(get_db)):
 
 @app.get("/create_database", include_in_schema=False)
 async def create_database():
-    # MelonCloudTwitterDatabase.__table__.create(meloncloud_engine)
+    MelonCloudTwitterDatabase.__table__.create(meloncloud_engine)
     # MelonCloudPeopleDatabase.__table__.create(meloncloud_engine)
     # MelonCloudBeastCharacterDatabase.__table__.create(meloncloud_engine)
     # BuffFarmDatabase.__table__.create(buff_management_engine)
