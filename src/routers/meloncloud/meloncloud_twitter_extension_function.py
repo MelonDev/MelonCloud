@@ -179,6 +179,7 @@ async def processing_tweet(request: RequestAnalyzeModel, package, tweet_id: str,
             await like_tweet(tweet_id)
         if item is not None:
             if request.tag == 'ME LIKE':
+
                 await send_url_to_meloncloud_onedrive(package.media_urls)
                 item.memories = True
                 if is_action(request.action, TweetAction.LIKE) or is_action(request.action, TweetAction.SECRET_LIKE):

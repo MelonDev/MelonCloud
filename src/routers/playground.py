@@ -3,11 +3,13 @@ import random
 from enum import Enum
 from string import digits
 from random import choice
+from typing import List
 
 import firebase_admin
 from firebase_admin import credentials, storage
 
 from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, Request
+from pydantic import BaseModel
 from pyxtension.Json import Json
 from sqlalchemy import func
 
@@ -170,6 +172,25 @@ async def poc_twitter(request: Request, db: Session = Depends(get_db)):
     # print(pretty_json(tweet))
 
     return response("HELLO")
+
+
+class TweetBase(BaseModel):
+    id: str
+    url: str
+
+
+class TweetList(BaseModel):
+    data: List[TweetBase]
+
+
+@router.post("/recover_passed_tweet", include_in_schema=True)
+async def poc_recover_passed_tweet(request: Request, data: TweetList, db: Session = Depends(get_db)):
+
+    for i in data.data:
+        exists = db.query(MelonCloudTwitterDatabase).filter(MelonCloudTwitterDatabase.id.contains(i.id)).first() is not None
+        print(exists)
+
+    return "PASSED"
 
 
 @router.get("/automatic-check-tweet-has-deleted", include_in_schema=True)
