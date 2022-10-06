@@ -94,8 +94,6 @@ def get_user_profile(account, type: ProfileTypeEnum = ProfileTypeEnum.USER_ID):
         return None
 
 
-
-
 def get_lookup_user(ids: list):
     try:
         data = access().lookup_users(user_id=ids)
@@ -181,6 +179,7 @@ def get_my_favorites():
         return data
     except tweepy.errors.TweepyException:
         return None
+
 
 def get_favorites(since_id: str = None):
     try:
@@ -268,6 +267,9 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
     tweet.videos = videos if len(videos) > 0 else None
     tweet.photos = photos if len(photos) > 0 else None
 
+    print(f"len(videos): {len(videos)}")
+    print(f"len(photos): {len(photos)}")
+
     if len(videos) > 0 and len(photos) > 0:
         tweet.type = TweetMediaType.MIX
     elif len(videos) > 0:
@@ -276,6 +278,7 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
         tweet.type = TweetMediaType.PHOTO
     else:
         tweet.type = TweetMediaType.TEXT
+    print(f"tweet.type: {tweet.type}")
 
     entities = data['entities']
 
