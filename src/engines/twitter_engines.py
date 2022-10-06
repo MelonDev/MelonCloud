@@ -256,12 +256,7 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
                     "url": url,
                     "type": TweetMediaType.VIDEO
                 })
-
-    if 'entities' in data:
-        media = data['entities']['media']
-        for value in media:
-            type = value['type']
-            if type == 'photo':
+            elif type == 'photo':
                 url = value['media_url_https']
                 photos.append(url)
                 name = (url.split('/')[-1]).replace(".jpg", "")
@@ -270,6 +265,20 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
                     "url": url,
                     "type": TweetMediaType.PHOTO
                 })
+
+    # if 'entities' in data:
+    #     media = data['entities']['media']
+    #     for value in media:
+    #         type = value['type']
+    #         if type == 'photo':
+    #             url = value['media_url_https']
+    #             photos.append(url)
+    #             name = (url.split('/')[-1]).replace(".jpg", "")
+    #             medias.append({
+    #                 "name": name,
+    #                 "url": url,
+    #                 "type": TweetMediaType.PHOTO
+    #             })
 
     tweet.videos = videos if len(videos) > 0 else None
     tweet.photos = photos if len(photos) > 0 else None
