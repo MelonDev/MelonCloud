@@ -28,6 +28,7 @@ def access():
 class TweetMediaType(str, Enum):
     PHOTO = "PHOTO"
     VIDEO = "VIDEO"
+    MIX = "MIX"
     TEXT = "TEXT"
 
 
@@ -254,7 +255,6 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
                     "url": url,
                     "type": TweetMediaType.VIDEO
                 })
-                tweet.type = TweetMediaType.VIDEO
             elif type == 'photo':
                 url = value['media_url_https']
                 photos.append(url)
@@ -264,12 +264,18 @@ async def get_meloncloud_tweet_model(id, data: dict = None) -> MelonCloudTweetRe
                     "url": url,
                     "type": TweetMediaType.PHOTO
                 })
-                tweet.type = TweetMediaType.PHOTO
-            else:
-                tweet.type = TweetMediaType.TEXT
 
     tweet.videos = videos if len(videos) > 0 else None
     tweet.photos = photos if len(photos) > 0 else None
+
+    if len(videos) > 0 and len(photos) > 0:
+        tweet.type = TweetMediaType.MIX
+    elif len(videos) > 0:
+        tweet.type = TweetMediaType.VIDEO
+    elif len(photos) > 0:
+        tweet.type = TweetMediaType.PHOTO
+    else:
+        tweet.type = TweetMediaType.TEXT
 
     entities = data['entities']
 
