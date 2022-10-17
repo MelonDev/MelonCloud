@@ -1,16 +1,13 @@
 import json
 import uuid
-from typing import Optional
 
 import fastapi_jwt_auth.exceptions
 from fastapi import APIRouter, Depends, HTTPException, status as code
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
-from pyparsing import Opt
 from sqlalchemy.orm import Session
 
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
-# from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
 from src.database.buff_management.buff_farm_database import BuffFarmDatabase
@@ -1060,9 +1057,9 @@ async def get_buff(db, id, farm_id):
     return buff
 
 
-async def check_authorize(Authorize: AuthJWT):
+async def check_authorize(authorize: AuthJWT):
     try:
-        Authorize.jwt_required()
+        authorize.jwt_required()
     except fastapi_jwt_auth.exceptions.MissingTokenError:
         unauthorized_exception(message="UNAUTHORIZED")
         return await verify_return(data=None)
