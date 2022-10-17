@@ -21,7 +21,7 @@ class BuffFarmDatabase(BuffManagementDatabase):
 
     password = Column(Text, nullable=True)
     address = Column(Text, nullable=True)
-    auth_token = Column(Text, nullable=True)
+    token = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False)
@@ -29,14 +29,15 @@ class BuffFarmDatabase(BuffManagementDatabase):
 
     buffs = relationship("BuffDatabase", back_populates="farm")
 
-    def __init__(self, name, email, first_name, last_name, password, address=None):
+    def __init__(self, name,  first_name, last_name, password=None, address=None,email=None,token=None):
+        self.id = uuid.uuid4()
         self.name = name
         self.address = address
         self.email = email
+        self.token = token
         self.first_name = first_name
         self.last_name = last_name
         self.password = password
-        self.id = uuid.uuid4()
         dt = current_datetime_with_timezone()
         self.created_at = dt
         self.updated_at = dt
@@ -72,6 +73,7 @@ class BuffFarmDatabase(BuffManagementDatabase):
             "farm_name": self.name,
             "address": self.address,
             "email": self.email,
+            "auth_token": self.auth_token,
             #"buffs": [buff.sub_serialize for buff in self.buffs]]
             "buffs" : self.buffs
         }

@@ -10,6 +10,7 @@ from pyparsing import Opt
 from sqlalchemy.orm import Session
 
 from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
+# from src.database.buff_management.buff_activity_log_database import BuffActivityLogDatabase
 from src.database.buff_management.buff_database import BuffDatabase
 from src.database.buff_management.buff_notify_database import BuffNotifyDatabase
 from src.database.buff_management.buff_farm_database import BuffFarmDatabase
@@ -47,16 +48,15 @@ def get_password_hash(password):
 router = APIRouter()
 
 
-
 @router.get("/", include_in_schema=False)
 async def main():
     return "Buff management is connected"
 
 
 @router.get('/info', include_in_schema=True, tags=['Farm'])
-async def info(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    id = Authorize.get_jwt_subject()
+async def info(authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
+    await check_authorize(authorize)
+    id = authorize.get_jwt_subject()
     farm = get_farm_from_id(db, id)
     result = farm.serialize
     result['buffs'] = [i.sub_serialize for i in farm.buffs]
@@ -64,22 +64,28 @@ async def info(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
 
 
 @router.post("/register", include_in_schema=True, tags=['Authentication'])
-async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), Authorize: AuthJWT = Depends(),
+async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), authorize: AuthJWT = Depends(),
                    db: Session = Depends(get_db)):
     if isDuplicate(db, form.email):
         duplicate_on_database_exception()
 
-    farm = BuffFarmDatabase(name=form.farm_name, email=form.email, first_name=form.first_name, last_name=form.last_name,
-                            address=form.address, password=get_password_hash(form.password))
+    if form.auth_token is not None:
+        farm = BuffFarmDatabase(name=form.farm_name, token=form.token, first_name=form.first_name,
+                                last_name=form.last_name,
+                                address=form.address)
+    else:
+        farm = BuffFarmDatabase(name=form.farm_name, email=form.email, first_name=form.first_name,
+                                last_name=form.last_name,
+                                address=form.address, password=get_password_hash(form.password))
 
-    access_token = Authorize.create_access_token(subject=str(farm.id))
-    refresh_token = Authorize.create_refresh_token(subject=str(farm.id))
+    access_token = authorize.create_access_token(subject=str(farm.id))
+    refresh_token = authorize.create_refresh_token(subject=str(farm.id))
 
     db.add(farm)
     db.commit()
 
-    Authorize.set_access_cookies(access_token)
-    Authorize.set_refresh_cookies(refresh_token)
+    authorize.set_access_cookies(access_token)
+    authorize.set_refresh_cookies(refresh_token)
 
     return await verify_return(data=ResponseModel(
         BuffAuthenticatedResponseModel(access_token=access_token, refresh_token=refresh_token,
@@ -87,20 +93,24 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), A
 
 
 @router.post("/login", include_in_schema=True, tags=['Authentication'])
-async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), Authorize: AuthJWT = Depends(),
+async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), authorize: AuthJWT = Depends(),
                 db: Session = Depends(get_db)):
-    farm = get_farm_from_email(db, email=form.email)
+    if form.token is not None:
+        farm = get_farm_from_token(db, token=form.token)
+    else:
+        farm = get_farm_from_email(db, email=form.email)
+
     if farm is None:
         not_found_exception()
 
     if not verify_password(plain_password=form.password, hashed_password=farm.password):
         unauthorized_exception()
 
-    access_token = Authorize.create_access_token(subject=str(farm.id))
-    refresh_token = Authorize.create_refresh_token(subject=str(farm.id))
+    access_token = authorize.create_access_token(subject=str(farm.id))
+    refresh_token = authorize.create_refresh_token(subject=str(farm.id))
 
-    Authorize.set_access_cookies(access_token)
-    Authorize.set_refresh_cookies(refresh_token)
+    authorize.set_access_cookies(access_token)
+    authorize.set_refresh_cookies(refresh_token)
 
     return await verify_return(data=ResponseModel(
         BuffAuthenticatedResponseModel(access_token=access_token, refresh_token=refresh_token,
@@ -109,10 +119,10 @@ async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), Authorize:
 
 @router.patch('/change-info', include_in_schema=True, tags=['Farm'])
 async def change_info(form: BuffChangeFarmInfoForm = Depends(BuffChangeFarmInfoForm.as_form),
-                      Authorize: AuthJWT = Depends(),
+                      authorize: AuthJWT = Depends(),
                       db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    id = authorize.get_jwt_subject()
 
     farm = get_farm_from_id(db, id)
     if farm is None:
@@ -129,10 +139,10 @@ async def change_info(form: BuffChangeFarmInfoForm = Depends(BuffChangeFarmInfoF
 
 @router.patch('/change-password', include_in_schema=True, tags=['Farm'])
 async def change_password(form: BuffChangePasswordForm = Depends(BuffChangePasswordForm.as_form),
-                          Authorize: AuthJWT = Depends(),
+                          authorize: AuthJWT = Depends(),
                           db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    id = authorize.get_jwt_subject()
 
     farm = get_farm_from_id(db, id)
     if farm is None:
@@ -150,14 +160,14 @@ async def change_password(form: BuffChangePasswordForm = Depends(BuffChangePassw
 
 
 @router.post('/refresh', include_in_schema=True, tags=['Authentication'])
-async def refresh(Authorize: AuthJWT = Depends()):
+async def refresh(authorize: AuthJWT = Depends()):
     try:
-        Authorize.jwt_refresh_token_required()
+        authorize.jwt_refresh_token_required()
 
-        current_user = Authorize.get_jwt_subject()
-        new_access_token = Authorize.create_access_token(subject=current_user)
+        current_user = authorize.get_jwt_subject()
+        new_access_token = authorize.create_access_token(subject=current_user)
 
-        Authorize.set_access_cookies(new_access_token)
+        authorize.set_access_cookies(new_access_token)
         return await verify_return(data={"msg": "The token has been refresh", "access_token": str(new_access_token)})
     except fastapi_jwt_auth.exceptions.MissingTokenError:
         bad_request_exception(message="Missing Token")
@@ -169,10 +179,10 @@ async def refresh(Authorize: AuthJWT = Depends()):
 
 
 @router.delete('/logout', include_in_schema=True, tags=['Authentication'])
-async def logout(Authorize: AuthJWT = Depends()):
+async def logout(authorize: AuthJWT = Depends()):
     try:
-        Authorize.jwt_required()
-        Authorize.unset_jwt_cookies()
+        authorize.jwt_required()
+        authorize.unset_jwt_cookies()
         return await verify_return(data={"msg": "Successfully logout"})
     except fastapi_jwt_auth.exceptions.MissingTokenError:
         bad_request_exception(message="Missing Token")
@@ -184,10 +194,10 @@ async def logout(Authorize: AuthJWT = Depends()):
 
 
 @router.get('/buffs', include_in_schema=True, tags=['Buff'])
-async def get_buffs(params: GetBuffModel = Depends(), Authorize: AuthJWT = Depends(),
+async def get_buffs(params: GetBuffModel = Depends(), authorize: AuthJWT = Depends(),
                     db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    id = authorize.get_jwt_subject()
 
     if id is None:
         bad_request_exception()
@@ -220,20 +230,20 @@ async def get_buffs(params: GetBuffModel = Depends(), Authorize: AuthJWT = Depen
 
 
 @router.get('/buffs/{id}', include_in_schema=True, tags=['Buff'])
-async def detail_buff(id: str, Authorize: AuthJWT = Depends(),
+async def detail_buff(id: str, authorize: AuthJWT = Depends(),
                       db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     buff = await get_buff(db, id, farm_id)
 
     return await verify_return(data=get_buff_response(buff))
 
 
 @router.get('/buffs/{id}/{type}', include_in_schema=True, tags=['Buff'])
-async def buff_activities(id: str, type: BuffActivityType, delete: bool = None, Authorize: AuthJWT = Depends(),
+async def buff_activities(id: str, type: BuffActivityType, delete: bool = None, authorize: AuthJWT = Depends(),
                           db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     buff = await get_buff(db, id, farm_id)
 
     if type is not None:
@@ -242,10 +252,10 @@ async def buff_activities(id: str, type: BuffActivityType, delete: bool = None, 
 
 
 @router.patch('/buffs/{id}', include_in_schema=True, tags=['Buff'])
-async def edit_buff(id: str, form: EditBuffForm = Depends(EditBuffForm.as_form), Authorize: AuthJWT = Depends(),
+async def edit_buff(id: str, form: EditBuffForm = Depends(EditBuffForm.as_form), authorize: AuthJWT = Depends(),
                     db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     buff = await get_buff(db, id, farm_id)
 
@@ -286,10 +296,10 @@ async def edit_buff(id: str, form: EditBuffForm = Depends(EditBuffForm.as_form),
 
 
 @router.patch('/buffs/{id}/restore', include_in_schema=True, tags=['Buff'])
-async def restore_buff(id: str, Authorize: AuthJWT = Depends(),
+async def restore_buff(id: str, authorize: AuthJWT = Depends(),
                        db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     buff = await get_buff(db, id, farm_id)
 
@@ -305,10 +315,10 @@ async def restore_buff(id: str, Authorize: AuthJWT = Depends(),
 
 @router.post('/buffs', include_in_schema=True, tags=['Buff'])
 async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
-                   Authorize: AuthJWT = Depends(),
+                   authorize: AuthJWT = Depends(),
                    db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    id = authorize.get_jwt_subject()
 
     if id is None:
         bad_request_exception()
@@ -336,10 +346,10 @@ async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
 
 
 @router.delete('/buffs/{id}', include_in_schema=True, tags=['Buff'])
-async def remove_buff(id: str, Authorize: AuthJWT = Depends(),
+async def remove_buff(id: str, authorize: AuthJWT = Depends(),
                       db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     buff = await get_buff(db, id, farm_id)
 
@@ -356,10 +366,10 @@ async def remove_buff(id: str, Authorize: AuthJWT = Depends(),
 @router.get('/activities', include_in_schema=True, tags=['Activities'], deprecated=False)
 async def get_activities(
         delete: bool = None,
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     farm = get_farm_from_id(db, farm_id)
 
     result = {}
@@ -390,10 +400,10 @@ async def get_activities(
 @router.get('/activities/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
 async def get_buff_activities(
         id: str,
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     log = db.query(BuffActivityLogDatabase).get(id)
     if log is None:
         not_found_exception()
@@ -413,7 +423,7 @@ async def get_buff_activities(
 @router.delete('/activities/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
 async def delete_buff_activity(
         id: uuid.UUID,
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
     log = db.query(BuffActivityLogDatabase).get(id)
 
@@ -430,10 +440,10 @@ async def delete_buff_activity(
 
 @router.post('/breeding', include_in_schema=True, tags=['Breeding'])
 async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.as_form),
-                            Authorize: AuthJWT = Depends(),
+                            authorize: AuthJWT = Depends(),
                             db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     if form.buff_id == form.breeder_id:
         bad_request_exception()
@@ -488,10 +498,10 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
 async def edit_breeding_buff(
         id: str,
         form: BuffEditBreedingModel = Depends(BuffEditBreedingModel.as_form),
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     log = db.query(BuffActivityLogDatabase).get(id)
 
     if log is None:
@@ -559,10 +569,10 @@ async def edit_breeding_buff(
 
 @router.post('/return-estrus', include_in_schema=True, tags=['Return Estrus'])
 async def add_return_estrus_buff(form: BuffReturnEstrusModel = Depends(BuffReturnEstrusModel.as_form),
-                                 Authorize: AuthJWT = Depends(),
+                                 authorize: AuthJWT = Depends(),
                                  db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     breeding_database = db.query(BuffActivityLogDatabase).filter(
         BuffActivityLogDatabase.buff_id == form.buff_id).filter(
@@ -605,10 +615,10 @@ async def add_return_estrus_buff(form: BuffReturnEstrusModel = Depends(BuffRetur
 async def edit_return_estrus_buff(
         id: str,
         form: BuffEditReturnEstrusModel = Depends(BuffEditReturnEstrusModel.as_form),
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     log = db.query(BuffActivityLogDatabase).get(id)
 
@@ -648,10 +658,10 @@ async def edit_return_estrus_buff(
 
 @router.post('/vaccine_injection', include_in_schema=True, tags=['Vaccine Injection'])
 async def add_vaccine_injection_buff(form: BuffVaccineInjectionModel = Depends(BuffVaccineInjectionModel.as_form),
-                                     Authorize: AuthJWT = Depends(),
+                                     authorize: AuthJWT = Depends(),
                                      db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
     if buff is None:
@@ -692,10 +702,10 @@ async def add_vaccine_injection_buff(form: BuffVaccineInjectionModel = Depends(B
 async def edit_vaccine_injection_buff(
         id: str,
         form: BuffEditVaccineInjectionModel = Depends(BuffEditVaccineInjectionModel.as_form),
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     injection = db.query(BuffActivityLogDatabase).get(id)
 
     if injection is None:
@@ -765,10 +775,10 @@ async def edit_vaccine_injection_buff(
 
 @router.post('/deworming', include_in_schema=True, tags=['Deworming'])
 async def add_deworming_buff(form: BuffDewormingModel = Depends(BuffDewormingModel.as_form),
-                             Authorize: AuthJWT = Depends(),
+                             authorize: AuthJWT = Depends(),
                              db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
     if buff is None:
@@ -800,10 +810,10 @@ async def add_deworming_buff(form: BuffDewormingModel = Depends(BuffDewormingMod
 async def edit_deworming_buff(
         id: str,
         form: BuffEditDewormingModel = Depends(BuffEditDewormingModel.as_form),
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     log = db.query(BuffActivityLogDatabase).get(id)
 
     if log is None:
@@ -869,10 +879,10 @@ async def edit_deworming_buff(
 
 @router.post('/disease-treatment', include_in_schema=True, tags=['Disease Treatment'])
 async def add_disease_treatment_buff(form: BuffDiseaseTreatmentModel = Depends(BuffDiseaseTreatmentModel.as_form),
-                                     Authorize: AuthJWT = Depends(),
+                                     authorize: AuthJWT = Depends(),
                                      db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
 
     buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
     if buff is None:
@@ -900,10 +910,10 @@ async def add_disease_treatment_buff(form: BuffDiseaseTreatmentModel = Depends(B
 async def edit_disease_treatment_buff(
         id: str,
         form: BuffEditDiseaseTreatmentModel = Depends(BuffEditDiseaseTreatmentModel.as_form),
-        Authorize: AuthJWT = Depends(),
+        authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
-    await check_authorize(Authorize)
-    farm_id = Authorize.get_jwt_subject()
+    await check_authorize(authorize)
+    farm_id = authorize.get_jwt_subject()
     log = db.query(BuffActivityLogDatabase).get(id)
 
     if log is None:
@@ -1081,6 +1091,17 @@ def get_farm_from_email(db, email: str):
 
     if email is not None:
         database = database.filter(BuffFarmDatabase.email.contains(email))
+        farm = database.first()
+        return farm
+
+    return None
+
+
+def get_farm_from_token(db, token: str):
+    database = db.query(BuffFarmDatabase)
+
+    if token is not None:
+        database = database.filter(BuffFarmDatabase.token.contains(token))
         farm = database.first()
         return farm
 

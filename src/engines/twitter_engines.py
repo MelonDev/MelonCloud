@@ -35,9 +35,11 @@ class TweetMediaType(str, Enum):
 def test_client_mode():
     a = tweepy.Client(consumer_key=CONSUMER_KEY_V2, consumer_secret=CONSUMER_SECRET_V2, access_token=ACCESS_TOKEN_V2,
                       access_token_secret=ACCESS_TOKEN_SECRET_V2, bearer_token=BEARER_TOKEN_V2, wait_on_rate_limit=True)
+
     data = a.get_user(id='2274369025')
 
     print(data)
+
 
 
 def get_tweet_id_from_link(raw_url):

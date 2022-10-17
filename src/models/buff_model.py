@@ -58,15 +58,17 @@ class RegisterFarmForm(BaseModel):
     first_name: str
     last_name: str
     address: str
-    email: str
-    password: str
-    auth_token: str = None
+    email: str = None
+    password: str =None
+    token: str = None
+
 
 
 @as_form
 class BuffLoginForm(BaseModel):
-    email: str
-    password: str
+    email: str = None
+    password: str = None
+    token: str = None
 
 
 @as_form
