@@ -78,8 +78,8 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), a
                                 phone_number=form.phone_number, province=form.province, district=form.district,
                                 sub_district=form.sub_district)
 
-    access_token = authorize.create_access_token(subject=str(farm.id))
-    refresh_token = authorize.create_refresh_token(subject=str(farm.id))
+    access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
+    refresh_token = authorize.create_refresh_token(subject=str(farm.id), expires_time=datetime.timedelta(weeks=100))
 
     db.add(farm)
     db.commit()
@@ -106,8 +106,8 @@ async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), authorize:
     if not verify_password(plain_password=form.password, hashed_password=farm.password) and form.token is None:
         unauthorized_exception()
 
-    access_token = authorize.create_access_token(subject=str(farm.id))
-    refresh_token = authorize.create_refresh_token(subject=str(farm.id))
+    access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
+    refresh_token = authorize.create_refresh_token(subject=str(farm.id), expires_time=datetime.timedelta(weeks=100))
 
     authorize.set_access_cookies(access_token)
     authorize.set_refresh_cookies(refresh_token)
@@ -165,12 +165,21 @@ async def refresh(authorize: AuthJWT = Depends()):
         authorize.jwt_refresh_token_required()
 
         current_user = authorize.get_jwt_subject()
-        new_access_token = authorize.create_access_token(subject=current_user)
+        new_access_token = authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(days=7))
 
         authorize.set_access_cookies(new_access_token)
         return await verify_return(data={"msg": "The token has been refresh", "access_token": str(new_access_token)})
     except fastapi_jwt_auth.exceptions.MissingTokenError:
-        bad_request_exception(message="Missing Token")
+        unauthorized_exception(message="UNAUTHORIZED")
+        return await verify_return(data=None)
+    except fastapi_jwt_auth.exceptions.RefreshTokenRequired:
+        unauthorized_exception(message="REQUIRED REFRESH TOKEN")
+        return await verify_return(data=None)
+    except fastapi_jwt_auth.exceptions.FreshTokenRequired:
+        unauthorized_exception(message="FRESH TOKEN REQUIRED")
+        return await verify_return(data=None)
+    except fastapi_jwt_auth.exceptions.AuthJWTException:
+        unauthorized_exception(message="UNAUTHORIZED OR TOKEN IS EXPIRED")
         return await verify_return(data=None)
     except Exception as e:
         print(e)
@@ -1066,6 +1075,7 @@ async def check_authorize(authorize: AuthJWT):
     except fastapi_jwt_auth.exceptions.MissingTokenError:
         unauthorized_exception(message="UNAUTHORIZED")
         return await verify_return(data=None)
+
     except fastapi_jwt_auth.exceptions.AuthJWTException:
         unauthorized_exception(message="UNAUTHORIZED OR TOKEN IS EXPIRED")
         return await verify_return(data=None)
