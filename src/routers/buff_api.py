@@ -103,7 +103,7 @@ async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), authorize:
     if farm is None:
         not_found_exception()
 
-    if not verify_password(plain_password=form.password, hashed_password=farm.password):
+    if not verify_password(plain_password=form.password, hashed_password=farm.password) and form.token is None:
         unauthorized_exception()
 
     access_token = authorize.create_access_token(subject=str(farm.id))
