@@ -66,7 +66,7 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), a
     if isDuplicate(db, form.phone_number):
         duplicate_on_database_exception()
 
-    if form.auth_token is not None:
+    if form.token is not None:
         farm = BuffFarmDatabase(name=form.farm_name, token=form.token, first_name=form.first_name,
                                 last_name=form.last_name,
                                 address=form.address, phone_number=form.phone_number, province=form.province,
