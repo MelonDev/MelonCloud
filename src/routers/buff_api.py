@@ -1078,7 +1078,7 @@ async def check_authorize(authorize: AuthJWT):
 def isDuplicate(db, phone_number: str) -> bool:
     database = db.query(BuffFarmDatabase)
 
-    if email is not None:
+    if phone_number is not None:
         database = database.filter(BuffFarmDatabase.phone_number.contains(phone_number))
         if database.count() == 0:
             return False
