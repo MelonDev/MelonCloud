@@ -58,10 +58,10 @@ class RegisterFarmForm(BaseModel):
     first_name: str
     last_name: str
     phone_number: str
+    token: str
     address: str = None
     email: str = None
     password: str = None
-    token: str = None
     province: str = None
     district: str = None
     sub_district: str = None

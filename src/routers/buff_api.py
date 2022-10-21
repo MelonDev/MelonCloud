@@ -63,7 +63,7 @@ async def info(authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
 @router.post("/register", include_in_schema=True, tags=['Authentication'])
 async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), authorize: AuthJWT = Depends(),
                    db: Session = Depends(get_db)):
-    if isDuplicate(db, form.email):
+    if isDuplicate(db, form.phone_number):
         duplicate_on_database_exception()
 
     if form.auth_token is not None:
@@ -1205,4 +1205,4 @@ def not_modified_exception(message=None):
 def duplicate_on_database_exception(message=None):
     raise HTTPException(
         status_code=code.HTTP_302_FOUND,
-        detail=message if message is not None else "EMAIL ALREADY EXISTS")
+        detail=message if message is not None else "PHONE NUMBER ALREADY EXISTS")
