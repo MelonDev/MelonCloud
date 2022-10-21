@@ -69,11 +69,14 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), a
     if form.auth_token is not None:
         farm = BuffFarmDatabase(name=form.farm_name, token=form.token, first_name=form.first_name,
                                 last_name=form.last_name,
-                                address=form.address)
+                                address=form.address, phone_number=form.phone_number, province=form.province,
+                                district=form.district, sub_district=form.sub_district)
     else:
         farm = BuffFarmDatabase(name=form.farm_name, email=form.email, first_name=form.first_name,
                                 last_name=form.last_name,
-                                address=form.address, password=get_password_hash(form.password))
+                                address=form.address, password=get_password_hash(form.password),
+                                phone_number=form.phone_number, province=form.province, district=form.district,
+                                sub_district=form.sub_district)
 
     access_token = authorize.create_access_token(subject=str(farm.id))
     refresh_token = authorize.create_refresh_token(subject=str(farm.id))

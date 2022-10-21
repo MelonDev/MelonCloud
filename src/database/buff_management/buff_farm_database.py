@@ -20,7 +20,14 @@ class BuffFarmDatabase(BuffManagementDatabase):
     last_name = Column(Text, nullable=False)
 
     password = Column(Text, nullable=True)
+
+    phone_number = Column(Text, nullable=True, unique=True)
+
     address = Column(Text, nullable=True)
+    province = Column(Text, nullable=True)
+    district = Column(Text, nullable=True)
+    sub_district = Column(Text, nullable=True)
+
     token = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False)
@@ -29,10 +36,16 @@ class BuffFarmDatabase(BuffManagementDatabase):
 
     buffs = relationship("BuffDatabase", back_populates="farm")
 
-    def __init__(self, name,  first_name, last_name, password=None, address=None,email=None,token=None):
+    def __init__(self, name, first_name, last_name, phone_number, password=None, address=None, province=None,
+                 district=None,
+                 sub_district=None, email=None, token=None):
         self.id = uuid.uuid4()
         self.name = name
+        self.phone_number = phone_number
         self.address = address
+        self.province = province
+        self.district = district
+        self.sub_district = sub_district
         self.email = email
         self.token = token
         self.first_name = first_name
@@ -63,8 +76,14 @@ class BuffFarmDatabase(BuffManagementDatabase):
     def serialize(self):
         return {
             "farm_name": self.name,
-            "address": self.address,
+            "address": {
+                "data": self.address,
+                "province": self.province,
+                "district": self.district,
+                "sub_district": self.sub_district,
+            },
             "email": self.email,
+            "phone_number": self.phone_number
         }
 
     @property
@@ -74,6 +93,6 @@ class BuffFarmDatabase(BuffManagementDatabase):
             "address": self.address,
             "email": self.email,
             "auth_token": self.auth_token,
-            #"buffs": [buff.sub_serialize for buff in self.buffs]]
-            "buffs" : self.buffs
+            # "buffs": [buff.sub_serialize for buff in self.buffs]]
+            "buffs": self.buffs
         }
