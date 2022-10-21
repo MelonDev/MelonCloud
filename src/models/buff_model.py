@@ -57,16 +57,14 @@ class RegisterFarmForm(BaseModel):
     farm_name: str
     first_name: str
     last_name: str
-    address: str
-    email: str = None
-    password: str =None
-    token: str = None
     phone_number: str
+    address: str = None
+    email: str = None
+    password: str = None
+    token: str = None
     province: str = None
     district: str = None
     sub_district: str = None
-
-
 
 
 @as_form
@@ -159,6 +157,7 @@ class BuffVaccineInjectionModel(BaseModel):
     vaccine_duration: int = None
     date: datetime.date = None
     notify: bool
+
 
 @as_form
 class BuffEditVaccineInjectionModel(BaseModel):
