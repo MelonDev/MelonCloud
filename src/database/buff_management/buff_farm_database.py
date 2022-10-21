@@ -14,7 +14,7 @@ class BuffFarmDatabase(BuffManagementDatabase):
     __bind_key__ = 'buff_management'
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
-    email = Column(Text, nullable=False, unique=True)
+    email = Column(Text, nullable=True, unique=True)
     name = Column(Text, nullable=False)
     first_name = Column(Text, nullable=False)
     last_name = Column(Text, nullable=False)
