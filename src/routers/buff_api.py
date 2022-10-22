@@ -78,7 +78,9 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), a
                                 phone_number=form.phone_number, province=form.province, district=form.district,
                                 sub_district=form.sub_district)
 
-    access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
+    #access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
+    access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(seconds=1))
+
     refresh_token = authorize.create_refresh_token(subject=str(farm.id), expires_time=datetime.timedelta(weeks=100))
 
     db.add(farm)
@@ -106,7 +108,9 @@ async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), authorize:
     if not verify_password(plain_password=form.password, hashed_password=farm.password) and form.token is None:
         unauthorized_exception()
 
-    access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
+    #access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
+    access_token = authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(seconds=1))
+
     refresh_token = authorize.create_refresh_token(subject=str(farm.id), expires_time=datetime.timedelta(weeks=100))
 
     authorize.set_access_cookies(access_token)
@@ -165,7 +169,9 @@ async def refresh(authorize: AuthJWT = Depends()):
         authorize.jwt_refresh_token_required()
 
         current_user = authorize.get_jwt_subject()
-        new_access_token = authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(days=7))
+        new_access_token = authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(seconds=1))
+
+        #new_access_token = authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(days=7))
 
         authorize.set_access_cookies(new_access_token)
         return await verify_return(data={"msg": "The token has been refresh", "access_token": str(new_access_token)})
