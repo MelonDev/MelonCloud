@@ -298,7 +298,7 @@ async def edit_buff(id: str, form: EditBuffForm = Depends(EditBuffForm.as_form),
     if form.mother_id is not None:
         buff.mother_id = form.mother_id
         updated = True
-    if form.tag:
+    if form.tag is not None:
         buff.tag = form.tag
         updated = True
 
@@ -340,13 +340,17 @@ async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
 
     birth_date = convert_short_string_form_to_datetime(form.birth_date.strftime('%Y-%m-%d'))
     buff = BuffDatabase(name=form.name, gender=form.gender.name, birth_date=birth_date, farm_id=id)
-    if form.father_id:
+    if form.father_id is not None:
         buff.father_id = form.father_id
-    if form.mother_id:
+    if form.mother_id is not None:
         buff.mother_id = form.mother_id
-    if form.source:
+    if form.father_name is not None:
+        buff.father_name = form.father_name
+    if form.mother_name is not None:
+        buff.mother_name = form.mother_name
+    if form.source is not None:
         buff.source = form.source
-    if form.tag:
+    if form.tag is not None:
         buff.tag = form.tag
 
     buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(id)).all()
