@@ -79,7 +79,7 @@ async def register(form: RegisterFarmForm = Depends(RegisterFarmForm.as_form), A
                                 sub_district=form.sub_district)
 
     access_token = Authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
-    #access_token = Authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(seconds=15))
+    # access_token = Authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(seconds=15))
 
     refresh_token = Authorize.create_refresh_token(subject=str(farm.id), expires_time=datetime.timedelta(weeks=100))
 
@@ -109,7 +109,7 @@ async def login(form: BuffLoginForm = Depends(BuffLoginForm.as_form), Authorize:
         unauthorized_exception()
 
     access_token = Authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(days=7))
-    #access_token = Authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(seconds=15))
+    # access_token = Authorize.create_access_token(subject=str(farm.id), expires_time=datetime.timedelta(seconds=15))
 
     refresh_token = Authorize.create_refresh_token(subject=str(farm.id), expires_time=datetime.timedelta(weeks=100))
 
@@ -169,7 +169,7 @@ async def refresh(Authorize: AuthJWT = Depends()):
         Authorize.jwt_refresh_token_required()
 
         current_user = Authorize.get_jwt_subject()
-        #new_access_token = Authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(seconds=15))
+        # new_access_token = Authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(seconds=15))
 
         new_access_token = Authorize.create_access_token(subject=current_user, expires_time=datetime.timedelta(days=7))
 
