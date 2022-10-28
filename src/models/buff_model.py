@@ -103,7 +103,9 @@ class AddBuffForm(BaseModel):
     gender: BuffGender
     birth_date: datetime.date = None
     father_id: UUID = None
+    father_name: str = None
     mother_id: UUID = None
+    mother_name: str = None
     source: str = None
 
 
