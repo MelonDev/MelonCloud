@@ -23,9 +23,9 @@ class BuffDatabase(BuffManagementDatabase):
 
     birth_date = Column(DateTime(timezone=True), nullable=False)
     father_id = Column(UUID(as_uuid=True), nullable=True)
-    father_name = Column(UUID(as_uuid=True), nullable=True)
+    father_name = Column(Text, nullable=True)
     mother_id = Column(UUID(as_uuid=True), nullable=True)
-    mother_name = Column(UUID(as_uuid=True), nullable=True)
+    mother_name = Column(Text, nullable=True)
 
     farm_id = Column(UUID(as_uuid=True), ForeignKey("Buff_Farm_Database.id"), nullable=False)
     gender = Column(Text, nullable=False)
