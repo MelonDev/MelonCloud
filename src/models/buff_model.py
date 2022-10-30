@@ -107,6 +107,7 @@ class AddBuffForm(BaseModel):
     mother_id: UUID = None
     mother_name: str = None
     source: str = None
+    image_url: str = None
 
 
 @as_form

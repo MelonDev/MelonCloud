@@ -352,6 +352,8 @@ async def add_buff(form: AddBuffForm = Depends(AddBuffForm.as_form),
         buff.source = form.source
     if form.tag is not None:
         buff.tag = form.tag
+    if form.image_url is not None:
+        buff.image_url = form.image_url
 
     buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(id)).all()
     buffs.append(buff)
