@@ -57,7 +57,9 @@ class BuffDatabase(BuffManagementDatabase):
             # "birth_date": convert_date_to_string(self.birth_date),
             "birth_date": self.birth_date.date(),
             "father_id": self.father_id,
+            "father_name": self.father_name,
             "mother_id": self.mother_id,
+            "mother_name": self.mother_name,
             "source": self.source,
             "image_url": self.image_url,
         }
