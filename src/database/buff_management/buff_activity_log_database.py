@@ -96,6 +96,7 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
     def deworming_serialize(self):
         return {
             "id": self.id,
+            "name": self.name,
             "anthelmintic_drug_name": self.value,
             "next_deworming_duration": self.secondary_value,
             "next_deworming_date": self.datetime_value,
@@ -109,6 +110,7 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
         obj = json.loads(str(self.secondary_value))
         return {
             "id": self.id,
+            "name": self.name,
             "disease_name": self.value,
             "symptom": obj['symptom'],
             "drugs": obj['drugs'],

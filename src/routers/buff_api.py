@@ -397,29 +397,66 @@ async def get_activities(
     for buff in farm.buffs:
         for activity in buff.activity:
             if activity.name == 'BREEDING':
-                append_activities(result, activity.name.lower(), activity.breeding_serialize,
+                append_activities(result, activity.name.upper(), activity.breeding_serialize,
                                   activity_delete=activity.delete, delete=delete)
             elif activity.name == "RETURN_ESTRUS":
-                append_activities(result, activity.name.lower(), activity.return_estrus_serialize,
+                append_activities(result, activity.name.upper(), activity.return_estrus_serialize,
                                   activity_delete=activity.delete, delete=delete)
             elif activity.name == "VACCINE_INJECTION":
-                append_activities(result, activity.name.lower(), activity.vaccine_injection_serialize,
+                append_activities(result, activity.name.upper(), activity.vaccine_injection_serialize,
                                   activity_delete=activity.delete, delete=delete)
             elif activity.name == "DEWORMING":
-                append_activities(result, activity.name.lower(), activity.deworming_serialize,
+                append_activities(result, activity.name.upper(), activity.deworming_serialize,
                                   activity_delete=activity.delete, delete=delete)
             elif activity.name == "DISEASE_TREATMENT":
-                append_activities(result, activity.name.lower(), activity.disease_treatment_serialize,
+                append_activities(result, activity.name.upper(), activity.disease_treatment_serialize,
                                   activity_delete=activity.delete, delete=delete)
             else:
-                append_activities(result, "other", activity.sub_serialize, activity_delete=activity.delete,
+                append_activities(result, "OTHER", activity.sub_serialize, activity_delete=activity.delete,
                                   delete=delete)
 
     return await verify_return(ResponseModel(data=result))
 
 
-@router.get('/activities/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
+@router.get('/activities/buff/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
 async def get_buff_activities(
+        id: uuid.UUID,
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    # farm_id = Authorize.get_jwt_subject()
+    logs = db.query(BuffActivityLogDatabase).filter(BuffActivityLogDatabase.buff_id == id).all()
+    buff = None
+    results_logs = []
+    result = {}
+
+    if len(logs) > 0:
+        buff = logs[0].buff
+        for log in logs:
+            if log.name == "BREEDING":
+                results_log = log.breeding_serialize
+            elif log.name == "RETURN_ESTRUS":
+                results_log = log.return_estrus_serialize
+            elif log.name == "VACCINE_INJECTION":
+                results_log = log.vaccine_injection_serialize
+            elif log.name == "DEWORMING":
+                results_log = log.deworming_serialize
+            elif log.name == "DISEASE_TREATMENT":
+                results_log = log.disease_treatment_serialize
+            else:
+                results_log = log.sub_serialize
+            results_logs.append(results_log)
+        result['buff'] = buff.sub_serialize
+        result['log'] = results_logs
+    else:
+        result['buff'] = None
+        result['log'] = []
+
+    return await verify_return(ResponseModel(data=result))
+
+
+@router.get('/activities/log/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
+async def get_buff_log_activities(
         id: str,
         Authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
@@ -441,8 +478,8 @@ async def get_buff_activities(
     return await verify_return(ResponseModel(data=result))
 
 
-@router.delete('/activities/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
-async def delete_buff_activity(
+@router.delete('/activities/log/{id}', include_in_schema=True, tags=['Activities'], deprecated=False)
+async def delete_buff_log_activity(
         id: uuid.UUID,
         Authorize: AuthJWT = Depends(),
         db: Session = Depends(get_db)):
@@ -1009,20 +1046,29 @@ def delete_notify_on_database(db, activity_id):
 def get_buff_response(buff):
     result = buff.serialize
     result['farm'] = buff.farm.serialize
+    activities = []
     for i in buff.activity:
         rechecking_activities_path_available(result)
         if i.name == 'BREEDING':
-            append_to_activities(result, i.name.lower(), i.breeding_serialize)
+            serialize = i.breeding_serialize
+            append_to_activities(result, i.name.upper(), i.breeding_serialize)
         elif i.name == 'RETURN_ESTRUS':
-            append_to_activities(result, i.name.lower(), i.return_estrus_serialize)
+            serialize = i.return_estrus_serialize
+            append_to_activities(result, i.name.upper(), i.return_estrus_serialize)
         elif i.name == 'VACCINE_INJECTION':
-            append_to_activities(result, i.name.lower(), i.vaccine_injection_serialize)
+            serialize = i.vaccine_injection_serialize
+            append_to_activities(result, i.name.upper(), i.vaccine_injection_serialize)
         elif i.name == 'DEWORMING':
-            append_to_activities(result, i.name.lower(), i.deworming_serialize)
+            serialize = i.deworming_serialize
+            append_to_activities(result, i.name.upper(), i.deworming_serialize)
         elif i.name == 'DISEASE_TREATMENT':
-            append_to_activities(result, i.name.lower(), i.disease_treatment_serialize)
+            serialize = i.disease_treatment_serialize
+            append_to_activities(result, i.name.upper(), i.disease_treatment_serialize)
         else:
-            append_to_activities(result, "other", i.sub_serialize)
+            serialize = i.sub_serialize
+            append_to_activities(result, "OTHER", i.sub_serialize)
+        activities.append(serialize)
+    result['history'] = activities
     return ResponseModel(data=result)
 
 
