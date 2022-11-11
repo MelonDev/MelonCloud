@@ -124,7 +124,8 @@ class EditBuffForm(BaseModel):
 class BuffBreedingModel(BaseModel):
     buff_id: UUID
     artificial_insemination: bool = None
-    breeder_id: UUID
+    breeder_name :str
+    breeder_id: UUID = None
     date: datetime.date = None
     notify: bool = None
 
