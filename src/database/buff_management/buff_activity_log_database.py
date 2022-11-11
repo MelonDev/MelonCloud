@@ -56,6 +56,8 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
         return {
             "id": self.id,
             "name": self.name,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
             "artificial_insemination": self.bool_value,
             # "datetime": convert_date_to_string(self.datetime_value),
             "date": self.datetime_value.date(),
@@ -69,6 +71,8 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
         return {
             "id": self.id,
             "name": self.name,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
             "estrus_message": self.value,
             "estrus_result": self.bool_value,
             "date": self.datetime_value.date(),
@@ -83,6 +87,8 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
         return {
             "id": self.id,
             "name": self.name,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
             "vaccine_name": self.value,
             "vaccine_key": x[0],
             "vaccine_duration": int(x[1]),
@@ -97,6 +103,8 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
         return {
             "id": self.id,
             "name": self.name,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
             "anthelmintic_drug_name": self.value,
             "next_deworming_duration": self.secondary_value,
             "next_deworming_date": self.datetime_value,
@@ -111,6 +119,8 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
         return {
             "id": self.id,
             "name": self.name,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
             "disease_name": self.value,
             "symptom": obj['symptom'],
             "drugs": obj['drugs'],
@@ -137,6 +147,7 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
     @property
     def sub_serialize(self):
         return {
+            "id": self.id,
             "name": self.name,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -147,4 +158,5 @@ class BuffActivityLogDatabase(BuffManagementDatabase):
             "date": self.datetime_value.date(),
             "refer_id": self.refer_id,
             "status": self.status,
+            "delete": self.delete
         }
