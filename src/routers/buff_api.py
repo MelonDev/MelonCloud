@@ -520,7 +520,7 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
         bad_request_exception("MALE CAN'T NOT BREEDING")
 
     if count_of_breeding > 0:
-        bad_request_exception(f"'{buff.name}' in the process of breeding, Cannot be added")
+        not_acceptable_exception(f"'{buff.name}' in the process of breeding, Cannot be added")
 
     log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value=form.breeder_name)
     log.bool_value = form.artificial_insemination if form.artificial_insemination is not None else False
@@ -1259,6 +1259,12 @@ def bad_request_exception(message=None):
     raise HTTPException(
         status_code=code.HTTP_400_BAD_REQUEST,
         detail=message if message is not None else "BAD REQUEST")
+
+
+def not_acceptable_exception(message=None):
+    raise HTTPException(
+        status_code=code.HTTP_406_NOT_ACCEPTABLE,
+        detail=message if message is not None else "NOT ACCEPTABLE")
 
 
 def not_found_exception(message=None):
