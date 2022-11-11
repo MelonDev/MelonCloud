@@ -525,6 +525,8 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
     log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value=form.breeder_name)
     log.bool_value = form.artificial_insemination if form.artificial_insemination is not None else False
     breeder_buff = None
+    print(form.breeder_id)
+
     if form.breeder_id is not None:
         breeder_buff = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
     elif form.breeder_name is not None:
@@ -550,8 +552,7 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
     result = log.breeding_serialize
     result['buff'] = buff.sub_serialize
     if log.refer_id is not None:
-        breeder = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
-        result['breeder'] = breeder.sub_serialize
+        result['breeder'] = breeder_buff.sub_serialize
 
     return await verify_return(ResponseModel(data=result))
 
@@ -1133,7 +1134,7 @@ async def get_buff(db, id, farm_id):
 
 async def get_buff_by_name(db, name, farm_id):
     buff = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).filter(
-        BuffDatabase.name == name).first()
+        BuffDatabase.name.ilike(name)).first()
 
     if buff is None:
         not_found_exception()
