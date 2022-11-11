@@ -15,6 +15,7 @@ class BuffNotifyDatabase(BuffManagementDatabase):
 
     id = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4, nullable=False)
     activity_id = Column(UUID(as_uuid=True), ForeignKey('Buff_Activity_Log_Database.id'), nullable=False)
+    farm_id = Column(UUID(as_uuid=True), nullable=False)
 
     status = Column(Boolean, default=True)
     datetime = Column(DateTime(timezone=True), nullable=False)
@@ -24,8 +25,9 @@ class BuffNotifyDatabase(BuffManagementDatabase):
 
     activity = relationship("BuffActivityLogDatabase", back_populates="notify")
 
-    def __init__(self, activity_id, datetime, value, category):
+    def __init__(self, activity_id, datetime, value, farm_id, category):
         self.id = uuid.uuid4()
+        self.farm_id = farm_id
         self.activity_id = activity_id
         self.datetime = datetime
         self.value = value
@@ -37,6 +39,7 @@ class BuffNotifyDatabase(BuffManagementDatabase):
             "id": self.id,
             "value": self.value,
             "category": self.category,
+            # "farm_id": self.farm_id,
             # "notify_datetime": convert_datetime_to_string(self.notify_datetime),
             "notify_datetime": self.notify_datetime.date(),
             "status": self.status

@@ -508,7 +508,8 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
 
     count_of_breeding = db.query(BuffActivityLogDatabase).filter(
         BuffActivityLogDatabase.buff_id == form.buff_id).filter(
-        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).filter(BuffActivityLogDatabase.status.is_(True)).count()
+        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).filter(
+        BuffActivityLogDatabase.status.is_(True)).count()
 
     breeding_datetime = form.date if form.date is not None else current_datetime()
 
@@ -544,7 +545,7 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
 
     if form.notify is not None:
         if form.notify:
-            create_notify_to_database(db, activity_id=log.id, date=form.date, value="RETURN_ESTRUS",
+            create_notify_to_database(db, activity_id=log.id, farm_id=farm_id, date=form.date, value="RETURN_ESTRUS",
                                       category="BREEDING", days=21)
 
     db.commit()
@@ -606,7 +607,7 @@ async def edit_breeding_buff(
             updated = True
 
         elif notify is None and form.notify:
-            create_notify_to_database(db, activity_id=log.id, date=form.date, value="RETURN_ESTRUS",
+            create_notify_to_database(db, activity_id=log.id, farm_id=farm_id, date=form.date, value="RETURN_ESTRUS",
                                       category="BREEDING", days=21)
             updated = True
 
@@ -639,7 +640,8 @@ async def add_return_estrus_buff(form: BuffReturnEstrusModel = Depends(BuffRetur
 
     breeding_database = db.query(BuffActivityLogDatabase).filter(
         BuffActivityLogDatabase.buff_id == form.buff_id).filter(
-        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).filter(BuffActivityLogDatabase.status.is_(True))
+        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).filter(
+        BuffActivityLogDatabase.status.is_(True))
 
     buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
     if buff is None:
@@ -666,7 +668,8 @@ async def add_return_estrus_buff(form: BuffReturnEstrusModel = Depends(BuffRetur
     if not form.estrus_result:
         if form.notify is not None:
             if form.notify:
-                create_notify_to_database(db, activity_id=return_estrus.id, date=breeding.datetime_value, value="BIRTH",
+                create_notify_to_database(db, activity_id=return_estrus.id, farm_id=farm_id,
+                                          date=breeding.datetime_value, value="BIRTH",
                                           category="RETURN_ESTRUS", days=310)
     db.commit()
 
@@ -706,7 +709,8 @@ async def edit_return_estrus_buff(
             updated = True
         elif notify is None and form.notify:
             if not form.estrus_result:
-                create_notify_to_database(db, activity_id=log.id, date=log.datetime_value, value="BIRTH",
+                create_notify_to_database(db, activity_id=log.id, farm_id=farm_id, date=log.datetime_value,
+                                          value="BIRTH",
                                           category="RETURN_ESTRUS")
                 updated = True
 
@@ -752,7 +756,8 @@ async def add_vaccine_injection_buff(form: BuffVaccineInjectionModel = Depends(B
 
     if form.notify is not None:
         if form.notify:
-            create_notify_to_database(db, activity_id=injection.id, date=injection.datetime_value, value="INJECTION",
+            create_notify_to_database(db, activity_id=injection.id, farm_id=farm_id, date=injection.datetime_value,
+                                      value="INJECTION",
                                       category="VACCINE_INJECTION")
 
     db.commit()
@@ -818,7 +823,8 @@ async def edit_vaccine_injection_buff(
             updated = True
 
         elif notify is None and form.notify:
-            create_notify_to_database(db, activity_id=injection.id, date=injection.datetime_value, value="INJECTION",
+            create_notify_to_database(db, activity_id=injection.id, farm_id=farm_id, date=injection.datetime_value,
+                                      value="INJECTION",
                                       category="VACCINE_INJECTION")
             updated = True
 
@@ -856,7 +862,7 @@ async def add_deworming_buff(form: BuffDewormingModel = Depends(BuffDewormingMod
         log.datetime_value = next_datetime
         if form.notify is not None:
             if form.notify:
-                create_notify_to_database(db, activity_id=log.id, date=log.datetime_value,
+                create_notify_to_database(db, activity_id=log.id, farm_id=farm_id, date=log.datetime_value,
                                           value="NEXT_DEWORMING",
                                           category="DEWORMING")
     else:
@@ -919,7 +925,8 @@ async def edit_deworming_buff(
                 updated = True
 
             elif notify is None and form.notify:
-                create_notify_to_database(db, activity_id=log.id, date=log.datetime_value, value="NEXT_DEWORMING",
+                create_notify_to_database(db, activity_id=log.id, farm_id=farm_id, date=log.datetime_value,
+                                          value="NEXT_DEWORMING",
                                           category="DEWORMING")
                 updated = True
         else:
@@ -1007,21 +1014,31 @@ async def edit_disease_treatment_buff(
     return await verify_return(ResponseModel(data=result))
 
 
-def initial_notify(activity_id, datetime, value, category):
+@router.get('/notifications', include_in_schema=True, tags=['Notification'], deprecated=False)
+async def get_notifications(
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    notifications = db.query(BuffNotifyDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).all()
+    return await verify_return(ResponseModel(data=notifications))
+
+
+def initial_notify(activity_id, farm_id, datetime, value, category):
     return BuffNotifyDatabase(activity_id=activity_id, datetime=datetime, value=value,
-                              category=category)
+                              category=category, farm_id=farm_id)
 
 
 def get_notify_from_database(db, activity_id):
     return db.query(BuffNotifyDatabase).filter(BuffNotifyDatabase.activity_id == activity_id).first()
 
 
-def create_notify_to_database(db, date, activity_id, value, category, days=0, schedule=None):
+def create_notify_to_database(db, date, activity_id, farm_id, value, category, days=0, schedule=None):
     breeding_datetime = date if date is not None else current_datetime()
 
     notify_date = breeding_datetime + datetime.timedelta(days=days)
 
-    notify = initial_notify(activity_id=activity_id, datetime=notify_date, value=value,
+    notify = initial_notify(activity_id=activity_id, farm_id=farm_id, datetime=notify_date, value=value,
                             category=category)
     if schedule is not None:
         notify.schedule = str(schedule)
