@@ -143,6 +143,7 @@ class BuffReturnEstrusModel(BaseModel):
     buff_id: UUID
     estrus_result: bool
     message_result: str = None
+    date: datetime.date = None
     notify: bool
 
 
