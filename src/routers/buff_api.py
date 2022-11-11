@@ -1020,8 +1020,32 @@ async def get_notifications(
         db: Session = Depends(get_db)):
     await check_authorize(Authorize)
     farm_id = Authorize.get_jwt_subject()
-    notifications = db.query(BuffNotifyDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).all()
-    return await verify_return(ResponseModel(data=notifications))
+    notifications = db.query(BuffNotifyDatabase).filter(BuffNotifyDatabase.farm_id == uuid.UUID(farm_id)).all()
+
+    result = []
+    for i in notifications:
+        data = i.serialize
+        activity = i.activity
+
+        if activity.name == "BREEDING":
+            data['activity'] = activity.breeding_serialize
+        elif activity.name == "RETURN_ESTRUS":
+            data['activity'] = activity.return_estrus_serialize
+        elif activity.name == "VACCINE_INJECTION":
+            data['activity'] = activity.vaccine_injection_serialize
+        elif activity.name == "DEWORMING":
+            data['activity'] = activity.deworming_serialize
+        elif activity.name == "DISEASE_TREATMENT":
+            data['activity'] = activity.disease_treatment_serialize
+        else:
+            data['activity'] = activity.sub_serialize
+        del data['activity']['notify']
+
+        data['buff'] = i.activity.buff.serialize
+
+        result.append(data)
+
+    return await verify_return(ResponseModel(data=result))
 
 
 def initial_notify(activity_id, farm_id, datetime, value, category):

@@ -41,6 +41,6 @@ class BuffNotifyDatabase(BuffManagementDatabase):
             "category": self.category,
             # "farm_id": self.farm_id,
             # "notify_datetime": convert_datetime_to_string(self.notify_datetime),
-            "notify_datetime": self.notify_datetime.date(),
+            "notify_datetime": self.datetime.date(),
             "status": self.status
         }
