@@ -508,7 +508,7 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
 
     count_of_breeding = db.query(BuffActivityLogDatabase).filter(
         BuffActivityLogDatabase.buff_id == form.buff_id).filter(
-        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).count()
+        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).filter(BuffActivityLogDatabase.status.is_(True)).count()
 
     breeding_datetime = form.date if form.date is not None else current_datetime()
 
