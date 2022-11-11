@@ -639,14 +639,14 @@ async def add_return_estrus_buff(form: BuffReturnEstrusModel = Depends(BuffRetur
 
     breeding_database = db.query(BuffActivityLogDatabase).filter(
         BuffActivityLogDatabase.buff_id == form.buff_id).filter(
-        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False))
+        BuffActivityLogDatabase.name.contains("BREEDING")).filter(BuffActivityLogDatabase.delete.is_(False)).filter(BuffActivityLogDatabase.status.is_(True))
 
     buff = await get_buff(db=db, id=form.buff_id, farm_id=farm_id)
     if buff is None:
         not_found_exception()
 
     if breeding_database.count() == 0:
-        bad_request_exception(f"{buff.name} not in the process of breeding")
+        not_acceptable_exception(f"{buff.name} not in the process of breeding")
 
     breeding = breeding_database.first()
     return_estrus = BuffActivityLogDatabase(buff_id=buff.id, name="RETURN_ESTRUS", value=form.message_result)
