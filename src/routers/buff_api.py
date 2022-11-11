@@ -522,10 +522,14 @@ async def add_breeding_buff(form: BuffBreedingModel = Depends(BuffBreedingModel.
     if count_of_breeding > 0:
         bad_request_exception(f"'{buff.name}' in the process of breeding, Cannot be added")
 
-    log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value=None)
+    log = BuffActivityLogDatabase(buff_id=buff.id, name="BREEDING", value=form.breeder_name)
     log.bool_value = form.artificial_insemination if form.artificial_insemination is not None else False
+    breeder_buff = None
+    if form.breeder_id is not None:
+        breeder_buff = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
+    elif form.breeder_name is not None:
+        breeder_buff = await get_buff_by_name(db=db, name=form.breeder_name, farm_id=farm_id)
 
-    breeder_buff = await get_buff(db=db, id=form.breeder_id, farm_id=farm_id)
     if breeder_buff is None:
         not_found_exception()
     if breeder_buff.gender == "FEMALE":
@@ -1120,6 +1124,17 @@ def append_activities(result, key, value, activity_delete, delete):
 
 async def get_buff(db, id, farm_id):
     buff = db.query(BuffDatabase).get(id)
+    if buff is None:
+        not_found_exception()
+    if buff.farm_id != uuid.UUID(farm_id):
+        not_found_exception()
+    return buff
+
+
+async def get_buff_by_name(db, name, farm_id):
+    buff = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).filter(
+        BuffDatabase.name == name).first()
+
     if buff is None:
         not_found_exception()
     if buff.farm_id != uuid.UUID(farm_id):
