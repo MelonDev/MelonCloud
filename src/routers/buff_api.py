@@ -1024,11 +1024,29 @@ async def get_summary(
 
     buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id))
 
-    result = {"FARM": farm, 'BUFFS': {
-        "TOTAL": buffs.count(),
-        "MALE": buffs.filter(BuffDatabase.gender == "MALE").count(),
-        "FEMALE": buffs.filter(BuffDatabase.gender == "FEMALE").count(),
-    }}
+    result = {
+        "FARM": farm,
+        'BUFFS': {
+            "TOTAL": buffs.count(),
+            "MALE": buffs.filter(BuffDatabase.gender == "MALE").count(),
+            "FEMALE": buffs.filter(BuffDatabase.gender == "FEMALE").count(),
+        },
+        "ACTIVITIES": {
+            "BREEDING": 0,
+            "RETURN_ESTRUS": 0,
+            "VACCINE_INJECTION": 0,
+            "DEWORMING": 0,
+            "DISEASE_TREATMENT": 0,
+            "OTHER": 0
+        }
+    }
+
+    activities = db.query(BuffActivityLogDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).filter(
+        BuffActivityLogDatabase.delete.is_(False)).filter(
+        BuffActivityLogDatabase.status.is_(True)).all()
+
+    for i in activities:
+        result['ACTIVITIES'][i.name] += 1
 
     return await verify_return(ResponseModel(data=result))
 
