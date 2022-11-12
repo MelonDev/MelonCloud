@@ -1014,6 +1014,23 @@ async def edit_disease_treatment_buff(
     return await verify_return(ResponseModel(data=result))
 
 
+@router.get('/summary', include_in_schema=True, tags=['Summary'], deprecated=False)
+async def get_summary(
+        Authorize: AuthJWT = Depends(),
+        db: Session = Depends(get_db)):
+    await check_authorize(Authorize)
+    farm_id = Authorize.get_jwt_subject()
+    buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id))
+
+    result = {'buffs': {
+        "TOTAL": buffs.count(),
+        "MALE": buffs.filter(BuffDatabase.gender == "MALE").count(),
+        "FEMALE": buffs.filter(BuffDatabase.gender == "FEMALE").count(),
+    }}
+
+    return await verify_return(ResponseModel(data=result))
+
+
 @router.get('/notifications', include_in_schema=True, tags=['Notification'], deprecated=False)
 async def get_notifications(
         Authorize: AuthJWT = Depends(),
