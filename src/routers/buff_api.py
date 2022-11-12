@@ -1022,7 +1022,7 @@ async def get_summary(
     farm_id = Authorize.get_jwt_subject()
     buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id))
 
-    result = {'buffs': {
+    result = {'BUFFS': {
         "TOTAL": buffs.count(),
         "MALE": buffs.filter(BuffDatabase.gender == "MALE").count(),
         "FEMALE": buffs.filter(BuffDatabase.gender == "FEMALE").count(),
