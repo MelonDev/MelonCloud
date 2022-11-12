@@ -1022,7 +1022,8 @@ async def get_summary(
     farm_id = Authorize.get_jwt_subject()
     farm = db.query(BuffFarmDatabase).get(farm_id)
 
-    buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id))
+    buffs = db.query(BuffDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).filter(
+        BuffDatabase.delete.is_(False))
 
     result = {
         "FARM": farm,
@@ -1041,7 +1042,8 @@ async def get_summary(
         }
     }
 
-    activities = db.query(BuffActivityLogDatabase).filter(BuffActivityLogDatabase.farm_id == uuid.UUID(farm_id)).filter(
+    activities = db.query(BuffActivityLogDatabase).filter(
+        BuffActivityLogDatabase.buff.has(farm_id=uuid.UUID(farm_id))).filter(
         BuffActivityLogDatabase.delete.is_(False)).filter(
         BuffActivityLogDatabase.status.is_(True)).all()
 
