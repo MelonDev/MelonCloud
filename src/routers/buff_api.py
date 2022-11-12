@@ -1041,7 +1041,7 @@ async def get_summary(
         }
     }
 
-    activities = db.query(BuffActivityLogDatabase).filter(BuffDatabase.farm_id == uuid.UUID(farm_id)).filter(
+    activities = db.query(BuffActivityLogDatabase).filter(BuffActivityLogDatabase.farm_id == uuid.UUID(farm_id)).filter(
         BuffActivityLogDatabase.delete.is_(False)).filter(
         BuffActivityLogDatabase.status.is_(True)).all()
 
